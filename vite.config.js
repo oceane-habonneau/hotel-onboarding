@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/hotel-onboarding/', // ← ton nom de repo exact
+  base: '/hotel-onboarding/', // ← nom exact de ton repo
 })
