@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout du code
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📦 Installation des dépendances
+        run: npm install
+
+      - name: 🔨 Build du projet
+        run: npm run build
+
+      - name: 🚀 Déploiement sur GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+```
+
+---
+
+## Ce que ça fait automatiquement
+```
+Tu modifies un fichier sur GitHub
+            │
+            │  push sur main (automatique)
+            ▼
+    GitHub Actions se déclenche
+            │
+            ├── npm install
+            ├── npm run build
+            └── pousse dist/ sur gh-pages
+                        │
+                        ▼
+        🌍 Site live mis à jour en ~1 minute
