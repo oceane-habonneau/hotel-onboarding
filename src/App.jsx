@@ -1,3 +1,6 @@
+import { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
+
 const STORAGE_KEY = "hotel-onboarding-v2";
 function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch { } }
 function loadData() { try { const d = localStorage.getItem(STORAGE_KEY); return d ? JSON.parse(d) : null; } catch { return null; } }
