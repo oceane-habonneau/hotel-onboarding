@@ -232,12 +232,18 @@ function SectionIdentity({ data, setData }) {
   const u = (k,v) => setData(p=>({ ...p, identity:{ ...p.identity, [k]:v } }));
   const d = data.identity;
   const [newPart, setNewPart] = useState({ nom:"", id:"", mdp:"" });
+  const [showMdp, setShowMdp] = useState(false);
+  const [revealIdx, setRevealIdx] = useState(null);
   const addPartenaire = () => {
     if (!newPart.nom.trim()) return;
     u("partenaires", [...(d.partenaires||[]), {...newPart}]);
     setNewPart({ nom:"", id:"", mdp:"" });
+    setShowMdp(false);
   };
-  const delPartenaire = (i) => u("partenaires", (d.partenaires||[]).filter((_,idx)=>idx!==i));
+  const delPartenaire = (i) => {
+    u("partenaires", (d.partenaires||[]).filter((_,idx)=>idx!==i));
+    if (revealIdx===i) setRevealIdx(null);
+  };
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <SectionTitle icon="🏢" title="Identité juridique & commerciale" subtitle="Informations légales, coordonnées et identifiants" badge={d.enseigne||"Mon établissement"} />
@@ -285,20 +291,44 @@ function SectionIdentity({ data, setData }) {
       {/* Distribution */}
       <Card form>
         <p style={{ fontSize:11, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 14px" }}>Distribution & Partenaires</p>
+
+        {/* Avertissement sécurité */}
+        <div style={{ display:"flex", alignItems:"flex-start", gap:8, background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" style={{ flexShrink:0, marginTop:1 }}><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <p style={{ fontSize:12, fontWeight:700, color:"#f59e0b", margin:"0 0 2px", fontFamily:T.font }}>Conseil de sécurité</p>
+            <p style={{ fontSize:12, color:"#92400e", margin:0, fontFamily:T.font, lineHeight:1.5 }}>
+              Les mots de passe sont masqués à l'affichage mais stockés localement sur cet appareil. Pour une sécurité maximale, utilisez un gestionnaire dédié (Bitwarden, 1Password) et ne renseignez ici que si vous êtes sur un appareil personnel sécurisé.
+            </p>
+          </div>
+        </div>
+
         <div style={{ marginBottom:14 }}>
           <Label>Lien Drive (photos / logos)</Label>
           <Input value={d.lienDrive} onChange={v=>u("lienDrive",v)} placeholder="https://drive.google.com/..."/>
         </div>
 
-        {/* Liste partenaires existants */}
+        {/* Liste partenaires */}
         {(d.partenaires||[]).length>0&&(
           <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:14 }}>
             {(d.partenaires||[]).map((p,i)=>(
               <div key={i} style={{ background:"rgba(255,255,255,0.04)", border:`1px solid ${T.border}`, borderRadius:8, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
                 <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
                   <span style={{ fontWeight:700, color:T.textPrim, fontSize:13, fontFamily:T.font }}>{p.nom}</span>
-                  {p.id&&<Chip color={T.blue}>ID: {p.id}</Chip>}
-                  {p.mdp&&<span style={{ fontSize:11, color:T.textMuted, fontFamily:T.font }}>🔒 MDP enregistré</span>}
+                  {p.id&&<Chip color={T.blue}>ID : {p.id}</Chip>}
+                  {p.mdp&&(
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <span style={{ fontSize:12, color:T.textMuted, fontFamily:T.font, letterSpacing:"0.15em" }}>
+                        {revealIdx===i ? p.mdp : "••••••••"}
+                      </span>
+                      <button type="button" onClick={()=>setRevealIdx(revealIdx===i?null:i)} style={{ background:"none", border:"none", cursor:"pointer", padding:"2px 4px", color:T.textMuted, display:"flex", alignItems:"center" }} title={revealIdx===i?"Masquer":"Afficher"}>
+                        {revealIdx===i
+                          ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        }
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <Btn onClick={()=>delPartenaire(i)} variant="danger" small>✕</Btn>
               </div>
@@ -309,7 +339,7 @@ function SectionIdentity({ data, setData }) {
         {/* Formulaire ajout partenaire */}
         <div style={{ background:"rgba(139,92,246,0.06)", border:`1px solid rgba(139,92,246,0.2)`, borderRadius:10, padding:14 }}>
           <p style={{ fontSize:11, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 10px" }}>+ Ajouter un partenaire (OTA / logiciel)</p>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:6 }}>
             <Field label="Nom du partenaire">
               <Input value={newPart.nom} onChange={v=>setNewPart(p=>({...p,nom:v}))} placeholder="Booking.com, Expedia…"/>
             </Field>
@@ -317,9 +347,29 @@ function SectionIdentity({ data, setData }) {
               <Input value={newPart.id} onChange={v=>setNewPart(p=>({...p,id:v}))} placeholder="123456789"/>
             </Field>
             <Field label="Mot de passe">
-              <Input type="password" value={newPart.mdp} onChange={v=>setNewPart(p=>({...p,mdp:v}))} placeholder="••••••••"/>
+              <div style={{ position:"relative" }}>
+                <input
+                  type={showMdp?"text":"password"}
+                  value={newPart.mdp}
+                  onChange={e=>setNewPart(p=>({...p,mdp:e.target.value}))}
+                  placeholder="••••••••"
+                  style={{ background:T.bgInput, border:`1px solid ${T.borderInput}`, borderRadius:8, padding:"9px 40px 9px 12px", fontSize:13, color:T.textInput, outline:"none", fontFamily:T.font, width:"100%", boxSizing:"border-box" }}
+                  onFocus={e=>e.target.style.borderColor=T.borderFoc}
+                  onBlur={e=>e.target.style.borderColor=T.borderInput}
+                />
+                <button type="button" onClick={()=>setShowMdp(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#94a3b8", padding:2, display:"flex", alignItems:"center" }} title={showMdp?"Masquer":"Afficher"}>
+                  {showMdp
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
             </Field>
           </div>
+          <p style={{ fontSize:11, color:"#f59e0b", fontFamily:T.font, margin:"0 0 10px", display:"flex", alignItems:"center", gap:4 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Le mot de passe sera masqué après enregistrement. Cliquez sur 👁 pour le révéler.
+          </p>
           <Btn onClick={addPartenaire} icon="+" variant="secondary" small>Enregistrer le partenaire</Btn>
         </div>
       </Card>
