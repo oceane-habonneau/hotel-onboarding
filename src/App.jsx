@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 
-const STORAGE_KEY = "hotel-onboarding-v3";
+const STORAGE_KEY = "hotel-onboarding-v4";
 function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
 function loadData() { try { const d = localStorage.getItem(STORAGE_KEY); return d ? JSON.parse(d) : null; } catch { return null; } }
 
@@ -14,7 +14,10 @@ const INIT = {
     partenaires:[],
     typeEtablissement:"Hôtel"
   },
-  chambres:[], tarifs:[], extras:[], cales:[], calendar:{}
+  chambres:[], tarifs:[], extras:[], cales:[], calendar:{},
+  restaurant:{
+    moments:[], options:[], salles:[], tables:[], cartes:[], articles:[]
+  }
 };
 
 const TYPE_ETABLISSEMENT = ["Hôtel","Appart-hôtel","Gîte","Chambre d'hôtes","Autre"];
@@ -36,7 +39,12 @@ const STEPS = [
   { id:"tarifs",     icon:"💶", label:"Tarification",   desc:"Stratégie & conditions"   },
   { id:"extras",     icon:"🧾", label:"Extras & Taxes", desc:"Services & comptabilité"  },
   { id:"pricing365", icon:"📅", label:"Cale Tarifaire", desc:"Calendrier annuel"         },
+  { id:"restaurant", icon:"🍽️", label:"Restaurant",     desc:"Salles, cartes & articles" },
 ];
+const MOMENTS_LIST = ["Petit-déjeuner","Déjeuner","Dîner","Brunch","Apéritif","Entrée","Plat","Dessert","Fromage","Digestif","Soft / Boisson","Vin / Carte des vins"];
+const OPTIONS_LIST = ["Saignant","Bleu","À point","Bien cuit","Végétarien","Vegan","Sans gluten","Sans lactose","Sans œufs","Sirop menthe","Sirop grenadine","Sirop fraise","Avec glaçons","Sans sucre","Épicé","Extra sauce"];
+const TVA_RESTO    = ["10%","5.5%","20%","0%"];
+const SALLE_COLORS = ["#10b981","#3b82f6","#f59e0b","#8b5cf6","#ef4444","#ec4899","#06b6d4","#f97316"];
 const PALETTE_BG = ["#10b981","#3b82f6","#f59e0b","#ef4444","#8b5cf6","#ec4899","#06b6d4","#6366f1","#14b8a6","#f97316"];
 
 const T = {
@@ -709,6 +717,313 @@ function SectionPricing365({ data, setData }) {
   );
 }
 
+// ─── SECTION 6 : RESTAURANT ───────────────────────────────────
+
+// Composant réutilisable multi-select avec dropdown + cases à cocher
+function MultiSelectDropdown({ value, onChange, options, placeholder, customAllowed=true }) {
+  const [open, setOpen] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const ref = useRef(null);
+  const selected = Array.isArray(value) ? value : [];
+  const toggle = (item) => onChange(selected.includes(item) ? selected.filter(x=>x!==item) : [...selected, item]);
+  const addCustom = () => { const t=customInput.trim(); if(t&&!selected.includes(t)) onChange([...selected,t]); setCustomInput(""); };
+  useEffect(()=>{ const h=(e)=>{ if(ref.current&&!ref.current.contains(e.target)) setOpen(false); }; document.addEventListener("mousedown",h); return ()=>document.removeEventListener("mousedown",h); },[]);
+  const label = selected.length===0 ? placeholder : selected.length===1 ? selected[0] : `${selected.length} sélectionnés`;
+  return (
+    <div ref={ref} style={{ position:"relative" }}>
+      <div onClick={()=>setOpen(o=>!o)} style={{ background:T.bgInput, border:`1px solid ${open?T.borderFoc:T.borderInput}`, borderRadius:8, padding:"9px 36px 9px 12px", fontSize:13, color:selected.length===0?"#94a3b8":T.textInput, cursor:"pointer", fontFamily:T.font, userSelect:"none", backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M6 8L0 0h12z'/%3E%3C/svg%3E")`, backgroundRepeat:"no-repeat", backgroundPosition:"right 12px center" }}>{label}</div>
+      {open&&(
+        <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:200, background:"#ffffff", border:`1px solid ${T.borderInput}`, borderRadius:10, boxShadow:"0 8px 24px rgba(0,0,0,0.15)", overflow:"hidden", maxHeight:280, overflowY:"auto" }}>
+          {options.map(o=>(
+            <label key={o} onClick={()=>toggle(o)} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 14px", cursor:"pointer", background:selected.includes(o)?"rgba(16,185,129,0.06)":"transparent", borderBottom:"1px solid #f1f5f9", fontFamily:T.font }}>
+              <div style={{ width:16, height:16, borderRadius:4, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:selected.includes(o)?T.green:"#fff", border:`2px solid ${selected.includes(o)?T.green:"#cbd5e1"}` }}>
+                {selected.includes(o)&&<span style={{ color:"#fff", fontSize:11, lineHeight:1 }}>✓</span>}
+              </div>
+              <span style={{ fontSize:13, color:"#1a2332", fontWeight:selected.includes(o)?600:400 }}>{o}</span>
+            </label>
+          ))}
+          {customAllowed&&(
+            <div style={{ padding:"10px 14px", borderTop:"1px solid #e2e8f0", display:"flex", gap:6 }}>
+              <input value={customInput} onChange={e=>setCustomInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addCustom();}}} placeholder="Ajouter personnalisé…" style={{ flex:1, background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:6, padding:"6px 10px", fontSize:12, color:"#1a2332", outline:"none", fontFamily:T.font }} onFocus={e=>e.target.style.borderColor=T.borderFoc} onBlur={e=>e.target.style.borderColor="#e2e8f0"}/>
+              <button type="button" onClick={addCustom} style={{ background:T.greenDim, color:T.green, border:`1px solid ${T.green}44`, borderRadius:6, padding:"6px 12px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:T.font }}>+</button>
+            </div>
+          )}
+        </div>
+      )}
+      {selected.length>0&&(
+        <div style={{ marginTop:8, display:"flex", flexWrap:"wrap", gap:4 }}>
+          {selected.map(s=>(
+            <span key={s} style={{ background:T.greenDim, color:T.green, border:`1px solid ${T.green}33`, borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:600, display:"flex", alignItems:"center", gap:4, fontFamily:T.font }}>
+              {s}<span onClick={()=>toggle(s)} style={{ cursor:"pointer", opacity:.7, fontSize:14 }}>×</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionRestaurant({ data, setData }) {
+  const r = data.restaurant || { moments:[], options:[], salles:[], tables:[], cartes:[], articles:[] };
+  const ur = (k,v) => setData(p=>({ ...p, restaurant:{ ...p.restaurant, [k]:v } }));
+
+  // ── Salles ──
+  const [newSalle, setNewSalle] = useState({ nom:"", couleur:SALLE_COLORS[0] });
+  const addSalle = () => {
+    if (!newSalle.nom.trim()) return;
+    ur("salles", [...(r.salles||[]), { ...newSalle, id:Date.now().toString() }]);
+    setNewSalle({ nom:"", couleur:SALLE_COLORS[(r.salles||[]).length % SALLE_COLORS.length] });
+  };
+  const delSalle = (id) => {
+    ur("salles", (r.salles||[]).filter(s=>s.id!==id));
+    ur("tables", (r.tables||[]).filter(t=>t.salleId!==id));
+  };
+
+  // ── Tables ──
+  const [newTable, setNewTable] = useState({ numero:"", couverts:2, salleId:"" });
+  const addTable = () => {
+    if (!newTable.numero.trim() || !newTable.salleId) return;
+    ur("tables", [...(r.tables||[]), { ...newTable, id:Date.now().toString() }]);
+    setNewTable({ numero:"", couverts:2, salleId:newTable.salleId });
+  };
+  const delTable = (id) => ur("tables", (r.tables||[]).filter(t=>t.id!==id));
+
+  // ── Cartes ──
+  const [newCarte, setNewCarte] = useState("");
+  const addCarte = () => {
+    if (!newCarte.trim()) return;
+    ur("cartes", [...(r.cartes||[]), { nom:newCarte.trim(), id:Date.now().toString() }]);
+    setNewCarte("");
+  };
+  const delCarte = (id) => ur("cartes", (r.cartes||[]).filter(c=>c.id!==id));
+
+  // ── Articles ──
+  const newArt = () => ({ nom:"", moments:[], carte:"", prix:"", tva:"10%", options:[] });
+  const [artForm, setArtForm] = useState(newArt);
+  const [artEditing, setArtEditing] = useState(null);
+  const ua = (k,v) => setArtForm(p=>({...p,[k]:v}));
+  const saveArticle = () => {
+    if (!artForm.nom.trim()) return;
+    const list = [...(r.articles||[])];
+    if (artEditing!==null) list[artEditing]={...artForm}; else list.push({...artForm});
+    ur("articles", list); setArtForm(newArt()); setArtEditing(null);
+  };
+  const delArticle = (i) => ur("articles", (r.articles||[]).filter((_,idx)=>idx!==i));
+
+  // Options disponibles par moment sélectionné dans l'article
+  const optionsByMoment = (r.options||[]);
+
+  const getSalleCouleur = (id) => (r.salles||[]).find(s=>s.id===id)?.couleur || T.textMuted;
+  const getSalleNom = (id) => (r.salles||[]).find(s=>s.id===id)?.nom || "—";
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
+      <SectionTitle icon="🍽️" title="Configuration Restaurant" subtitle="Moments, salles, cartes et articles du menu" badge={`${(r.articles||[]).length} article${(r.articles||[]).length!==1?"s":""}`}/>
+
+      {/* ── 1. MOMENTS & OPTIONS ── */}
+      <Card form>
+        <p style={{ fontSize:11, fontWeight:700, color:T.green, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px" }}>① Moments & Options de service</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
+          <Field label="Moments de service">
+            <MultiSelectDropdown value={r.moments||[]} onChange={v=>ur("moments",v)} options={MOMENTS_LIST} placeholder="Sélectionner les moments…"/>
+          </Field>
+          <Field label="Options disponibles (cuisson, régime…)">
+            <MultiSelectDropdown value={r.options||[]} onChange={v=>ur("options",v)} options={OPTIONS_LIST} placeholder="Sélectionner les options…"/>
+          </Field>
+        </div>
+        {(r.moments||[]).length>0&&(
+          <div style={{ marginTop:16 }}>
+            <Label>Associer des options par moment</Label>
+            <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:6 }}>
+              {(r.moments||[]).map(m=>{
+                const key = `optsMoment_${m}`;
+                const val = r[key]||[];
+                return (
+                  <div key={m} style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${T.border}`, borderRadius:8, padding:"10px 14px", display:"flex", alignItems:"flex-start", gap:14 }}>
+                    <span style={{ fontSize:13, fontWeight:700, color:T.textPrim, fontFamily:T.font, minWidth:120, paddingTop:2 }}>{m}</span>
+                    <div style={{ flex:1 }}>
+                      <MultiSelectDropdown value={val} onChange={v=>ur(key,v)} options={r.options||[]} placeholder="Options pour ce moment…" customAllowed={false}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* ── 2. SALLES & TABLES ── */}
+      <Card form>
+        <p style={{ fontSize:11, fontWeight:700, color:T.blue, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px" }}>② Salles & Plan de tables</p>
+
+        {/* Ajouter une salle */}
+        <div style={{ display:"flex", gap:10, alignItems:"flex-end", marginBottom:16 }}>
+          <Field label="Nom de la salle" style={{ flex:1 }}>
+            <Input value={newSalle.nom} onChange={v=>setNewSalle(p=>({...p,nom:v}))} placeholder="Ex: Salle principale, Terrasse, Bar…"/>
+          </Field>
+          <div>
+            <Label>Couleur</Label>
+            <div style={{ display:"flex", gap:5, marginTop:4 }}>
+              {SALLE_COLORS.map(c=>(
+                <div key={c} onClick={()=>setNewSalle(p=>({...p,couleur:c}))} style={{ width:22, height:22, borderRadius:5, background:c, cursor:"pointer", outline:newSalle.couleur===c?"2px solid #fff":"2px solid transparent", outlineOffset:1 }}/>
+              ))}
+            </div>
+          </div>
+          <Btn onClick={addSalle} variant="blue" icon="+">Ajouter la salle</Btn>
+        </div>
+
+        {/* Plan de salle */}
+        {(r.salles||[]).length>0 ? (
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {(r.salles||[]).map(salle=>{
+              const tables = (r.tables||[]).filter(t=>t.salleId===salle.id);
+              return (
+                <div key={salle.id} style={{ border:`2px solid ${salle.couleur}22`, borderRadius:10, overflow:"hidden" }}>
+                  {/* Header salle */}
+                  <div style={{ background:`${salle.couleur}18`, borderBottom:`1px solid ${salle.couleur}33`, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <div style={{ width:10, height:10, borderRadius:3, background:salle.couleur }}/>
+                      <span style={{ fontWeight:700, color:T.textPrim, fontSize:14, fontFamily:T.font }}>{salle.nom}</span>
+                      <span style={{ fontSize:12, color:T.textSec, fontFamily:T.font }}>{tables.length} table{tables.length!==1?"s":""} · {tables.reduce((a,t)=>a+(+t.couverts||0),0)} couverts</span>
+                    </div>
+                    <Btn onClick={()=>delSalle(salle.id)} variant="danger" small>✕ Supprimer la salle</Btn>
+                  </div>
+                  {/* Grille tables */}
+                  <div style={{ padding:14 }}>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:12 }}>
+                      {tables.map(t=>(
+                        <div key={t.id} style={{ background:`${salle.couleur}22`, border:`2px solid ${salle.couleur}66`, borderRadius:8, padding:"10px 14px", minWidth:70, textAlign:"center", position:"relative" }}>
+                          <div style={{ fontSize:16, fontWeight:800, color:salle.couleur, fontFamily:T.font }}>T{t.numero}</div>
+                          <div style={{ fontSize:11, color:T.textSec, fontFamily:T.font }}>{t.couverts} cvts</div>
+                          <div onClick={()=>delTable(t.id)} style={{ position:"absolute", top:4, right:6, cursor:"pointer", color:T.textMuted, fontSize:13, fontWeight:700 }}>×</div>
+                        </div>
+                      ))}
+                      {tables.length===0&&<span style={{ fontSize:12, color:T.textMuted, fontFamily:T.font, fontStyle:"italic" }}>Aucune table — ajoutez-en ci-dessous</span>}
+                    </div>
+                    {/* Ajouter une table dans cette salle */}
+                    <div style={{ display:"flex", gap:8, alignItems:"flex-end", background:"rgba(255,255,255,0.03)", borderRadius:8, padding:"10px 12px" }}>
+                      <Field label="N° table" style={{ width:90 }}>
+                        <Input value={newTable.salleId===salle.id?newTable.numero:""} onChange={v=>setNewTable({numero:v,couverts:newTable.salleId===salle.id?newTable.couverts:2,salleId:salle.id})} placeholder="1"/>
+                      </Field>
+                      <Field label="Couverts" style={{ width:80 }}>
+                        <Input type="number" min="1" value={newTable.salleId===salle.id?newTable.couverts:2} onChange={v=>setNewTable(p=>({...p,couverts:+v,salleId:salle.id}))} />
+                      </Field>
+                      <Btn onClick={()=>{ if(newTable.salleId===salle.id) addTable(); else setNewTable({numero:"",couverts:2,salleId:salle.id}); }} variant="secondary" small icon="+">Ajouter table</Btn>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ):(
+          <div style={{ background:T.amberDim, border:`1px solid ${T.amber}33`, borderRadius:8, padding:12, fontSize:13, color:T.amber, fontFamily:T.font }}>
+            💡 Créez d'abord une salle pour y ajouter des tables.
+          </div>
+        )}
+      </Card>
+
+      {/* ── 3. CARTES ── */}
+      <Card form>
+        <p style={{ fontSize:11, fontWeight:700, color:T.amber, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px" }}>③ Cartes (menus)</p>
+        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+          <Input value={newCarte} onChange={v=>setNewCarte(v)} placeholder="Ex: Carte Été, Menu Déjeuner, Carte des vins, Menu Enfant…"/>
+          <Btn onClick={addCarte} variant="amber" icon="+">Ajouter</Btn>
+        </div>
+        {(r.cartes||[]).length>0 ? (
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {(r.cartes||[]).map(c=>(
+              <div key={c.id} style={{ background:T.amberDim, border:`1px solid ${T.amber}44`, borderRadius:8, padding:"8px 14px", display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:13, fontWeight:600, color:T.amber, fontFamily:T.font }}>🗂 {c.nom}</span>
+                <span onClick={()=>delCarte(c.id)} style={{ cursor:"pointer", color:T.textMuted, fontSize:14 }}>×</span>
+              </div>
+            ))}
+          </div>
+        ):(
+          <span style={{ fontSize:12, color:T.textMuted, fontFamily:T.font, fontStyle:"italic" }}>Aucune carte créée</span>
+        )}
+      </Card>
+
+      {/* ── 4. ARTICLES ── */}
+      <Card form>
+        <p style={{ fontSize:11, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px" }}>④ Articles (mets & boissons)</p>
+
+        {/* Liste articles existants */}
+        {(r.articles||[]).length>0&&(
+          <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
+            {(r.articles||[]).map((a,i)=>(
+              <div key={i} style={{ background:T.bgCard, border:`1px solid rgba(139,92,246,0.2)`, borderLeft:`3px solid #8b5cf6`, borderRadius:8, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                  <span style={{ fontWeight:700, color:T.textPrim, fontSize:13, fontFamily:T.font }}>{a.nom}</span>
+                  {a.prix&&<Chip color={T.green}>{a.prix}€</Chip>}
+                  {a.tva&&<Chip color={T.textSec}>TVA {a.tva}</Chip>}
+                  {(a.moments||[]).map(m=><Chip key={m} color={T.blue}>{m}</Chip>)}
+                  {a.carte&&<Chip color={T.amber}>🗂 {a.carte}</Chip>}
+                  {(a.options||[]).length>0&&<Chip color={"#8b5cf6"}>{a.options.length} option{a.options.length>1?"s":""}</Chip>}
+                </div>
+                <div style={{ display:"flex", gap:6 }}>
+                  <Btn onClick={()=>{setArtForm({...a});setArtEditing(i);}} variant="ghost" small>Modifier</Btn>
+                  <Btn onClick={()=>delArticle(i)} variant="danger" small>✕</Btn>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Formulaire article */}
+        <div style={{ background:"rgba(139,92,246,0.06)", border:`1px solid rgba(139,92,246,0.2)`, borderRadius:10, padding:16 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 14px" }}>
+            {artEditing!==null?"✏️ Modifier l'article":"+ Nouvel article"}
+          </p>
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr", gap:12 }}>
+              <Field label="Nom de l'article" required>
+                <Input value={artForm.nom} onChange={v=>ua("nom",v)} placeholder="Ex: Entrecôte, Saumon fumé, Kir Royal…"/>
+              </Field>
+              <Field label="Prix (€)">
+                <Input type="number" min="0" value={artForm.prix} onChange={v=>ua("prix",v)} placeholder="12.50"/>
+              </Field>
+              <Field label="TVA">
+                <Sel value={artForm.tva} onChange={v=>ua("tva",v)} options={TVA_RESTO}/>
+              </Field>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <Field label="Moments associés">
+                <MultiSelectDropdown value={artForm.moments||[]} onChange={v=>ua("moments",v)} options={r.moments||[]} placeholder={r.moments?.length?"Choisir les moments…":"Créez d'abord des moments"} customAllowed={false}/>
+              </Field>
+              <Field label="Carte">
+                <Sel value={artForm.carte||""} onChange={v=>ua("carte",v)} options={(r.cartes||[]).map(c=>c.nom)} placeholder={r.cartes?.length?"— Choisir une carte —":"Créez d'abord une carte"}/>
+              </Field>
+            </div>
+            {/* Options : globales par moment + spécifiques */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <Field label="Options spécifiques à cet article">
+                <MultiSelectDropdown value={artForm.options||[]} onChange={v=>ua("options",v)} options={r.options||[]} placeholder={r.options?.length?"Options spécifiques…":"Créez d'abord des options"} customAllowed={false}/>
+              </Field>
+              {(artForm.moments||[]).length>0&&(
+                <div style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${T.border}`, borderRadius:8, padding:"8px 12px" }}>
+                  <Label>Options héritées des moments</Label>
+                  <div style={{ marginTop:6, display:"flex", flexWrap:"wrap", gap:4 }}>
+                    {[...new Set((artForm.moments||[]).flatMap(m=>r[`optsMoment_${m}`]||[]))].map(o=>(
+                      <span key={o} style={{ background:"rgba(59,130,246,0.1)", color:T.blue, border:`1px solid ${T.blue}33`, borderRadius:20, padding:"2px 8px", fontSize:11, fontFamily:T.font }}>{o}</span>
+                    ))}
+                    {[...new Set((artForm.moments||[]).flatMap(m=>r[`optsMoment_${m}`]||[]))].length===0&&(
+                      <span style={{ fontSize:11, color:T.textMuted, fontStyle:"italic", fontFamily:T.font }}>Aucune option héritée</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ display:"flex", gap:8, paddingTop:4 }}>
+              <Btn onClick={saveArticle} icon={artEditing!==null?"✓":"+"} variant="primary">{artEditing!==null?"Enregistrer":"Ajouter l'article"}</Btn>
+              {artEditing!==null&&<Btn onClick={()=>{setArtForm(newArt());setArtEditing(null);}} variant="ghost">Annuler</Btn>}
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 // ─── EXPORT EXCEL ─────────────────────────────────────────────
 function buildExcel(data) {
   const wb = XLSX.utils.book_new();
@@ -760,10 +1075,19 @@ function exportExcel(data) { XLSX.writeFile(buildExcel(data),"Onboarding_Hotel.x
 function calcProgress(data) {
   const d=data.identity;
   const fields=[d.nomJuridique,d.enseigne,d.siret,d.mailContact,d.tel,d.adresse];
-  return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0))/5*100);
+  const r=data.restaurant||{};
+  return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0)+((r.articles||[]).length>0?1:0))/6*100);
 }
 function calcStepDone(data) {
-  return [!!(data.identity.nomJuridique&&data.identity.mailContact),data.chambres.length>0,data.tarifs.length>0,data.extras.length>0,data.cales.length>0];
+  const r=data.restaurant||{};
+  return [
+    !!(data.identity.nomJuridique&&data.identity.mailContact),
+    data.chambres.length>0,
+    data.tarifs.length>0,
+    data.extras.length>0,
+    data.cales.length>0,
+    (r.articles||[]).length>0
+  ];
 }
 
 // ─── APP ──────────────────────────────────────────────────────
@@ -806,6 +1130,7 @@ export default function App() {
     <SectionTarifs     data={data} setData={setData}/>,
     <SectionExtras     data={data} setData={setData}/>,
     <SectionPricing365 data={data} setData={setData}/>,
+    <SectionRestaurant data={data} setData={setData}/>,
   ];
 
   return (
@@ -918,6 +1243,7 @@ export default function App() {
                   ["💶",`${data.tarifs.length} tarif${data.tarifs.length!==1?"s":""}`],
                   ["🧾",`${data.extras.length} extra${data.extras.length!==1?"s":""}`],
                   ["📅",`${data.cales.length} cale${data.cales.length!==1?"s":""}`],
+                  ["🍽️",`${(data.restaurant?.articles||[]).length} article${(data.restaurant?.articles||[]).length!==1?"s":""}`],
                 ].map(([icon,label])=>(
                   <div key={label} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 0" }}>
                     <span style={{ fontSize:13 }}>{icon}</span>
