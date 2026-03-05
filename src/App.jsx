@@ -1142,14 +1142,28 @@ function calcStepDone(data) {
 
 // ─── APP ──────────────────────────────────────────────────────
 export default function App() {
-  const [step,   setStep]   = useState(0);
-  const [data,   setData]   = useState(INIT);
-  const [saved,  setSaved]  = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [mailSent, setMailSent] = useState(false);
+  const [step,    setStep]    = useState(0);
+  const [data,    setData]    = useState(INIT);
+  const [saved,   setSaved]   = useState(false);
+  const [loaded,  setLoaded]  = useState(false);
+  const [mailSent,setMailSent]= useState(false);
+  const [showBanner, setShowBanner] = useState(false);
   const timerRef = useRef(null);
 
-  useEffect(()=>{ const d=loadData(); if(d) setData(d); setLoaded(true); },[]);
+  useEffect(()=>{
+    const d = loadData();
+    if(d) setData(d);
+    // Affiche le bandeau uniquement à la première visite (jamais vu)
+    const seen = localStorage.getItem("hotel-onboarding-banner-seen");
+    if(!seen) setShowBanner(true);
+    setLoaded(true);
+  },[]);
+
+  const dismissBanner = () => {
+    localStorage.setItem("hotel-onboarding-banner-seen","1");
+    setShowBanner(false);
+  };
+
   useEffect(()=>{
     if(!loaded) return;
     if(timerRef.current) clearTimeout(timerRef.current);
@@ -1215,6 +1229,31 @@ export default function App() {
           </button>
         </div>
       </nav>
+
+      {/* BANDEAU PREMIÈRE VISITE */}
+      {showBanner&&(
+        <div style={{ background:"linear-gradient(135deg,#1e3a5f,#1a2332)", borderBottom:`1px solid ${T.blue}44`, padding:"14px 32px" }}>
+          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"flex-start", gap:14 }}>
+            <div style={{ fontSize:22, flexShrink:0 }}>💾</div>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:700, color:T.textPrim, margin:"0 0 4px", fontFamily:T.font }}>
+                Vos données sont sauvegardées automatiquement sur cet appareil
+              </p>
+              <p style={{ fontSize:12, color:T.textSec, margin:0, fontFamily:T.font, lineHeight:1.6 }}>
+                Vous pouvez fermer cet onglet ou votre navigateur et reprendre plus tard — votre progression sera intégralement restaurée.
+                <strong style={{ color:T.amber }}> Important :</strong> utilisez toujours le même navigateur sur le même appareil, et n'effacez pas le cache avant d'avoir exporté votre fichier Excel.
+                La navigation privée ne permet pas la sauvegarde.
+              </p>
+            </div>
+            <div style={{ display:"flex", gap:8, flexShrink:0, alignItems:"center" }}>
+              <span style={{ fontSize:11, color:T.textMuted, fontFamily:T.font }}>Ce message ne s'affichera plus</span>
+              <button type="button" onClick={dismissBanner} style={{ background:T.green, color:"#fff", border:"none", borderRadius:8, padding:"7px 16px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:T.font, whiteSpace:"nowrap" }}>
+                J'ai compris ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HERO HEADER */}
       <div style={{ background:"linear-gradient(135deg, #0f1623 0%, #1a2332 100%)", borderBottom:`1px solid ${T.border}`, padding:"28px 32px" }}>
