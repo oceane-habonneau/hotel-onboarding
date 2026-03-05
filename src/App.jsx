@@ -118,12 +118,12 @@ const Btn = ({ onClick, children, variant="primary", small, icon }) => {
   );
 };
 const Card = ({ children, style, accent, form }) => (
-  <div style={{ background:form?"#1a2332":T.bgCard, border:`1px solid ${accent?accent+"33":T.border}`, borderRadius:12, padding:20, ...style }}>
+  <div style={{ background:form?"#1e2a3d":T.bgCard, border:`1px solid ${accent?accent+"33":T.border}`, borderRadius:12, padding:20, ...style }}>
     {children}
   </div>
 );
 const SectionTitle = ({ icon, title, subtitle, badge }) => (
-  <div style={{ marginBottom:4 }}>
+  <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:12, padding:"16px 20px", marginBottom:4 }}>
     <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
       <div style={{ width:36, height:36, borderRadius:10, background:T.greenDim, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{icon}</div>
       <div>
@@ -882,8 +882,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN LAYOUT — fond blanc */}
-      <div style={{ background:T.bgMain }}>
+      {/* MAIN LAYOUT */}
+      <div style={{ background:"#f8fafc" }}>
         <div style={{ maxWidth:1140, margin:"0 auto", padding:"28px 32px 80px", display:"grid", gridTemplateColumns:"220px 1fr", gap:24 }}>
 
           {/* Sidebar */}
@@ -931,7 +931,7 @@ export default function App() {
           {/* Content */}
           <div>
             {SECTIONS[step]}
-            <div style={{ display:"flex", justifyContent:"space-between", marginTop:28, paddingTop:20, borderTop:`1px solid #e5e7eb` }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginTop:28, paddingTop:20, borderTop:`1px solid ${T.border}` }}>
               <div>{step>0&&<Btn onClick={()=>setStep(s=>s-1)} variant="ghost" icon="←">Précédent</Btn>}</div>
               <div>
                 {step<STEPS.length-1&&<Btn onClick={()=>setStep(s=>s+1)} variant="primary" icon="→">Suivant</Btn>}
