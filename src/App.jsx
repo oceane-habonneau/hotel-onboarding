@@ -118,7 +118,7 @@ const Btn = ({ onClick, children, variant="primary", small, icon }) => {
   );
 };
 const Card = ({ children, style, accent, form }) => (
-  <div style={{ background:form?"#1e2a3d":T.bgCard, border:`1px solid ${accent?accent+"33":T.border}`, borderRadius:12, padding:20, ...style }}>
+  <div style={{ background:form?"#1a2332":T.bgCard, border:`1px solid ${accent?accent+"33":T.border}`, borderRadius:12, padding:20, ...style }}>
     {children}
   </div>
 );
