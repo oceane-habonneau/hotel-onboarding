@@ -1202,11 +1202,11 @@ export default function App() {
 
       {/* NAVBAR */}
       <nav style={{ background:T.bgNav, borderBottom:"1px solid #e5e7eb", padding:"0 32px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:200, boxShadow:"0 1px 3px rgba(0,0,0,.08)" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:18 }}>🏨</span>
           <div>
-            <span style={{ fontWeight:700, fontSize:14, color:"#1a2332", fontFamily:T.font }}>Océane Habonneau</span>
-            <span style={{ marginLeft:8, fontSize:12, color:"#94a3b8", fontFamily:T.font }}>Flux & Automatisations</span>
+            <div style={{ fontWeight:700, fontSize:14, color:"#1a2332", fontFamily:T.font }}>Océane Habonneau</div>
+            <div style={{ fontSize:11, color:"#94a3b8", fontFamily:T.font }}>Une Tech invisible pour une exploitation fluide.</div>
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:20 }}>
@@ -1380,7 +1380,7 @@ export default function App() {
             <span style={{ fontSize:12, color:"#10b981", fontFamily:T.font, fontWeight:600 }}>Données 100% privées — stockées uniquement sur votre appareil, jamais transmises à un serveur.</span>
           </div>
           <p style={{ fontSize:12, color:"#94a3b8", margin:0, fontFamily:T.font, textAlign:"center" }}>
-            © 2026 Océane Habonneau – Consultante en Digitalisation Hôtelière – Tous droits réservés
+            © 2026 Océane Habonneau – Architecte HotelTech – Tous droits réservés
           </p>
         </div>
       </footer>
