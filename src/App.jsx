@@ -1268,6 +1268,34 @@ export default function App() {
 
         </div>
       </div>
+
+      {/* FOOTER */}
+      <footer style={{ background:"#f8fafc", borderTop:"1px solid #e2e8f0", padding:"32px 32px 28px" }}>
+        <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
+            <a href="https://www.linkedin.com/in/oc%C3%A9ane-habonneau-5a908212a/" target="_blank" rel="noreferrer" style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#0077b5,#005885)", color:"#fff", borderRadius:50, padding:"11px 22px", fontSize:13, fontWeight:700, textDecoration:"none", fontFamily:T.font, boxShadow:"0 2px 8px rgba(0,119,181,0.3)" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <a href="mailto:oceane.habonneau@gmail.com" style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff", borderRadius:50, padding:"11px 22px", fontSize:13, fontWeight:700, textDecoration:"none", fontFamily:T.font, boxShadow:"0 2px 8px rgba(124,58,237,0.3)" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+              Me contacter
+            </a>
+            <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ1apBv9IYJGniaFq5RU2bMFfhTuMFvXT94HeLgx9EZZthTtyGl4NARzqYB9SfiTb4hB-Q-cIqWW" target="_blank" rel="noreferrer" style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(135deg,#f59e0b,#d97706)", color:"#fff", borderRadius:50, padding:"11px 22px", fontSize:13, fontWeight:700, textDecoration:"none", fontFamily:T.font, boxShadow:"0 2px 8px rgba(245,158,11,0.3)" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Prendre RDV
+            </a>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(16,185,129,0.08)", border:"1px solid rgba(16,185,129,0.2)", borderRadius:8, padding:"8px 16px" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span style={{ fontSize:12, color:"#10b981", fontFamily:T.font, fontWeight:600 }}>Données 100% privées — stockées uniquement sur votre appareil, jamais transmises à un serveur.</span>
+          </div>
+          <p style={{ fontSize:12, color:"#94a3b8", margin:0, fontFamily:T.font, textAlign:"center" }}>
+            © 2026 Océane Habonneau – Consultante en Digitalisation Hôtelière – Tous droits réservés
+          </p>
+        </div>
+      </footer>
+
     </div>
   );
 }
