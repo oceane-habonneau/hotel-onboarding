@@ -380,7 +380,7 @@ function SectionIdentity({ data, setData }) {
 // ─── SECTION 2 : CHAMBRES ─────────────────────────────────────
 function SectionChambres({ data, setData }) {
   const [editing, setEditing] = useState(null);
-  const newE = () => ({ nom:"",code:"",nbUnites:1,capaStd:2,capaMax:3,adultesMax:2,enfantsMax:1,surface:20,configLits:"Double",salleEau:"Douche",descriptif:"",clim:"NON",coffreFort:"NON",minibar:"NON",wifi:"OUI",bureau:"NON",balcon:"NON",autresEquipements:[] });
+  const newE = () => ({ nom:"",code:"",nbUnites:1,capaStd:2,capaMax:3,adultesMax:2,enfantsMax:1,surface:20,configLits:"Double",salleEau:"Douche",descriptif:"",clim:"NON",coffreFort:"NON",minibar:"NON",wifi:"OUI",bureau:"NON",balcon:"NON",autresEquipements:[],ecartSigne:"+",ecartMontant:"",ecartRef:"" });
   const [form, setForm] = useState(newE);
   const [autreInput, setAutreInput] = useState("");
   const u = (k,v) => setForm(p=>({...p,[k]:v}));
@@ -406,6 +406,7 @@ function SectionChambres({ data, setData }) {
               <span style={{ fontWeight:700, color:T.textPrim, fontSize:14, fontFamily:T.font }}>{c.nom}</span>
               <Chip color={T.green}>{c.code}</Chip>
               <span style={{ color:T.textSec, fontSize:12 }}>{c.nbUnites} unité{c.nbUnites>1?"s":""} · {c.surface}m² · {c.configLits}</span>
+              {c.ecartMontant&&c.ecartRef&&<Chip color={c.ecartSigne==="-"?T.red:T.green}>{c.ecartSigne}{c.ecartMontant}€ vs {c.ecartRef}</Chip>}
               {["clim","wifi","minibar","balcon"].filter(k=>c[k]==="OUI").map(k=>(
                 <Chip key={k} color={T.blue}>{{clim:"❄️ Clim",wifi:"📶 Wifi",minibar:"🍾 Minibar",balcon:"🌿 Balcon"}[k]}</Chip>
               ))}
@@ -435,6 +436,45 @@ function SectionChambres({ data, setData }) {
             <Field label="Adultes max"><Input type="number" min="0" value={form.adultesMax} onChange={v=>u("adultesMax",+v)}/></Field>
             <Field label="Enfants max"><Input type="number" min="0" value={form.enfantsMax} onChange={v=>u("enfantsMax",+v)}/></Field>
           </Grid2>
+          {/* Écart de prix relatif */}
+          {data.chambres.filter((_,idx)=>idx!==editing).length>0&&(
+            <div>
+              <Label>Écart de prix par rapport à une autre catégorie</Label>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4, flexWrap:"wrap" }}>
+                <div style={{ display:"flex", borderRadius:8, overflow:"hidden", border:`1px solid ${T.borderInput}` }}>
+                  {["+","-"].map(s=>(
+                    <button key={s} type="button" onClick={()=>u("ecartSigne",s)} style={{
+                      padding:"9px 18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:T.font, border:"none",
+                      background:form.ecartSigne===s?(s==="+"?T.green:T.red):"#fff",
+                      color:form.ecartSigne===s?"#fff":(s==="+"?T.green:T.red),
+                      transition:"all .15s"
+                    }}>{s}</button>
+                  ))}
+                </div>
+                <div style={{ position:"relative", width:120 }}>
+                  <Input type="number" min="0" value={form.ecartMontant} onChange={v=>u("ecartMontant",v)} placeholder="0"/>
+                  <span style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", fontSize:13, color:T.textMuted, fontFamily:T.font, pointerEvents:"none" }}>€</span>
+                </div>
+                <span style={{ fontSize:12, color:T.textSec, fontFamily:T.font }}>vs</span>
+                <div style={{ minWidth:200, flex:1 }}>
+                  <Sel
+                    value={form.ecartRef||""}
+                    onChange={v=>u("ecartRef",v)}
+                    options={data.chambres.filter((_,idx)=>idx!==editing).map(c=>c.nom)}
+                    placeholder="— Choisir la catégorie de référence —"
+                  />
+                </div>
+              </div>
+              {form.ecartMontant&&form.ecartRef&&(
+                <p style={{ fontSize:12, color:form.ecartSigne==="+"?T.green:T.red, fontFamily:T.font, margin:"6px 0 0", fontStyle:"italic" }}>
+                  {form.nom||"Cette catégorie"} est {form.ecartSigne}{form.ecartMontant}€ par rapport à {form.ecartRef}
+                </p>
+              )}
+              {!form.ecartMontant&&!form.ecartRef&&(
+                <p style={{ fontSize:11, color:T.textMuted, fontFamily:T.font, margin:"6px 0 0", fontStyle:"italic" }}>Optionnel — ex: Chambre Supérieure est +30€ vs Chambre Double</p>
+              )}
+            </div>
+          )}
           <Field label="Descriptif commercial" span2>
             <Textarea value={form.descriptif} onChange={v=>u("descriptif",v)} placeholder="Chambre élégante avec vue sur le jardin..." rows={2}/>
           </Field>
@@ -493,6 +533,12 @@ function SectionTarifs({ data, setData }) {
     setData(p=>({...p,tarifs:list})); setForm(newE()); setEditing(null);
   };
   const TC={"Base":T.green,"Dérivé":T.blue,"Promotion":T.red,"Early Bird":"#8b5cf6","Last Minute":T.amber,"Groupe":"#06b6d4"};
+  const mappingOptions = [
+    "Direct uniquement",
+    "OTA uniquement",
+    "Tous les canaux",
+    ...(data.identity?.partenaires||[]).map(p=>p.nom).filter(Boolean)
+  ];
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <SectionTitle icon="💶" title="Stratégie tarifaire" subtitle="Plans tarifaires, conditions & mapping canaux" badge={`${data.tarifs.length} tarif${data.tarifs.length!==1?"s":""}`}/>
@@ -524,7 +570,7 @@ function SectionTarifs({ data, setData }) {
             <Field label="Base de calcul"><Input value={form.baseCalc} onChange={v=>u("baseCalc",v)} placeholder="ex: BAR -10%"/></Field>
             <Field label="Repas inclus"><Sel value={form.repas} onChange={v=>u("repas",v)} options={REPAS}/></Field>
             <Field label="Conditions d'annulation"><Sel value={form.annulation} onChange={v=>u("annulation",v)} options={ANNULATION}/></Field>
-            <Field label="Mapping canal"><Sel value={form.mapping} onChange={v=>u("mapping",v)} options={MAPPING}/></Field>
+            <Field label="Mapping canal"><Sel value={form.mapping} onChange={v=>u("mapping",v)} options={mappingOptions}/></Field>
             <Field label="Restrictions"><Sel value={form.restrictions} onChange={v=>u("restrictions",v)} options={RESTRICTIONS}/></Field>
             <Field label="Codes comptables"><Input value={form.codesComptables} onChange={v=>u("codesComptables",v)} placeholder="701000"/></Field>
           </Grid2>
