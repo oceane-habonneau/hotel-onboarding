@@ -11,6 +11,15 @@ const INIT_ENTITY = () => ({
   iban:"", bic:"", lienDrive:"", partenaires:[]
 });
 
+const COMM_TEMPLATES = [
+  { id:"confirmation",  icon:"✅", label:"Confirmation de réservation", color:"#10b981", desc:"Envoyé automatiquement après chaque réservation confirmée" },
+  { id:"precheckin",    icon:"🔑", label:"Pré-check-in",                color:"#3b82f6", desc:"Envoyé avant l'arrivée pour collecter infos et préparer le séjour" },
+  { id:"accueil",       icon:"🏨", label:"Mail d'accueil (J0)",         color:"#f59e0b", desc:"Envoyé le jour de l'arrivée ou à l'enregistrement" },
+  { id:"annulation",    icon:"❌", label:"Mail d'annulation",            color:"#ef4444", desc:"Envoyé lors d'une annulation de réservation" },
+  { id:"facture",       icon:"🧾", label:"Mentions légales de facture",  color:"#8b5cf6", desc:"Informations obligatoires figurant sur vos factures" },
+  { id:"rgpd",          icon:"🛡️", label:"RGPD & Données personnelles",  color:"#06b6d4", desc:"Politique de confidentialité, durée de conservation, droits des clients" },
+];
+
 const INIT = {
   entites: [INIT_ENTITY()],
   chambres:[], tarifs:[], extras:[], cales:[], calendar:{},
@@ -47,14 +56,7 @@ const PLATEFORMES_FIXES = ["PMS","Channel Manager","Moteur de réservation","CRM
 const CANAUX_COMM = ["Email","SMS","Email + SMS","WhatsApp","Courrier","Non défini"];
 const DECLENCHEURS = ["Immédiat","J-7 avant arrivée","J-3 avant arrivée","J-1 avant arrivée","Jour d'arrivée","J+1 après départ","Après paiement","À la demande","Manuel"];
 const STATUTS_COMM = ["À créer","Existant à migrer","En cours de rédaction","Validé"];
-const COMM_TEMPLATES = [
-  { id:"confirmation",  icon:"✅", label:"Confirmation de réservation", color:"#10b981", desc:"Envoyé automatiquement après chaque réservation confirmée" },
-  { id:"precheckin",    icon:"🔑", label:"Pré-check-in",                color:"#3b82f6", desc:"Envoyé avant l'arrivée pour collecter infos et préparer le séjour" },
-  { id:"accueil",       icon:"🏨", label:"Mail d'accueil (J0)",         color:"#f59e0b", desc:"Envoyé le jour de l'arrivée ou à l'enregistrement" },
-  { id:"annulation",    icon:"❌", label:"Mail d'annulation",            color:"#ef4444", desc:"Envoyé lors d'une annulation de réservation" },
-  { id:"facture",       icon:"🧾", label:"Mentions légales de facture",  color:"#8b5cf6", desc:"Informations obligatoires figurant sur vos factures" },
-  { id:"rgpd",          icon:"🛡️", label:"RGPD & Données personnelles",  color:"#06b6d4", desc:"Politique de confidentialité, durée de conservation, droits des clients" },
-];
+
 const MOMENTS_LIST = ["Petit-déjeuner","Déjeuner","Dîner","Brunch","Apéritif","Entrée","Plat","Dessert","Fromage","Digestif","Soft / Boisson","Vin / Carte des vins"];
 const OPTIONS_LIST = ["Saignant","Bleu","À point","Bien cuit","Végétarien","Vegan","Sans gluten","Sans lactose","Sans œufs","Sirop menthe","Sirop grenadine","Sirop fraise","Avec glaçons","Sans sucre","Épicé","Extra sauce"];
 const TVA_RESTO    = ["10%","5.5%","20%","0%"];
