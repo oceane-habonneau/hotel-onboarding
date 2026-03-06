@@ -15,7 +15,8 @@ const INIT = {
   entites: [INIT_ENTITY()],
   chambres:[], tarifs:[], extras:[], cales:[], calendar:{},
   restaurant:{ moments:[], options:[], salles:[], tables:[], cartes:[], articles:[] },
-  users:[]
+  users:[],
+  comms: Object.fromEntries(COMM_TEMPLATES.map(t=>[t.id,{ objet:"", declencheur:"", canal:"Email", statut:"À créer", notes:"", variables:[] }]))
 };
 
 const TYPE_ETABLISSEMENT = ["Hôtel","Appart-hôtel","Gîte","Chambre d'hôtes","Autre"];
@@ -38,10 +39,22 @@ const STEPS = [
   { id:"extras",     icon:"🧾", label:"Extras & Taxes", desc:"Services & comptabilité"   },
   { id:"pricing365", icon:"📅", label:"Cale Tarifaire", desc:"Calendrier annuel"          },
   { id:"restaurant", icon:"🍽️", label:"Restaurant",     desc:"Salles, cartes & articles" },
-  { id:"users",      icon:"👥", label:"Utilisateurs",   desc:"Accès & droits par plateforme" },
+  { id:"users",      icon:"👥", label:"Utilisateurs",   desc:"Accès & droits par plateforme"    },
+  { id:"comms",      icon:"✉️", label:"Communication",  desc:"Templates & RGPD"                 },
 ];
 const NIVEAUX_ACCES = ["Admin","Manager","Lecture seule"];
 const PLATEFORMES_FIXES = ["PMS","Channel Manager","Moteur de réservation","CRM","Revenue Manager","Conciergerie digitale"];
+const CANAUX_COMM = ["Email","SMS","Email + SMS","WhatsApp","Courrier","Non défini"];
+const DECLENCHEURS = ["Immédiat","J-7 avant arrivée","J-3 avant arrivée","J-1 avant arrivée","Jour d'arrivée","J+1 après départ","Après paiement","À la demande","Manuel"];
+const STATUTS_COMM = ["À créer","Existant à migrer","En cours de rédaction","Validé"];
+const COMM_TEMPLATES = [
+  { id:"confirmation",  icon:"✅", label:"Confirmation de réservation", color:"#10b981", desc:"Envoyé automatiquement après chaque réservation confirmée" },
+  { id:"precheckin",    icon:"🔑", label:"Pré-check-in",                color:"#3b82f6", desc:"Envoyé avant l'arrivée pour collecter infos et préparer le séjour" },
+  { id:"accueil",       icon:"🏨", label:"Mail d'accueil (J0)",         color:"#f59e0b", desc:"Envoyé le jour de l'arrivée ou à l'enregistrement" },
+  { id:"annulation",    icon:"❌", label:"Mail d'annulation",            color:"#ef4444", desc:"Envoyé lors d'une annulation de réservation" },
+  { id:"facture",       icon:"🧾", label:"Mentions légales de facture",  color:"#8b5cf6", desc:"Informations obligatoires figurant sur vos factures" },
+  { id:"rgpd",          icon:"🛡️", label:"RGPD & Données personnelles",  color:"#06b6d4", desc:"Politique de confidentialité, durée de conservation, droits des clients" },
+];
 const MOMENTS_LIST = ["Petit-déjeuner","Déjeuner","Dîner","Brunch","Apéritif","Entrée","Plat","Dessert","Fromage","Digestif","Soft / Boisson","Vin / Carte des vins"];
 const OPTIONS_LIST = ["Saignant","Bleu","À point","Bien cuit","Végétarien","Vegan","Sans gluten","Sans lactose","Sans œufs","Sirop menthe","Sirop grenadine","Sirop fraise","Avec glaçons","Sans sucre","Épicé","Extra sauce"];
 const TVA_RESTO    = ["10%","5.5%","20%","0%"];
@@ -1384,6 +1397,192 @@ function SectionUsers({ data, setData }) {
   );
 }
 
+// ─── SECTION 8 : COMMUNICATION ───────────────────────────────
+
+const VARIABLES_SUGGÉRÉES = [
+  "{{prénom_client}}","{{nom_client}}","{{email_client}}","{{téléphone_client}}",
+  "{{numéro_réservation}}","{{date_arrivée}}","{{date_départ}}","{{nb_nuits}}","{{nb_adultes}}","{{nb_enfants}}",
+  "{{nom_chambre}}","{{montant_total}}","{{montant_acompte}}","{{conditions_annulation}}",
+  "{{nom_établissement}}","{{adresse_établissement}}","{{téléphone_établissement}}","{{email_établissement}}",
+  "{{lien_précheckin}}","{{lien_paiement}}","{{code_wifi}}","{{heure_checkin}}","{{heure_checkout}}",
+];
+
+function CommBlock({ tpl, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [varInput, setVarInput] = useState("");
+  const u = (k,v) => onChange({ ...value, [k]:v });
+
+  const addVar = (v) => {
+    const t = v.trim();
+    if (t && !(value.variables||[]).includes(t)) onChange({ ...value, variables:[...(value.variables||[]),t] });
+    setVarInput("");
+  };
+  const delVar = (i) => onChange({ ...value, variables:(value.variables||[]).filter((_,idx)=>idx!==i) });
+
+  const STATUT_COLORS = { "À créer":"#94a3b8","Existant à migrer":"#f59e0b","En cours de rédaction":"#3b82f6","Validé":"#10b981" };
+  const isDone = value.statut==="Validé";
+
+  return (
+    <div style={{ border:`1px solid ${open?tpl.color+"66":T.border}`, borderRadius:12, overflow:"hidden", transition:"all .2s", background:T.bgCard }}>
+      {/* Header — toujours visible */}
+      <button type="button" onClick={()=>setOpen(o=>!o)} style={{
+        width:"100%", display:"flex", alignItems:"center", gap:12, padding:"14px 20px",
+        background:open?`${tpl.color}0d`:"transparent", border:"none", cursor:"pointer", textAlign:"left"
+      }}>
+        <span style={{ fontSize:20, flexShrink:0 }}>{tpl.icon}</span>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+            <span style={{ fontWeight:700, fontSize:14, color:T.textPrim, fontFamily:T.font }}>{tpl.label}</span>
+            <span style={{ fontSize:11, fontWeight:700, color:STATUT_COLORS[value.statut]||T.textMuted,
+              background:`${STATUT_COLORS[value.statut]||T.textMuted}18`, border:`1px solid ${STATUT_COLORS[value.statut]||T.textMuted}33`,
+              borderRadius:6, padding:"2px 8px", fontFamily:T.font }}>{value.statut}</span>
+            {value.canal&&value.canal!=="Non défini"&&<span style={{ fontSize:11, color:T.textSec, fontFamily:T.font, background:"rgba(255,255,255,0.05)", borderRadius:5, padding:"2px 7px" }}>📡 {value.canal}</span>}
+            {value.declencheur&&<span style={{ fontSize:11, color:T.textSec, fontFamily:T.font, background:"rgba(255,255,255,0.05)", borderRadius:5, padding:"2px 7px" }}>⏱ {value.declencheur}</span>}
+            {isDone&&<span style={{ fontSize:11, color:"#10b981", fontFamily:T.font }}>✓</span>}
+          </div>
+          <p style={{ fontSize:11, color:T.textMuted, margin:"3px 0 0", fontFamily:T.font }}>{tpl.desc}</p>
+        </div>
+        <span style={{ color:T.textMuted, fontSize:16, transform:open?"rotate(180deg)":"rotate(0deg)", transition:"transform .2s", flexShrink:0 }}>▾</span>
+      </button>
+
+      {/* Body — accordéon */}
+      {open&&(
+        <div style={{ padding:"0 20px 20px", display:"flex", flexDirection:"column", gap:14, borderTop:`1px solid ${T.border}` }}>
+          <div style={{ marginTop:14, display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+            <Field label="Canal d'envoi">
+              <Sel value={value.canal} onChange={v=>u("canal",v)} options={CANAUX_COMM}/>
+            </Field>
+            <Field label="Déclencheur / Timing">
+              <Sel value={value.declencheur} onChange={v=>u("declencheur",v)} options={DECLENCHEURS}/>
+            </Field>
+            <Field label="Statut">
+              <Sel value={value.statut} onChange={v=>u("statut",v)} options={STATUTS_COMM}/>
+            </Field>
+          </div>
+
+          {/* Objet — sauf RGPD et mentions facture */}
+          {!["facture","rgpd"].includes(tpl.id)&&(
+            <Field label="Objet du mail">
+              <Input value={value.objet} onChange={v=>u("objet",v)} placeholder={`ex: Confirmation de votre réservation au {{nom_établissement}}`}/>
+            </Field>
+          )}
+
+          {/* Contenu / Notes */}
+          <Field label={tpl.id==="facture"?"Mentions légales à faire figurer" : tpl.id==="rgpd"?"Politique de confidentialité & RGPD" : "Contenu / Instructions de rédaction"}>
+            <textarea
+              value={value.notes}
+              onChange={e=>u("notes",e.target.value)}
+              placeholder={
+                tpl.id==="facture"
+                  ? "ex: Nom société, SIRET, N° TVA, APE, adresse siège, capital social, tribunal de commerce…"
+                  : tpl.id==="rgpd"
+                  ? "ex: Responsable traitement, finalités, durée conservation (réservations : 10 ans), droits accès/rectification, DPO, cookies…"
+                  : tpl.id==="confirmation"
+                  ? "ex: Récapitulatif réservation, conditions annulation, lien de prépaiement, contact établissement…"
+                  : tpl.id==="precheckin"
+                  ? "ex: Formulaire à remplir (identité, heure d'arrivée estimée, demandes spéciales), lien paiement solde…"
+                  : tpl.id==="accueil"
+                  ? "ex: Code wifi, procédure check-in autonome, code boîte à clé, services disponibles, règlement intérieur…"
+                  : "ex: Motif annulation, conditions remboursement, contact pour rebooker…"
+              }
+              rows={5}
+              style={{ width:"100%", boxSizing:"border-box", background:T.bgInput, border:`1px solid ${T.borderInput}`, borderRadius:8, padding:"10px 12px", fontSize:13, color:T.textInput, outline:"none", fontFamily:T.font, resize:"vertical", lineHeight:1.6 }}
+              onFocus={e=>e.target.style.borderColor=T.borderFoc}
+              onBlur={e=>e.target.style.borderColor=T.borderInput}
+            />
+          </Field>
+
+          {/* Variables de personnalisation — sauf facture et RGPD */}
+          {!["facture","rgpd"].includes(tpl.id)&&(
+            <div>
+              <Label>Variables de personnalisation utilisées</Label>
+              <p style={{ fontSize:11, color:T.textMuted, fontFamily:T.font, margin:"2px 0 8px" }}>Cliquez pour ajouter ou saisissez une variable personnalisée</p>
+              {/* Suggestions */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:10 }}>
+                {VARIABLES_SUGGÉRÉES.filter(v=>!(value.variables||[]).includes(v)).map(v=>(
+                  <button key={v} type="button" onClick={()=>addVar(v)} style={{
+                    fontSize:11, fontFamily:T.font, padding:"3px 8px", borderRadius:5, cursor:"pointer",
+                    background:"rgba(255,255,255,0.04)", border:`1px solid ${T.border}`, color:T.textMuted,
+                    transition:"all .12s"
+                  }}>{v}</button>
+                ))}
+              </div>
+              {/* Variables sélectionnées */}
+              {(value.variables||[]).length>0&&(
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
+                  {(value.variables||[]).map((v,i)=>(
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:0, borderRadius:6, overflow:"hidden", border:`1px solid ${tpl.color}55` }}>
+                      <span style={{ fontSize:11, fontFamily:T.font, color:tpl.color, background:`${tpl.color}12`, padding:"3px 8px", fontWeight:600 }}>{v}</span>
+                      <span onClick={()=>delVar(i)} style={{ padding:"3px 7px", cursor:"pointer", color:T.textMuted, fontSize:12, background:"rgba(255,255,255,0.04)" }}>×</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Variable custom */}
+              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                <input value={varInput} onChange={e=>setVarInput(e.target.value)}
+                  onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addVar(varInput);}}}
+                  placeholder="{{ma_variable_custom}}"
+                  style={{ flex:1, background:T.bgInput, border:`1px solid ${T.borderInput}`, borderRadius:6, padding:"6px 10px", fontSize:12, color:T.textInput, outline:"none", fontFamily:T.font }}
+                  onFocus={e=>e.target.style.borderColor=T.borderFoc} onBlur={e=>e.target.style.borderColor=T.borderInput}/>
+                <Btn onClick={()=>addVar(varInput)} variant="ghost" small icon="+">Ajouter</Btn>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionComms({ data, setData }) {
+  const comms = data.comms || {};
+  const updateComm = (id, val) => setData(p=>({ ...p, comms:{ ...p.comms, [id]:val } }));
+
+  const doneCount = COMM_TEMPLATES.filter(t=>(comms[t.id]?.statut==="Validé")).length;
+  const filledCount = COMM_TEMPLATES.filter(t=>(comms[t.id]?.notes||comms[t.id]?.objet)).length;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+      <SectionTitle icon="✉️" title="Communication client" subtitle="Templates de mails, mentions légales et conformité RGPD"
+        badge={`${filledCount}/${COMM_TEMPLATES.length} renseignés`}/>
+
+      {/* Progression */}
+      <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:10, padding:"12px 16px" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+          <span style={{ fontSize:12, fontWeight:600, color:T.textSec, fontFamily:T.font }}>Avancement</span>
+          <span style={{ fontSize:12, fontWeight:700, color:T.green, fontFamily:T.font }}>{doneCount} validé{doneCount!==1?"s":""} sur {COMM_TEMPLATES.length}</span>
+        </div>
+        <div style={{ display:"flex", gap:4 }}>
+          {COMM_TEMPLATES.map(t=>{
+            const s = comms[t.id]?.statut||"À créer";
+            const c = s==="Validé"?t.color : s==="En cours de rédaction"?"#3b82f6" : s==="Existant à migrer"?"#f59e0b" : T.border;
+            return <div key={t.id} title={`${t.label} — ${s}`} style={{ flex:1, height:6, borderRadius:3, background:c, transition:"background .2s" }}/>;
+          })}
+        </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginTop:10 }}>
+          {[["À créer","#94a3b8"],["Existant à migrer","#f59e0b"],["En cours de rédaction","#3b82f6"],["Validé","#10b981"]].map(([l,c])=>(
+            <div key={l} style={{ display:"flex", alignItems:"center", gap:5 }}>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:c }}/>
+              <span style={{ fontSize:11, color:T.textMuted, fontFamily:T.font }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Blocs accordéon */}
+      {COMM_TEMPLATES.map(tpl=>(
+        <CommBlock
+          key={tpl.id}
+          tpl={tpl}
+          value={comms[tpl.id] || { objet:"", declencheur:"", canal:"Email", statut:"À créer", notes:"", variables:[] }}
+          onChange={val=>updateComm(tpl.id, val)}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── EXPORT EXCEL ─────────────────────────────────────────────
 function buildExcel(data) {
   const wb = XLSX.utils.book_new();
@@ -1444,6 +1643,13 @@ function buildExcel(data) {
       : [[u.prenom, u.nom, u.role||"", u.mail, u.tel, "—", "—"]]
     ),
     [16,16,16,28,16,24,16]);
+  addSheet("8 - Communication",
+    ["Template","Canal","Déclencheur","Objet","Statut","Variables","Contenu / Notes"],
+    COMM_TEMPLATES.map(t=>{
+      const c = (data.comms||{})[t.id]||{};
+      return [t.label, c.canal||"", c.declencheur||"", c.objet||"", c.statut||"À créer", (c.variables||[]).join(", "), c.notes||""];
+    }),
+    [28,16,22,36,20,30,60]);
   return wb;
 }
 function exportExcel(data) { XLSX.writeFile(buildExcel(data),"Onboarding_Hotel.xlsx"); }
@@ -1453,11 +1659,13 @@ function calcProgress(data) {
   const d=(data.entites||[INIT_ENTITY()])[0];
   const fields=[d.nomJuridique,d.enseigne,d.siret,d.mailContact,d.tel,d.adresse];
   const r=data.restaurant||{};
-  return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0)+((r.articles||[]).length>0?1:0)+((data.users||[]).length>0?1:0))/7*100);
+  const commsOk = Object.values(data.comms||{}).some(c=>c.notes||c.objet);
+  return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0)+((r.articles||[]).length>0?1:0)+((data.users||[]).length>0?1:0)+(commsOk?1:0))/8*100);
 }
 function calcStepDone(data) {
   const d=(data.entites||[INIT_ENTITY()])[0];
   const r=data.restaurant||{};
+  const commsOk = Object.values(data.comms||{}).some(c=>c.notes||c.objet);
   return [
     !!(d.nomJuridique&&d.mailContact),
     data.chambres.length>0,
@@ -1465,7 +1673,8 @@ function calcStepDone(data) {
     data.extras.length>0,
     data.cales.length>0,
     (r.articles||[]).length>0,
-    (data.users||[]).length>0
+    (data.users||[]).length>0,
+    commsOk
   ];
 }
 
@@ -1525,6 +1734,7 @@ export default function App() {
     <SectionPricing365 data={data} setData={setData}/>,
     <SectionRestaurant data={data} setData={setData}/>,
     <SectionUsers      data={data} setData={setData}/>,
+    <SectionComms      data={data} setData={setData}/>,
   ];
 
   return (
@@ -1664,6 +1874,7 @@ export default function App() {
                   ["📅",`${data.cales.length} cale${data.cales.length!==1?"s":""}`],
                   ["🍽️",`${(data.restaurant?.articles||[]).length} article${(data.restaurant?.articles||[]).length!==1?"s":""}`],
                   ["👥",`${(data.users||[]).length} utilisateur${(data.users||[]).length!==1?"s":""}`],
+                  ["✉️",`${Object.values(data.comms||{}).filter(c=>c.statut==="Validé").length}/${COMM_TEMPLATES.length} templates validés`],
                 ].map(([icon,label])=>(
                   <div key={label} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 0" }}>
                     <span style={{ fontSize:13 }}>{icon}</span>
