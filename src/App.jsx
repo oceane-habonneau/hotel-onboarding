@@ -5,19 +5,16 @@ const STORAGE_KEY = "hotel-onboarding-v4";
 function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
 function loadData() { try { const d = localStorage.getItem(STORAGE_KEY); return d ? JSON.parse(d) : null; } catch { return null; } }
 
+const INIT_ENTITY = () => ({
+  nomJuridique:"", enseigne:"", siret:"", tva:"", typeEtablissement:"Hôtel", logiciels:[],
+  adresse:"", lat:"", lng:"", mailContact:"", mailFacturation:"", tel:"", horaires:"",
+  iban:"", bic:"", lienDrive:"", partenaires:[]
+});
+
 const INIT = {
-  identity: {
-    nomJuridique:"", enseigne:"", siret:"", tva:"", adresse:"", lat:"", lng:"",
-    mailContact:"", mailFacturation:"", tel:"", horaires:"",
-    iban:"", bic:"",
-    logiciels:[], lienDrive:"",
-    partenaires:[],
-    typeEtablissement:"Hôtel"
-  },
+  entites: [INIT_ENTITY()],
   chambres:[], tarifs:[], extras:[], cales:[], calendar:{},
-  restaurant:{
-    moments:[], options:[], salles:[], tables:[], cartes:[], articles:[]
-  }
+  restaurant:{ moments:[], options:[], salles:[], tables:[], cartes:[], articles:[] }
 };
 
 const TYPE_ETABLISSEMENT = ["Hôtel","Appart-hôtel","Gîte","Chambre d'hôtes","Autre"];
@@ -228,104 +225,120 @@ function LogicielsSelect({ value, onChange }) {
 }
 
 // ─── SECTION 1 : IDENTITÉ ─────────────────────────────────────
-function SectionIdentity({ data, setData }) {
-  const u = (k,v) => setData(p=>({ ...p, identity:{ ...p.identity, [k]:v } }));
-  const d = data.identity;
+function EntityForm({ entity, onChange, prevEntity, isFirst }) {
+  const u = (k,v) => onChange({ ...entity, [k]:v });
   const [newPart, setNewPart] = useState({ nom:"", id:"", mdp:"" });
   const [showMdp, setShowMdp] = useState(false);
   const [revealIdx, setRevealIdx] = useState(null);
+  const [copyCoords, setCopyCoords] = useState(false);
+  const [copyBanc, setCopyBanc] = useState(false);
+
   const addPartenaire = () => {
     if (!newPart.nom.trim()) return;
-    u("partenaires", [...(d.partenaires||[]), {...newPart}]);
-    setNewPart({ nom:"", id:"", mdp:"" });
-    setShowMdp(false);
+    onChange({ ...entity, partenaires:[...(entity.partenaires||[]), {...newPart}] });
+    setNewPart({ nom:"", id:"", mdp:"" }); setShowMdp(false);
   };
   const delPartenaire = (i) => {
-    u("partenaires", (d.partenaires||[]).filter((_,idx)=>idx!==i));
+    onChange({ ...entity, partenaires:(entity.partenaires||[]).filter((_,idx)=>idx!==i) });
     if (revealIdx===i) setRevealIdx(null);
   };
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
-      <SectionTitle icon="🏢" title="Identité juridique & commerciale" subtitle="Informations légales, coordonnées et identifiants" badge={d.enseigne||"Mon établissement"} />
+  const handleCopyCoords = (checked) => {
+    setCopyCoords(checked);
+    if (checked && prevEntity) onChange({ ...entity,
+      adresse:prevEntity.adresse, lat:prevEntity.lat, lng:prevEntity.lng,
+      tel:prevEntity.tel, horaires:prevEntity.horaires,
+      mailContact:prevEntity.mailContact, mailFacturation:prevEntity.mailFacturation
+    });
+  };
+  const handleCopyBanc = (checked) => {
+    setCopyBanc(checked);
+    if (checked && prevEntity) onChange({ ...entity, iban:prevEntity.iban, bic:prevEntity.bic });
+  };
 
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       {/* Entité légale */}
       <Card form>
         <p style={{ fontSize:11, fontWeight:700, color:T.green, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 14px" }}>Entité légale</p>
         <Grid2>
-          <Field label="Nom juridique" required><Input value={d.nomJuridique} onChange={v=>u("nomJuridique",v)} placeholder="SAS HOTEL LE RIVAGE"/></Field>
-          <Field label="Enseigne commerciale" required><Input value={d.enseigne} onChange={v=>u("enseigne",v)} placeholder="Hôtel Le Rivage"/></Field>
-          <Field label="SIRET / KBIS"><Input value={d.siret} onChange={v=>u("siret",v)} placeholder="12345678900012"/></Field>
-          <Field label="N° TVA intracommunautaire"><Input value={d.tva} onChange={v=>u("tva",v)} placeholder="FR12345678900"/></Field>
-          <Field label="Type d'établissement"><Sel value={d.typeEtablissement} onChange={v=>u("typeEtablissement",v)} options={TYPE_ETABLISSEMENT}/></Field>
+          <Field label="Nom juridique" required><Input value={entity.nomJuridique} onChange={v=>u("nomJuridique",v)} placeholder="SAS HOTEL LE RIVAGE"/></Field>
+          <Field label="Enseigne commerciale" required><Input value={entity.enseigne} onChange={v=>u("enseigne",v)} placeholder="Hôtel Le Rivage"/></Field>
+          <Field label="SIRET / KBIS"><Input value={entity.siret} onChange={v=>u("siret",v)} placeholder="12345678900012"/></Field>
+          <Field label="N° TVA intracommunautaire"><Input value={entity.tva} onChange={v=>u("tva",v)} placeholder="FR12345678900"/></Field>
+          <Field label="Type d'établissement"><Sel value={entity.typeEtablissement} onChange={v=>u("typeEtablissement",v)} options={TYPE_ETABLISSEMENT}/></Field>
         </Grid2>
         <div style={{ marginTop:14 }}>
-          <Field label="Logiciels possédés">
-            <LogicielsSelect value={d.logiciels} onChange={v=>u("logiciels",v)}/>
-          </Field>
+          <Field label="Logiciels possédés"><LogicielsSelect value={entity.logiciels} onChange={v=>u("logiciels",v)}/></Field>
         </div>
       </Card>
 
       {/* Coordonnées */}
       <Card form>
-        <p style={{ fontSize:11, fontWeight:700, color:T.blue, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 14px" }}>Coordonnées</p>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, flexWrap:"wrap", gap:8 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:T.blue, textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>Coordonnées</p>
+          {!isFirst && prevEntity && (
+            <label style={{ display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:12, color:T.blue, fontFamily:T.font, background:"rgba(59,130,246,0.08)", border:`1px solid ${T.blue}33`, borderRadius:6, padding:"4px 10px" }}>
+              <input type="checkbox" checked={copyCoords} onChange={e=>handleCopyCoords(e.target.checked)} style={{ accentColor:T.blue, width:14, height:14 }}/>
+              📋 Copier depuis « {prevEntity.enseigne||"entité précédente"} »
+            </label>
+          )}
+        </div>
         <Grid2>
-          <Field label="Adresse complète" required span2><Input value={d.adresse} onChange={v=>u("adresse",v)} placeholder="12 Rue du Port, 75001 Paris"/></Field>
-          <Field label="Latitude"><Input value={d.lat} onChange={v=>u("lat",v)} placeholder="48.8566"/></Field>
-          <Field label="Longitude"><Input value={d.lng} onChange={v=>u("lng",v)} placeholder="2.3522"/></Field>
-          <Field label="Téléphone"><Input value={d.tel} onChange={v=>u("tel",v)} placeholder="+33 1 23 45 67 89"/></Field>
-          <Field label="Horaires réception"><Input value={d.horaires} onChange={v=>u("horaires",v)} placeholder="7h–23h"/></Field>
-          <Field label="Mail contact" required><Input value={d.mailContact} onChange={v=>u("mailContact",v)} placeholder="contact@hotel.fr"/></Field>
-          <Field label="Mail facturation"><Input value={d.mailFacturation} onChange={v=>u("mailFacturation",v)} placeholder="facturation@hotel.fr"/></Field>
+          <Field label="Adresse complète" required span2><Input value={entity.adresse} onChange={v=>u("adresse",v)} placeholder="12 Rue du Port, 75001 Paris"/></Field>
+          <Field label="Latitude"><Input value={entity.lat} onChange={v=>u("lat",v)} placeholder="48.8566"/></Field>
+          <Field label="Longitude"><Input value={entity.lng} onChange={v=>u("lng",v)} placeholder="2.3522"/></Field>
+          <Field label="Téléphone"><Input value={entity.tel} onChange={v=>u("tel",v)} placeholder="+33 1 23 45 67 89"/></Field>
+          <Field label="Horaires réception"><Input value={entity.horaires} onChange={v=>u("horaires",v)} placeholder="7h–23h"/></Field>
+          <Field label="Mail contact" required><Input value={entity.mailContact} onChange={v=>u("mailContact",v)} placeholder="contact@hotel.fr"/></Field>
+          <Field label="Mail facturation"><Input value={entity.mailFacturation} onChange={v=>u("mailFacturation",v)} placeholder="facturation@hotel.fr"/></Field>
         </Grid2>
       </Card>
 
       {/* Bancaire */}
       <Card form>
-        <p style={{ fontSize:11, fontWeight:700, color:T.amber, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 14px" }}>Coordonnées bancaires</p>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, flexWrap:"wrap", gap:8 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:T.amber, textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>Coordonnées bancaires</p>
+          {!isFirst && prevEntity && (
+            <label style={{ display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:12, color:T.amber, fontFamily:T.font, background:"rgba(245,158,11,0.08)", border:`1px solid ${T.amber}33`, borderRadius:6, padding:"4px 10px" }}>
+              <input type="checkbox" checked={copyBanc} onChange={e=>handleCopyBanc(e.target.checked)} style={{ accentColor:T.amber, width:14, height:14 }}/>
+              📋 Copier depuis « {prevEntity.enseigne||"entité précédente"} »
+            </label>
+          )}
+        </div>
         <Grid2>
-          <Field label="IBAN"><Input value={d.iban} onChange={v=>u("iban",v)} placeholder="FR76 3000 1007 9412 3456 7890 185"/></Field>
-          <Field label="BIC / SWIFT"><Input value={d.bic} onChange={v=>u("bic",v)} placeholder="BNPAFRPP"/></Field>
+          <Field label="IBAN"><Input value={entity.iban} onChange={v=>u("iban",v)} placeholder="FR76 3000 1007 9412 3456 7890 185"/></Field>
+          <Field label="BIC / SWIFT"><Input value={entity.bic} onChange={v=>u("bic",v)} placeholder="BNPAFRPP"/></Field>
         </Grid2>
       </Card>
 
       {/* Distribution */}
       <Card form>
         <p style={{ fontSize:11, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 14px" }}>Distribution & Partenaires</p>
-
-        {/* Avertissement sécurité */}
         <div style={{ display:"flex", alignItems:"flex-start", gap:8, background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" style={{ flexShrink:0, marginTop:1 }}><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <div>
-            <p style={{ fontSize:12, fontWeight:700, color:"#f59e0b", margin:"0 0 2px", fontFamily:T.font }}>Conseil de sécurité</p>
-            <p style={{ fontSize:12, color:"#92400e", margin:0, fontFamily:T.font, lineHeight:1.5 }}>
-              Les mots de passe sont masqués à l'affichage mais stockés localement sur cet appareil. Pour une sécurité maximale, utilisez un gestionnaire dédié (Bitwarden, 1Password) et ne renseignez ici que si vous êtes sur un appareil personnel sécurisé.
-            </p>
-          </div>
+          <p style={{ fontSize:12, color:"#92400e", margin:0, fontFamily:T.font, lineHeight:1.5 }}>
+            <strong style={{ color:"#f59e0b" }}>Conseil de sécurité — </strong>
+            Mots de passe masqués mais stockés localement. Utilisez un gestionnaire dédié (Bitwarden, 1Password) pour une sécurité maximale.
+          </p>
         </div>
-
         <div style={{ marginBottom:14 }}>
           <Label>Lien Drive (photos / logos)</Label>
-          <Input value={d.lienDrive} onChange={v=>u("lienDrive",v)} placeholder="https://drive.google.com/..."/>
+          <Input value={entity.lienDrive} onChange={v=>u("lienDrive",v)} placeholder="https://drive.google.com/..."/>
         </div>
-
-        {/* Liste partenaires */}
-        {(d.partenaires||[]).length>0&&(
+        {(entity.partenaires||[]).length>0&&(
           <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:14 }}>
-            {(d.partenaires||[]).map((p,i)=>(
+            {(entity.partenaires||[]).map((p,i)=>(
               <div key={i} style={{ background:"rgba(255,255,255,0.04)", border:`1px solid ${T.border}`, borderRadius:8, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
                 <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
                   <span style={{ fontWeight:700, color:T.textPrim, fontSize:13, fontFamily:T.font }}>{p.nom}</span>
                   {p.id&&<Chip color={T.blue}>ID : {p.id}</Chip>}
                   {p.mdp&&(
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <span style={{ fontSize:12, color:T.textMuted, fontFamily:T.font, letterSpacing:"0.15em" }}>
-                        {revealIdx===i ? p.mdp : "••••••••"}
-                      </span>
-                      <button type="button" onClick={()=>setRevealIdx(revealIdx===i?null:i)} style={{ background:"none", border:"none", cursor:"pointer", padding:"2px 4px", color:T.textMuted, display:"flex", alignItems:"center" }} title={revealIdx===i?"Masquer":"Afficher"}>
+                      <span style={{ fontSize:12, color:T.textMuted, fontFamily:T.font, letterSpacing:"0.15em" }}>{revealIdx===i?p.mdp:"••••••••"}</span>
+                      <button type="button" onClick={()=>setRevealIdx(revealIdx===i?null:i)} style={{ background:"none", border:"none", cursor:"pointer", padding:"2px 4px", color:T.textMuted, display:"flex", alignItems:"center" }}>
                         {revealIdx===i
-                          ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                          : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        }
+                          ?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          :<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                       </button>
                     </div>
                   )}
@@ -335,33 +348,20 @@ function SectionIdentity({ data, setData }) {
             ))}
           </div>
         )}
-
-        {/* Formulaire ajout partenaire */}
         <div style={{ background:"rgba(139,92,246,0.06)", border:`1px solid rgba(139,92,246,0.2)`, borderRadius:10, padding:14 }}>
           <p style={{ fontSize:11, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 10px" }}>+ Ajouter un partenaire (OTA / logiciel)</p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:6 }}>
-            <Field label="Nom du partenaire">
-              <Input value={newPart.nom} onChange={v=>setNewPart(p=>({...p,nom:v}))} placeholder="Booking.com, Expedia…"/>
-            </Field>
-            <Field label="Identifiant / ID">
-              <Input value={newPart.id} onChange={v=>setNewPart(p=>({...p,id:v}))} placeholder="123456789"/>
-            </Field>
+            <Field label="Nom du partenaire"><Input value={newPart.nom} onChange={v=>setNewPart(p=>({...p,nom:v}))} placeholder="Booking.com, Expedia…"/></Field>
+            <Field label="Identifiant / ID"><Input value={newPart.id} onChange={v=>setNewPart(p=>({...p,id:v}))} placeholder="123456789"/></Field>
             <Field label="Mot de passe">
               <div style={{ position:"relative" }}>
-                <input
-                  type={showMdp?"text":"password"}
-                  value={newPart.mdp}
-                  onChange={e=>setNewPart(p=>({...p,mdp:e.target.value}))}
-                  placeholder="••••••••"
+                <input type={showMdp?"text":"password"} value={newPart.mdp} onChange={e=>setNewPart(p=>({...p,mdp:e.target.value}))} placeholder="••••••••"
                   style={{ background:T.bgInput, border:`1px solid ${T.borderInput}`, borderRadius:8, padding:"9px 40px 9px 12px", fontSize:13, color:T.textInput, outline:"none", fontFamily:T.font, width:"100%", boxSizing:"border-box" }}
-                  onFocus={e=>e.target.style.borderColor=T.borderFoc}
-                  onBlur={e=>e.target.style.borderColor=T.borderInput}
-                />
-                <button type="button" onClick={()=>setShowMdp(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#94a3b8", padding:2, display:"flex", alignItems:"center" }} title={showMdp?"Masquer":"Afficher"}>
+                  onFocus={e=>e.target.style.borderColor=T.borderFoc} onBlur={e=>e.target.style.borderColor=T.borderInput}/>
+                <button type="button" onClick={()=>setShowMdp(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#94a3b8", padding:2, display:"flex", alignItems:"center" }}>
                   {showMdp
-                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  }
+                    ?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    :<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                 </button>
               </div>
             </Field>
@@ -373,6 +373,62 @@ function SectionIdentity({ data, setData }) {
           <Btn onClick={addPartenaire} icon="+" variant="secondary" small>Enregistrer le partenaire</Btn>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function SectionIdentity({ data, setData }) {
+  const entites = data.entites || [INIT_ENTITY()];
+  const [activeTab, setActiveTab] = useState(0);
+
+  const updateEntity = (i, val) => {
+    const next = [...entites]; next[i] = val;
+    setData(p=>({ ...p, entites:next }));
+  };
+  const addEntity = () => {
+    setData(p=>({ ...p, entites:[...entites, INIT_ENTITY()] }));
+    setActiveTab(entites.length);
+  };
+  const delEntity = (i) => {
+    if (entites.length===1) return;
+    const next = entites.filter((_,idx)=>idx!==i);
+    setData(p=>({ ...p, entites:next }));
+    setActiveTab(Math.min(activeTab, next.length-1));
+  };
+
+  const current = entites[activeTab] || INIT_ENTITY();
+  const prev    = activeTab > 0 ? entites[activeTab-1] : null;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+      <SectionTitle icon="🏢" title="Identité juridique & commerciale" subtitle="Gérez une ou plusieurs entités juridiques" badge={`${entites.length} entité${entites.length>1?"s":""}`}/>
+
+      {/* Onglets entités */}
+      <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+        {entites.map((e,i)=>(
+          <button key={i} type="button" onClick={()=>setActiveTab(i)} style={{
+            display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8,
+            cursor:"pointer", fontFamily:T.font, fontSize:13, fontWeight:activeTab===i?700:500, transition:"all .15s",
+            background:activeTab===i?T.green:"rgba(255,255,255,0.04)",
+            color:activeTab===i?"#fff":T.textSec,
+            border:`1px solid ${activeTab===i?T.green:T.border}`
+          }}>
+            🏢 {e.enseigne||`Entité ${i+1}`}
+            {entites.length>1&&(
+              <span onClick={ev=>{ev.stopPropagation();delEntity(i);}}
+                style={{ marginLeft:4, opacity:.65, fontSize:15, lineHeight:1, color:activeTab===i?"#fff":T.textMuted }}>×</span>
+            )}
+          </button>
+        ))}
+        <button type="button" onClick={addEntity} style={{
+          display:"flex", alignItems:"center", gap:5, padding:"8px 14px", borderRadius:8,
+          cursor:"pointer", fontFamily:T.font, fontSize:13, fontWeight:600,
+          background:"transparent", color:T.green, border:`1px dashed ${T.green}`, transition:"all .15s"
+        }}>+ Ajouter une entité</button>
+      </div>
+
+      {/* Formulaire entité active */}
+      <EntityForm key={activeTab} entity={current} onChange={val=>updateEntity(activeTab,val)} prevEntity={prev} isFirst={activeTab===0}/>
     </div>
   );
 }
@@ -533,12 +589,8 @@ function SectionTarifs({ data, setData }) {
     setData(p=>({...p,tarifs:list})); setForm(newE()); setEditing(null);
   };
   const TC={"Base":T.green,"Dérivé":T.blue,"Promotion":T.red,"Early Bird":"#8b5cf6","Last Minute":T.amber,"Groupe":"#06b6d4"};
-  const mappingOptions = [
-    "Direct uniquement",
-    "OTA uniquement",
-    "Tous les canaux",
-    ...(data.identity?.partenaires||[]).map(p=>p.nom).filter(Boolean)
-  ];
+  const allPartenaires = (data.entites||[]).flatMap(e=>(e.partenaires||[]).map(p=>p.nom)).filter(Boolean);
+  const mappingOptions = ["Direct uniquement","OTA uniquement","Tous les canaux", ...allPartenaires];
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       <SectionTitle icon="💶" title="Stratégie tarifaire" subtitle="Plans tarifaires, conditions & mapping canaux" badge={`${data.tarifs.length} tarif${data.tarifs.length!==1?"s":""}`}/>
@@ -1136,13 +1188,15 @@ function buildExcel(data) {
     ws["!rows"]=[{hpt:40},...Array(rows.length).fill({hpt:25})];
     XLSX.utils.book_append_sheet(wb,ws,name);
   };
-  const d=data.identity;
-  const logStr=Array.isArray(d.logiciels)?d.logiciels.join(", "):d.logiciels||"";
-  const partStr=(d.partenaires||[]).map(p=>`${p.nom}${p.id?" (ID:"+p.id+")":""}`).join(" | ");
+  const entites = data.entites || [INIT_ENTITY()];
   addSheet("1 - Identité",
-    ["Nom Juridique","Enseigne","SIRET","N° TVA","Adresse","Lat","Lng","Mail Contact","Mail Fact.","Tél","Horaires","IBAN","BIC","Type","Logiciels","Partenaires","Lien Drive"],
-    [[d.nomJuridique,d.enseigne,d.siret,d.tva,d.adresse,d.lat,d.lng,d.mailContact,d.mailFacturation,d.tel,d.horaires,d.iban,d.bic,d.typeEtablissement,logStr,partStr,d.lienDrive]],
-    [22,20,18,18,28,10,10,22,22,16,14,28,12,16,28,40,28]);
+    ["Entité","Nom Juridique","Enseigne","SIRET","N° TVA","Type","Logiciels","Adresse","Lat","Lng","Mail Contact","Mail Fact.","Tél","Horaires","IBAN","BIC","Partenaires","Lien Drive"],
+    entites.map((d,i)=>{
+      const logStr=Array.isArray(d.logiciels)?d.logiciels.join(", "):d.logiciels||"";
+      const partStr=(d.partenaires||[]).map(p=>`${p.nom}${p.id?" (ID:"+p.id+")":""}`).join(" | ");
+      return [`Entité ${i+1}`,d.nomJuridique,d.enseigne,d.siret,d.tva,d.typeEtablissement,logStr,d.adresse,d.lat,d.lng,d.mailContact,d.mailFacturation,d.tel,d.horaires,d.iban,d.bic,partStr,d.lienDrive];
+    }),
+    [10,22,20,18,18,16,28,28,10,10,22,22,16,14,28,12,40,28]);
   addSheet("2 - Chambres",
     ["Nom","Code","Nb","Capa Std","Capa Max","Adultes","Enfants","Surface m²","Config Lits","Salle d'eau","Descriptif","Clim","Coffre","Minibar","Wifi","Bureau","Balcon","Autres équipements"],
     data.chambres.map(c=>[c.nom,c.code,+c.nbUnites,+c.capaStd,+c.capaMax,+c.adultesMax,+c.enfantsMax,+c.surface,c.configLits,c.salleEau,c.descriptif,c.clim,c.coffreFort,c.minibar,c.wifi,c.bureau,c.balcon,(c.autresEquipements||[]).join(", ")]),
@@ -1169,15 +1223,16 @@ function exportExcel(data) { XLSX.writeFile(buildExcel(data),"Onboarding_Hotel.x
 
 // ─── PROGRESS ─────────────────────────────────────────────────
 function calcProgress(data) {
-  const d=data.identity;
+  const d=(data.entites||[INIT_ENTITY()])[0];
   const fields=[d.nomJuridique,d.enseigne,d.siret,d.mailContact,d.tel,d.adresse];
   const r=data.restaurant||{};
   return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0)+((r.articles||[]).length>0?1:0))/6*100);
 }
 function calcStepDone(data) {
+  const d=(data.entites||[INIT_ENTITY()])[0];
   const r=data.restaurant||{};
   return [
-    !!(data.identity.nomJuridique&&data.identity.mailContact),
+    !!(d.nomJuridique&&d.mailContact),
     data.chambres.length>0,
     data.tarifs.length>0,
     data.extras.length>0,
@@ -1221,7 +1276,7 @@ export default function App() {
     exportExcel(data);
     // 2. Ouvre le client mail avec le contexte
     setTimeout(()=>{
-      const ens = data.identity.enseigne || "Nouvel établissement";
+      const ens = (data.entites||[{}])[0].enseigne || "Nouvel établissement";
       const subject = encodeURIComponent(`Onboarding Hôtelier — ${ens}`);
       const body = encodeURIComponent(
         `Bonjour Océane,\n\nVeuillez trouver en pièce jointe le fichier Excel d'onboarding de l'établissement : ${ens}\n\n⚠️ Le fichier "Onboarding_Hotel.xlsx" vient d'être téléchargé sur votre appareil — pensez à l'attacher à cet email.\n\nCordialement`
@@ -1308,7 +1363,7 @@ export default function App() {
             <div>
               <h1 style={{ fontSize:22, fontWeight:800, color:T.textPrim, margin:"0 0 4px", fontFamily:T.font }}>Onboarding Hôtelier</h1>
               <p style={{ fontSize:14, color:T.textSec, margin:0, fontFamily:T.font }}>
-                {data.identity.enseigne||"Mon établissement"} — Renseignez les informations de votre établissement
+                {(data.entites||[{}])[0].enseigne||"Mon établissement"} — Renseignez les informations de votre établissement
               </p>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:16 }}>
