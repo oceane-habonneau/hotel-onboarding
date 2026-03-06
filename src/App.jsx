@@ -14,7 +14,8 @@ const INIT_ENTITY = () => ({
 const INIT = {
   entites: [INIT_ENTITY()],
   chambres:[], tarifs:[], extras:[], cales:[], calendar:{},
-  restaurant:{ moments:[], options:[], salles:[], tables:[], cartes:[], articles:[] }
+  restaurant:{ moments:[], options:[], salles:[], tables:[], cartes:[], articles:[] },
+  users:[]
 };
 
 const TYPE_ETABLISSEMENT = ["Hôtel","Appart-hôtel","Gîte","Chambre d'hôtes","Autre"];
@@ -31,13 +32,16 @@ const VENTILATION        = ["Par Pax/Nuit","Par Pax/Séjour","Par Chambre/Nuit",
 const MONTHS             = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
 const MONTH_DAYS         = [31,28,31,30,31,30,31,31,30,31,30,31];
 const STEPS = [
-  { id:"identity",   icon:"🏢", label:"Identité",       desc:"Infos légales & contacts" },
-  { id:"chambres",   icon:"🛏️", label:"Chambres",       desc:"Catégories & équipements" },
-  { id:"tarifs",     icon:"💶", label:"Tarification",   desc:"Stratégie & conditions"   },
-  { id:"extras",     icon:"🧾", label:"Extras & Taxes", desc:"Services & comptabilité"  },
-  { id:"pricing365", icon:"📅", label:"Cale Tarifaire", desc:"Calendrier annuel"         },
+  { id:"identity",   icon:"🏢", label:"Identité",       desc:"Infos légales & contacts"  },
+  { id:"chambres",   icon:"🛏️", label:"Chambres",       desc:"Catégories & équipements"  },
+  { id:"tarifs",     icon:"💶", label:"Tarification",   desc:"Stratégie & conditions"    },
+  { id:"extras",     icon:"🧾", label:"Extras & Taxes", desc:"Services & comptabilité"   },
+  { id:"pricing365", icon:"📅", label:"Cale Tarifaire", desc:"Calendrier annuel"          },
   { id:"restaurant", icon:"🍽️", label:"Restaurant",     desc:"Salles, cartes & articles" },
+  { id:"users",      icon:"👥", label:"Utilisateurs",   desc:"Accès & droits par plateforme" },
 ];
+const NIVEAUX_ACCES = ["Admin","Manager","Lecture seule"];
+const PLATEFORMES_FIXES = ["PMS","Channel Manager","Moteur de réservation","CRM","Revenue Manager","Conciergerie digitale"];
 const MOMENTS_LIST = ["Petit-déjeuner","Déjeuner","Dîner","Brunch","Apéritif","Entrée","Plat","Dessert","Fromage","Digestif","Soft / Boisson","Vin / Carte des vins"];
 const OPTIONS_LIST = ["Saignant","Bleu","À point","Bien cuit","Végétarien","Vegan","Sans gluten","Sans lactose","Sans œufs","Sirop menthe","Sirop grenadine","Sirop fraise","Avec glaçons","Sans sucre","Épicé","Extra sauce"];
 const TVA_RESTO    = ["10%","5.5%","20%","0%"];
@@ -1172,6 +1176,214 @@ function SectionRestaurant({ data, setData }) {
   );
 }
 
+// ─── SECTION 7 : UTILISATEURS ────────────────────────────────
+
+const ROLES = [
+  { label:"Admin",          icon:"👑", color:"#ef4444", niveauDefaut:"Admin"        },
+  { label:"Manager",        icon:"🧑‍💼", color:"#f59e0b", niveauDefaut:"Manager"      },
+  { label:"Réceptionniste", icon:"🛎️", color:"#10b981", niveauDefaut:"Manager"      },
+  { label:"Comptable",      icon:"📊", color:"#8b5cf6", niveauDefaut:"Lecture seule" },
+  { label:"Lecture seule",  icon:"👁️", color:"#94a3b8", niveauDefaut:"Lecture seule" },
+];
+
+function SectionUsers({ data, setData }) {
+  const users = data.users || [];
+  const ur = (v) => setData(p=>({ ...p, users:v }));
+
+  const distribNames = (data.entites||[]).flatMap(e=>(e.partenaires||[]).map(p=>p.nom)).filter(Boolean);
+  const logNames = [...new Set((data.entites||[]).flatMap(e=>(e.logiciels||[])))].filter(Boolean);
+  const [extraPlateformes, setExtraPlateformes] = useState([]);
+  const allPlateformes = [...new Set([...PLATEFORMES_FIXES, ...logNames, ...distribNames, ...extraPlateformes])];
+
+  const newU = () => ({ nom:"", prenom:"", mail:"", tel:"", role:"", acces:[] });
+  const [form, setForm] = useState(newU());
+  const [editing, setEditing] = useState(null);
+  const [customPlateforme, setCustomPlateforme] = useState("");
+  const uf = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const NIVEAU_COLORS = { "Admin":"#ef4444", "Manager":"#f59e0b", "Lecture seule":"#3b82f6" };
+  const NIVEAUX_ACCES = ["Admin","Manager","Lecture seule"];
+
+  // Sélection du rôle → applique le niveau par défaut sur toutes les plateformes déjà cochées
+  const selectRole = (roleLabel) => {
+    const roleDef = ROLES.find(r=>r.label===roleLabel);
+    if (!roleDef) return;
+    const newAcces = form.acces.map(a=>({ ...a, niveau:roleDef.niveauDefaut }));
+    setForm(p=>({ ...p, role:roleLabel, acces:newAcces }));
+  };
+
+  // Toggle plateforme — utilise le niveau par défaut du rôle sélectionné
+  const togglePlateforme = (pl) => {
+    const exists = form.acces.find(a=>a.plateforme===pl);
+    if (exists) {
+      uf("acces", form.acces.filter(a=>a.plateforme!==pl));
+    } else {
+      const roleDef = ROLES.find(r=>r.label===form.role);
+      const niveau = roleDef?.niveauDefaut || "Manager";
+      uf("acces", [...form.acces, { plateforme:pl, niveau }]);
+    }
+  };
+  const setNiveau = (pl, niveau) => uf("acces", form.acces.map(a=>a.plateforme===pl?{...a,niveau}:a));
+
+  // Ajout plateforme custom — apparaît immédiatement dans la liste ET cochée
+  const addCustom = () => {
+    const t = customPlateforme.trim();
+    if (!t) return;
+    const roleDef = ROLES.find(r=>r.label===form.role);
+    const niveau = roleDef?.niveauDefaut || "Manager";
+    if (!extraPlateformes.includes(t)) setExtraPlateformes(p=>[...p, t]);
+    if (!form.acces.find(a=>a.plateforme===t)) uf("acces", [...form.acces, { plateforme:t, niveau }]);
+    setCustomPlateforme("");
+  };
+
+  const save = () => {
+    if (!form.nom.trim() && !form.prenom.trim()) return;
+    const list = [...users];
+    if (editing!==null) list[editing]={...form}; else list.push({...form});
+    ur(list); setForm(newU()); setEditing(null);
+  };
+  const del = (i) => ur(users.filter((_,idx)=>idx!==i));
+  const edit = (i) => { setForm({...users[i], acces:users[i].acces||[]}); setEditing(i); };
+
+  const roleOf = (label) => ROLES.find(r=>r.label===label);
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+      <SectionTitle icon="👥" title="Gestion des utilisateurs" subtitle="Listez les personnes à créer sur chaque plateforme avec leurs droits d'accès" badge={`${users.length} utilisateur${users.length!==1?"s":""}`}/>
+
+      {/* Liste utilisateurs */}
+      {users.length>0&&(
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {users.map((u,i)=>{
+            const r = roleOf(u.role);
+            return (
+              <Card key={i} style={{ borderLeft:`3px solid ${r?.color||T.blue}` }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", marginBottom:8 }}>
+                      <span style={{ fontWeight:700, color:T.textPrim, fontSize:14, fontFamily:T.font }}>{u.prenom} {u.nom}</span>
+                      {u.role&&<span style={{ fontSize:12, fontWeight:700, color:r?.color||T.blue, background:`${r?.color||T.blue}18`, border:`1px solid ${r?.color||T.blue}33`, borderRadius:6, padding:"2px 10px", fontFamily:T.font }}>{r?.icon} {u.role}</span>}
+                      {u.mail&&<Chip color={T.textSec}>✉ {u.mail}</Chip>}
+                      {u.tel&&<Chip color={T.textSec}>📞 {u.tel}</Chip>}
+                    </div>
+                    {(u.acces||[]).length>0&&(
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                        {(u.acces||[]).map(a=>(
+                          <div key={a.plateforme} style={{ display:"flex", alignItems:"center", borderRadius:6, overflow:"hidden", border:`1px solid ${NIVEAU_COLORS[a.niveau]||T.blue}44` }}>
+                            <span style={{ fontSize:11, fontWeight:600, color:T.textSec, background:"rgba(255,255,255,0.04)", padding:"3px 8px", fontFamily:T.font }}>{a.plateforme}</span>
+                            <span style={{ fontSize:11, fontWeight:700, color:NIVEAU_COLORS[a.niveau]||T.blue, background:`${NIVEAU_COLORS[a.niveau]||T.blue}18`, padding:"3px 8px", fontFamily:T.font }}>{a.niveau}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    <Btn onClick={()=>edit(i)} variant="ghost" small>Modifier</Btn>
+                    <Btn onClick={()=>del(i)} variant="danger" small>✕</Btn>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Formulaire */}
+      <Card form accent={T.blue}>
+        <p style={{ fontSize:11, fontWeight:700, color:T.blue, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px" }}>
+          {editing!==null?"✏️ Modifier l'utilisateur":"👤 Nouvel utilisateur"}
+        </p>
+
+        {/* Infos personnelles */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:16 }}>
+          <Field label="Prénom" required><Input value={form.prenom} onChange={v=>uf("prenom",v)} placeholder="Marie"/></Field>
+          <Field label="Nom" required><Input value={form.nom} onChange={v=>uf("nom",v.toUpperCase())} placeholder="DUPONT"/></Field>
+          <Field label="Email"><Input value={form.mail} onChange={v=>uf("mail",v)} placeholder="marie.dupont@hotel.fr"/></Field>
+          <Field label="Téléphone"><Input value={form.tel} onChange={v=>uf("tel",v)} placeholder="+33 6 12 34 56 78"/></Field>
+        </div>
+
+        {/* Rôle — AVANT les plateformes */}
+        <div style={{ marginBottom:16 }}>
+          <Label>Rôle</Label>
+          <p style={{ fontSize:11, color:T.textMuted, fontFamily:T.font, margin:"2px 0 10px" }}>
+            Le rôle définit le niveau d'accès par défaut appliqué à toutes les plateformes sélectionnées
+          </p>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            {ROLES.map(r=>(
+              <button key={r.label} type="button" onClick={()=>selectRole(r.label)} style={{
+                display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8,
+                cursor:"pointer", fontFamily:T.font, fontSize:13, fontWeight:form.role===r.label?700:500,
+                background:form.role===r.label?r.color:"rgba(255,255,255,0.04)",
+                color:form.role===r.label?"#fff":T.textSec,
+                border:`1px solid ${form.role===r.label?r.color:T.border}`,
+                transition:"all .15s"
+              }}>
+                <span>{r.icon}</span><span>{r.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Plateformes */}
+        <div>
+          <Label>Accès par plateforme</Label>
+          <p style={{ fontSize:11, color:T.textMuted, fontFamily:T.font, margin:"2px 0 10px" }}>
+            {form.role ? `Niveau par défaut : ${ROLES.find(r=>r.label===form.role)?.niveauDefaut} — modifiable plateforme par plateforme` : "Sélectionnez d'abord un rôle pour pré-remplir les niveaux"}
+          </p>
+
+          <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:10 }}>
+            {allPlateformes.map(pl=>{
+              const checked = form.acces.find(a=>a.plateforme===pl);
+              return (
+                <div key={pl} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 12px", borderRadius:8, background:checked?"rgba(59,130,246,0.06)":"rgba(255,255,255,0.02)", border:`1px solid ${checked?T.blue+"44":T.border}`, transition:"all .15s" }}>
+                  <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", flex:1, minWidth:0 }}>
+                    <input type="checkbox" checked={!!checked} onChange={()=>togglePlateforme(pl)} style={{ accentColor:T.blue, width:15, height:15, flexShrink:0 }}/>
+                    <span style={{ fontSize:13, fontWeight:checked?600:400, color:checked?T.textPrim:T.textSec, fontFamily:T.font }}>{pl}</span>
+                  </label>
+                  {checked&&(
+                    <div style={{ display:"flex", gap:4, flexShrink:0 }}>
+                      {NIVEAUX_ACCES.map(n=>(
+                        <button key={n} type="button" onClick={()=>setNiveau(pl,n)} style={{
+                          padding:"4px 10px", borderRadius:6, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:T.font, border:"none", transition:"all .15s",
+                          background:checked.niveau===n?NIVEAU_COLORS[n]:`${NIVEAU_COLORS[n]}18`,
+                          color:checked.niveau===n?"#fff":NIVEAU_COLORS[n],
+                        }}>{n}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Ajout plateforme custom */}
+          <div style={{ display:"flex", gap:8, alignItems:"center", background:"rgba(255,255,255,0.02)", border:`1px dashed ${T.border}`, borderRadius:8, padding:"8px 12px" }}>
+            <span style={{ fontSize:12, color:T.textMuted, fontFamily:T.font, whiteSpace:"nowrap" }}>+ Autre :</span>
+            <input value={customPlateforme} onChange={e=>setCustomPlateforme(e.target.value)}
+              onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addCustom();}}}
+              placeholder="Nom de la plateforme…"
+              style={{ flex:1, background:T.bgInput, border:`1px solid ${T.borderInput}`, borderRadius:6, padding:"6px 10px", fontSize:12, color:T.textInput, outline:"none", fontFamily:T.font }}
+              onFocus={e=>e.target.style.borderColor=T.borderFoc} onBlur={e=>e.target.style.borderColor=T.borderInput}/>
+            <Btn onClick={addCustom} variant="secondary" small icon="+">Ajouter</Btn>
+          </div>
+        </div>
+
+        <div style={{ display:"flex", gap:8, marginTop:16 }}>
+          <Btn onClick={save} icon={editing!==null?"✓":"+"} variant="primary">{editing!==null?"Enregistrer les modifications":"Ajouter l'utilisateur"}</Btn>
+          {editing!==null&&<Btn onClick={()=>{setForm(newU());setEditing(null);}} variant="ghost">Annuler</Btn>}
+        </div>
+      </Card>
+
+      <div style={{ display:"flex", alignItems:"flex-start", gap:8, background:"rgba(59,130,246,0.06)", border:`1px solid ${T.blue}33`, borderRadius:8, padding:"10px 14px" }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.blue} strokeWidth="2" style={{ flexShrink:0, marginTop:1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style={{ fontSize:12, color:T.blue, margin:0, fontFamily:T.font, lineHeight:1.5 }}>
+          Les plateformes sont alimentées par vos partenaires et logiciels configurés en section Identité. Les plateformes ajoutées manuellement sont visibles immédiatement dans la liste.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── EXPORT EXCEL ─────────────────────────────────────────────
 function buildExcel(data) {
   const wb = XLSX.utils.book_new();
@@ -1217,6 +1429,21 @@ function buildExcel(data) {
     return [date,MONTHS_[+mo-1],+dy,cale?.nom||"",cale?.tarifStandalone||"",cale?.tarifReference||"",prixStr];
   });
   addSheet("5 - Cale Tarifaire 365j",["Date","Mois","Jour","Cale","Tarif Standalone","Tarif Référence","Prix par catégorie"],calRows,[14,8,6,20,20,20,40]);
+  addSheet("6 - Restaurant - Articles",
+    ["Nom","Moments","Carte","Prix €","TVA","Options spécifiques","Options héritées"],
+    (data.restaurant?.articles||[]).map(a=>[
+      a.nom, (a.moments||[]).join(", "), a.carte||"", a.prix?+a.prix:"", a.tva||"",
+      (a.options||[]).join(", "),
+      [...new Set((a.moments||[]).flatMap(m=>data.restaurant?.[`optsMoment_${m}`]||[]))].join(", ")
+    ]),
+    [24,30,20,10,8,30,30]);
+  addSheet("7 - Utilisateurs",
+    ["Prénom","Nom","Rôle","Email","Téléphone","Plateforme","Niveau d'accès"],
+    (data.users||[]).flatMap(u=>(u.acces||[]).length>0
+      ? (u.acces||[]).map(a=>[u.prenom, u.nom, u.role||"", u.mail, u.tel, a.plateforme, a.niveau])
+      : [[u.prenom, u.nom, u.role||"", u.mail, u.tel, "—", "—"]]
+    ),
+    [16,16,16,28,16,24,16]);
   return wb;
 }
 function exportExcel(data) { XLSX.writeFile(buildExcel(data),"Onboarding_Hotel.xlsx"); }
@@ -1226,7 +1453,7 @@ function calcProgress(data) {
   const d=(data.entites||[INIT_ENTITY()])[0];
   const fields=[d.nomJuridique,d.enseigne,d.siret,d.mailContact,d.tel,d.adresse];
   const r=data.restaurant||{};
-  return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0)+((r.articles||[]).length>0?1:0))/6*100);
+  return Math.round(((fields.filter(Boolean).length/fields.length)+(data.chambres.length>0?1:0)+(data.tarifs.length>0?1:0)+(data.extras.length>0?1:0)+(data.cales.length>0?Math.min(Object.keys(data.calendar).length/100,1):0)+((r.articles||[]).length>0?1:0)+((data.users||[]).length>0?1:0))/7*100);
 }
 function calcStepDone(data) {
   const d=(data.entites||[INIT_ENTITY()])[0];
@@ -1237,7 +1464,8 @@ function calcStepDone(data) {
     data.tarifs.length>0,
     data.extras.length>0,
     data.cales.length>0,
-    (r.articles||[]).length>0
+    (r.articles||[]).length>0,
+    (data.users||[]).length>0
   ];
 }
 
@@ -1296,6 +1524,7 @@ export default function App() {
     <SectionExtras     data={data} setData={setData}/>,
     <SectionPricing365 data={data} setData={setData}/>,
     <SectionRestaurant data={data} setData={setData}/>,
+    <SectionUsers      data={data} setData={setData}/>,
   ];
 
   return (
@@ -1434,6 +1663,7 @@ export default function App() {
                   ["🧾",`${data.extras.length} extra${data.extras.length!==1?"s":""}`],
                   ["📅",`${data.cales.length} cale${data.cales.length!==1?"s":""}`],
                   ["🍽️",`${(data.restaurant?.articles||[]).length} article${(data.restaurant?.articles||[]).length!==1?"s":""}`],
+                  ["👥",`${(data.users||[]).length} utilisateur${(data.users||[]).length!==1?"s":""}`],
                 ].map(([icon,label])=>(
                   <div key={label} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 0" }}>
                     <span style={{ fontSize:13 }}>{icon}</span>
