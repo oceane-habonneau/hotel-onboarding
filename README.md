@@ -1,16 +1,33 @@
-# React + Vite
+# 🏨 Tunnel d'Onboarding & Qualification IT Hôtelière
+**Accélérez l'intégration de vos nouveaux outils et sécurisez vos flux de données dès le premier jour.**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+**⚠️ NOTE SUR LA PROPRIÉTÉ INTELLECTUELLE**
+Cet outil est un moteur d'onboarding métier propriétaire développé par Océane Habonneau. Les sources de cette application (React/TypeScript) sont hébergées sur un dépôt privé pour garantir la sécurité des processus de qualification et des intégrations techniques. Ce dépôt public contient la version de production destinée à la démonstration de mon expertise en déploiement de solutions IT hôtelières. Toute exploitation commerciale, modification ou redistribution par un tiers est strictement interdite sans accord écrit préalable.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+### 🚀 Pourquoi cet outil ?
+L'installation d'un nouveau logiciel (PMS, Channel Manager, Booking Engine) est le moment le plus critique pour un hôtel. Un mauvais paramétrage initial crée des dettes techniques qui se paient en erreurs de facturation et en perte d'expérience client. 
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Cet outil d'onboarding intelligent permet de :
+* **Structurer la collecte de données** techniques sans friction.
+* **Qualifier les besoins** spécifiques de chaque établissement.
+* **Automatiser les étapes de configuration** pour réduire le temps de déploiement (Time-to-Value).
 
-## Expanding the ESLint configuration
+### ✨ Fonctionnalités Métier
+* **Parcours Utilisateur Guidé :** Une interface intuitive qui simplifie la complexité technique pour les hôteliers.
+* **Sécurisation des Accès :** Un tunnel pensé pour la transmission sécurisée des informations de connexion (local storage).
+* **Design Professionnel :** Une interface haut de gamme qui renforce la confiance de vos partenaires dès les premières minutes.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🛠️ Expertise & Accompagnement
+Je suis **Océane Habonneau**, consultante spécialisée dans l'optimisation des écosystèmes digitaux pour l'hôtellerie. J'aide les établissements et les éditeurs de logiciels à fluidifier leurs phases d'installation pour garantir des flux de données 100% opérationnels.
+
+### ✉️ Me contacter
+* **LinkedIn :** https://www.linkedin.com/in/océane-habonneau-5a908212a/
+* **Email :** oceane.habonneau@gmail.com
+* **Services :** Audit de flux, déploiement de solutions IT, optimisation de l'onboarding client et conseil en connectivité (D-Edge, OperaCloud, Mews, etc.).
+
+---
+© 2026 Océane Habonneau — Expertise Tech & Métier
