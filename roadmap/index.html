@@ -1347,7 +1347,7 @@ function renderTable() {
           <input class="cell-input" data-field="phase" value="${escapeHtml(item.phase)}">
         </td>
         <td class="col-module">
-          <input class="cell-input" data-field="module" value="${escapeHtml(item.module)}" style="font-weight:500">
+          <textarea class="cell-textarea cell-desc cell-module" data-field="module" rows="1" style="font-weight:500">${escapeHtml(item.module)}</textarea>
         </td>
         <td class="col-desc">
           <textarea class="cell-textarea cell-desc" data-field="description" rows="1">${escapeHtml(item.description)}</textarea>
