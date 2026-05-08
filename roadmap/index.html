@@ -1066,15 +1066,15 @@
       font-size: 8.5px;
     }
     /* Largeurs fixes en pourcentage : tout doit tenir sur la largeur de la page */
-    th.col-phase, td.col-phase { width: 9%; min-width: 0 !important; }
-    th.col-module, td.col-module { width: 13%; min-width: 0 !important; }
-    th.col-desc, td.col-desc { width: 22%; min-width: 0 !important; }
-    th.col-priority, td.col-priority { width: 7%; min-width: 0 !important; }
-    th.col-status, td.col-status { width: 8%; min-width: 0 !important; }
-    th.col-resp, td.col-resp { width: 10%; min-width: 0 !important; }
-    th.col-date, td.col-date { width: 8%; min-width: 0 !important; }
-    th.col-deps, td.col-deps { width: 10%; min-width: 0 !important; }
-    th.col-notes, td.col-notes { width: 13%; min-width: 0 !important; }
+    th.col-phase, td.col-phase { width: 8%; min-width: 0 !important; }
+    th.col-module, td.col-module { width: 16%; min-width: 0 !important; }
+    th.col-desc, td.col-desc { width: 20%; min-width: 0 !important; }
+    th.col-priority, td.col-priority { width: 6%; min-width: 0 !important; }
+    th.col-status, td.col-status { width: 7%; min-width: 0 !important; }
+    th.col-resp, td.col-resp { width: 9%; min-width: 0 !important; }
+    th.col-date, td.col-date { width: 7%; min-width: 0 !important; }
+    th.col-deps, td.col-deps { width: 9%; min-width: 0 !important; }
+    th.col-notes, td.col-notes { width: 18%; min-width: 0 !important; }
 
     th {
       background: #f3f4f6 !important;
@@ -1089,7 +1089,9 @@
       vertical-align: top;
     }
 
-    /* Cellules : tout en visible, retour à la ligne forcé */
+    /* Cellules : tout en visible, retour à la ligne forcé.
+       height:auto avec !important pour neutraliser les inline styles
+       posés par autoResizeTextarea (ex: height:40px). */
     .cell-input,
     .cell-textarea,
     .select-wrapper select {
@@ -1103,14 +1105,20 @@
       background-image: none !important;
       height: auto !important;
       min-height: 0 !important;
+      max-height: none !important;
       width: 100% !important;
       white-space: pre-wrap !important;
       word-break: break-word !important;
       overflow: visible !important;
-      line-height: 1.3 !important;
+      line-height: 1.35 !important;
       resize: none !important;
       color: var(--text) !important;
       display: block !important;
+      box-sizing: border-box !important;
+    }
+    /* Sécurité : si le textarea garde encore une hauteur fixe, on la neutralise */
+    textarea.cell-textarea[style*="height"] {
+      height: auto !important;
     }
     .select-wrapper {
       padding: 2px 4px !important;
@@ -1148,23 +1156,30 @@
       page-break-inside: avoid !important;
     }
 
-    /* Cellule module : layout simplifié */
+    /* Cellule module : numéro + titre côte à côte */
     .module-cell {
-      display: block !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 4px !important;
       padding: 0 !important;
     }
     .module-cell.indented {
-      padding-left: 14px !important;
+      padding-left: 10px !important;
       background: rgba(37, 99, 235, 0.04) !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     .module-num {
       display: inline-block !important;
-      margin-right: 4px !important;
+      flex-shrink: 0 !important;
+      margin: 4px 0 0 4px !important;
       padding: 1px 4px !important;
-      font-size: 8px !important;
+      font-size: 7.5px !important;
+      line-height: 1.3 !important;
       vertical-align: top;
+    }
+    .module-cell .cell-textarea {
+      flex: 1 !important;
     }
     .row-actions { display: none !important; }
 
@@ -2603,8 +2618,20 @@ function exportPDF() {
 
   // Délai pour laisser le DOM se mettre à jour avant la boîte de dialogue
   setTimeout(() => {
+    // Recalcule la hauteur de toutes les textareas pour qu'elles affichent
+    // tout leur contenu lors de l'impression (sinon elles restent à la hauteur écran)
+    const allTextareas = document.querySelectorAll('#table-body textarea');
+    // Sauvegarde des hauteurs pour restauration
+    const savedHeights = [];
+    allTextareas.forEach(ta => {
+      savedHeights.push(ta.style.height);
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    });
+
     window.print();
-    // Restaure l'état après l'impression (qu'elle soit annulée ou validée)
+
+    // Restaure tout après impression
     setTimeout(() => {
       setCollapsedPhases(savedCollapsedPhases);
       setCollapsedModules(savedCollapsedModules);
