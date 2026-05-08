@@ -400,18 +400,6 @@
     background: linear-gradient(90deg, var(--primary), #4f7ef5);
     border-radius: 100px;
     transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-  }
-  .progress-fill::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    animation: shimmer 2s infinite;
-  }
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
   }
 
   /* Toolbar */
@@ -441,11 +429,13 @@
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-sm);
+    contain: layout style;
   }
 
   .table-scroll {
     overflow: auto;
     flex: 1;
+    contain: layout;
   }
 
   table {
@@ -1853,93 +1843,14 @@ function renderResponsibleFilter() {
 
 /* === ÉVÉNEMENTS === */
 function attachRowListeners() {
-  // Inputs et selects pour modification inline.
-  // 'change' se déclenche au blur ou Enter pour input/textarea, et au change pour select.
-  // Pas besoin d'un listener 'blur' supplémentaire.
-  document.querySelectorAll('#table-body input, #table-body select, #table-body textarea').forEach(el => {
-    el.addEventListener('change', handleCellChange);
-  });
-
-  // Auto-resize des textareas en batch (évite les reflows multiples)
-  const textareas = document.querySelectorAll('#table-body textarea.cell-desc');
-  batchAutoResize(textareas);
-  // Pendant la frappe, on resize via requestAnimationFrame pour éviter
-  // un calcul à chaque keystroke (qui force un reflow synchrone)
-  textareas.forEach(ta => {
-    let pending = false;
-    ta.addEventListener('input', () => {
-      if (pending) return;
-      pending = true;
-      requestAnimationFrame(() => {
-        autoResizeTextarea(ta);
-        pending = false;
-      });
-    });
-  });
-
-  // Boutons supprimer
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = parseInt(btn.dataset.id);
-      deleteRow(id);
-    });
-  });
-
-  // Boutons "ajouter un sous-module"
-  document.querySelectorAll('.btn-add-sub').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const parentId = parseInt(btn.dataset.parentId);
-      addSubModule(parentId);
-    });
-  });
-
-  // Toggle de pliage des sous-modules d'un module parent
-  document.querySelectorAll('.module-toggle[data-toggle-id]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = parseInt(btn.dataset.toggleId);
-      toggleModuleCollapsed(id);
-      render();
-    });
-  });
-
-  // Bandeaux de phase : collapse/expand (clic), renommage (double-clic), drag (handle)
-  document.querySelectorAll('tr.phase-header .phase-title').forEach(el => {
-    let clickTimer = null;
-
-    el.addEventListener('click', (e) => {
-      // Ignore les clics sur le handle de drag ou sur l'input d'édition
-      if (e.target.closest('.phase-drag-handle')) return;
-      if (e.target.closest('.phase-input')) return;
-
-      // Délai pour différencier click simple et double-click
-      if (clickTimer) return; // un timer est déjà en cours, le double-click va l'annuler
-      clickTimer = setTimeout(() => {
-        clickTimer = null;
-        const tr = el.closest('tr');
-        const phaseName = tr.dataset.phase;
-        togglePhaseCollapsed(phaseName);
-        render();
-      }, 220);
-    });
-
-    el.addEventListener('dblclick', (e) => {
-      // Annule le click simple en cours
-      if (clickTimer) {
-        clearTimeout(clickTimer);
-        clickTimer = null;
-      }
-      if (e.target.closest('.phase-drag-handle')) return;
-      startPhaseRename(e);
-    });
-  });
-
-  // Drag des phases entières (via le handle dédié)
-  attachPhaseDragListeners();
-
-  // Drag & drop
+  // Setup unique de la délégation (idempotent)
+  setupTableDelegation();
+  // Met à jour les flags drag selon les filtres (rapide)
   attachDragListeners();
+  attachPhaseDragListeners();
   updateDragInfo();
+  // Auto-resize batch des textareas (lecture/écriture séparées pour éviter les reflows)
+  batchAutoResize(document.querySelectorAll('#table-body textarea.cell-desc'));
 }
 
 /* === RENOMMAGE DES PHASES (bandeaux bleus) === */
@@ -2010,31 +1921,65 @@ let dragState = {
   draggedRow: null
 };
 
+/* Drag & drop des modules : entièrement délégué au tbody.
+   Les handles activent dynamiquement draggable=true sur leur tr parent. */
+let dragDelegationDone = false;
 function attachDragListeners() {
+  // Maj du flag draggable selon les filtres
   const filtered = isFiltered();
-
-  document.querySelectorAll('#table-body tr[data-id]').forEach(tr => {
-    const handle = tr.querySelector('.drag-handle');
-    if (!handle) return;
-
+  document.querySelectorAll('#table-body tr[data-id] .drag-handle').forEach(handle => {
     if (filtered) {
       handle.classList.add('disabled');
       handle.title = 'Désactivez les filtres pour réordonner';
-      tr.draggable = false;
-      return;
+    } else {
+      handle.classList.remove('disabled');
+      handle.title = 'Glisser pour réordonner';
     }
-    handle.classList.remove('disabled');
-    handle.title = 'Glisser pour réordonner';
+  });
 
-    // La poignée active le drag sur la ligne entière
-    handle.addEventListener('mousedown', () => { tr.draggable = true; });
-    handle.addEventListener('mouseup',   () => { tr.draggable = false; });
+  if (dragDelegationDone) return;
+  dragDelegationDone = true;
 
-    tr.addEventListener('dragstart', handleDragStart);
-    tr.addEventListener('dragend',   handleDragEnd);
-    tr.addEventListener('dragover',  handleDragOver);
-    tr.addEventListener('dragleave', handleDragLeave);
-    tr.addEventListener('drop',      handleDrop);
+  const tbody = document.getElementById('table-body');
+
+  // Mousedown sur un handle → active le drag sur le tr parent
+  tbody.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle || handle.classList.contains('disabled')) return;
+    const tr = handle.closest('tr[data-id]');
+    if (tr) tr.draggable = true;
+  });
+  tbody.addEventListener('mouseup', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+    const tr = handle.closest('tr[data-id]');
+    if (tr) tr.draggable = false;
+  });
+
+  tbody.addEventListener('dragstart', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr || !tr.draggable) return;
+    handleDragStart({ currentTarget: tr, dataTransfer: e.dataTransfer });
+  });
+  tbody.addEventListener('dragend', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    handleDragEnd({ currentTarget: tr });
+  });
+  tbody.addEventListener('dragover', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    handleDragOver({ currentTarget: tr, preventDefault: () => e.preventDefault(), dataTransfer: e.dataTransfer, clientY: e.clientY });
+  });
+  tbody.addEventListener('dragleave', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    handleDragLeave({ currentTarget: tr });
+  });
+  tbody.addEventListener('drop', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    handleDrop({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), clientY: e.clientY });
   });
 }function handleDragStart(e) {
   const tr = e.currentTarget;
@@ -2238,42 +2183,147 @@ function updateDragInfo() {
   }
 }
 
+/* Délégation d'événements : on attache UNE SEULE FOIS sur le tbody plutôt
+   que des centaines de listeners par cellule. Énorme gain au render. */
+function setupTableDelegation() {
+  const tbody = document.getElementById('table-body');
+  if (!tbody || tbody.dataset.delegated === '1') return;
+  tbody.dataset.delegated = '1';
+
+  // Modifications de cellules (change = blur ou Enter)
+  tbody.addEventListener('change', (e) => {
+    if (e.target.matches('[data-field]')) handleCellChange(e);
+  });
+
+  // Auto-resize pendant la frappe (input)
+  let pending = false;
+  tbody.addEventListener('input', (e) => {
+    if (!e.target.matches('textarea.cell-desc')) return;
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(() => {
+      autoResizeTextarea(e.target);
+      pending = false;
+    });
+  });
+
+  // Clics : suppression, ajout sous-module, toggle module
+  tbody.addEventListener('click', (e) => {
+    const delBtn = e.target.closest('.btn-delete');
+    if (delBtn) {
+      deleteRow(parseInt(delBtn.dataset.id));
+      return;
+    }
+    const addSubBtn = e.target.closest('.btn-add-sub');
+    if (addSubBtn) {
+      addSubModule(parseInt(addSubBtn.dataset.parentId));
+      return;
+    }
+    const toggleBtn = e.target.closest('.module-toggle[data-toggle-id]');
+    if (toggleBtn) {
+      e.stopPropagation();
+      toggleModuleCollapsed(parseInt(toggleBtn.dataset.toggleId));
+      render();
+      return;
+    }
+    // Phase header : clic = collapse, dblclic = rename
+    const phaseTitle = e.target.closest('tr.phase-header .phase-title');
+    if (phaseTitle && !e.target.closest('.phase-drag-handle') && !e.target.closest('.phase-input')) {
+      handlePhaseTitleClick(phaseTitle, e);
+    }
+  });
+
+  // Double-click sur titre de phase pour renommer
+  tbody.addEventListener('dblclick', (e) => {
+    const phaseTitle = e.target.closest('tr.phase-header .phase-title');
+    if (!phaseTitle) return;
+    if (e.target.closest('.phase-drag-handle')) return;
+    // Annule le single-click en cours
+    if (phaseClickTimers.has(phaseTitle)) {
+      clearTimeout(phaseClickTimers.get(phaseTitle));
+      phaseClickTimers.delete(phaseTitle);
+    }
+    startPhaseRename({ currentTarget: phaseTitle });
+  });
+}
+
+/* Gestion du single-click sur phase (avec délai pour différencier du dblclick) */
+const phaseClickTimers = new Map();
+function handlePhaseTitleClick(titleEl, e) {
+  if (phaseClickTimers.has(titleEl)) return;
+  const timer = setTimeout(() => {
+    phaseClickTimers.delete(titleEl);
+    const tr = titleEl.closest('tr');
+    if (tr) {
+      togglePhaseCollapsed(tr.dataset.phase);
+      render();
+    }
+  }, 220);
+  phaseClickTimers.set(titleEl, timer);
+}
+
 /* === DRAG & DROP DES PHASES ENTIÈRES === */
 let phaseDragState = {
   draggedPhase: null,
   draggedRow: null
 };
 
+let phaseDragDelegationDone = false;
 function attachPhaseDragListeners() {
   const filtered = isFiltered();
-
-  document.querySelectorAll('tr.phase-header').forEach(tr => {
-    const handle = tr.querySelector('.phase-drag-handle');
-    if (!handle) return;
-
+  document.querySelectorAll('tr.phase-header .phase-drag-handle').forEach(handle => {
     if (filtered) {
       handle.classList.add('disabled');
       handle.title = 'Désactivez les filtres pour réorganiser les phases';
-      tr.draggable = false;
-      return;
+    } else {
+      handle.classList.remove('disabled');
+      handle.title = 'Glisser pour déplacer la phase entière';
     }
-    handle.classList.remove('disabled');
-    handle.title = 'Glisser pour déplacer la phase entière';
+  });
 
-    // Activation du drag uniquement via le handle
-    handle.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-      tr.draggable = true;
-    });
-    handle.addEventListener('mouseup', () => { tr.draggable = false; });
-    // Empêche le clic du handle de toggle le collapse
-    handle.addEventListener('click', (e) => e.stopPropagation());
+  if (phaseDragDelegationDone) return;
+  phaseDragDelegationDone = true;
 
-    tr.addEventListener('dragstart', handlePhaseDragStart);
-    tr.addEventListener('dragend',   handlePhaseDragEnd);
-    tr.addEventListener('dragover',  handlePhaseDragOver);
-    tr.addEventListener('dragleave', handlePhaseDragLeave);
-    tr.addEventListener('drop',      handlePhaseDrop);
+  const tbody = document.getElementById('table-body');
+
+  tbody.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.phase-drag-handle');
+    if (!handle || handle.classList.contains('disabled')) return;
+    e.stopPropagation();
+    const tr = handle.closest('tr.phase-header');
+    if (tr) tr.draggable = true;
+  });
+  tbody.addEventListener('mouseup', (e) => {
+    const handle = e.target.closest('.phase-drag-handle');
+    if (!handle) return;
+    const tr = handle.closest('tr.phase-header');
+    if (tr) tr.draggable = false;
+  });
+
+  tbody.addEventListener('dragstart', (e) => {
+    const tr = e.target.closest('tr.phase-header');
+    if (!tr || !tr.draggable) return;
+    handlePhaseDragStart({ currentTarget: tr, dataTransfer: e.dataTransfer, stopPropagation: () => e.stopPropagation() });
+  }, true); // capture pour précéder le dragstart des modules
+  tbody.addEventListener('dragend', (e) => {
+    const tr = e.target.closest('tr.phase-header');
+    if (!tr) return;
+    handlePhaseDragEnd({ currentTarget: tr });
+  });
+  tbody.addEventListener('dragover', (e) => {
+    const tr = e.target.closest('tr.phase-header');
+    if (!tr) return;
+    handlePhaseDragOver({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), dataTransfer: e.dataTransfer, clientY: e.clientY });
+  });
+  tbody.addEventListener('dragleave', (e) => {
+    const tr = e.target.closest('tr.phase-header');
+    if (!tr) return;
+    handlePhaseDragLeave({ currentTarget: tr });
+  });
+  tbody.addEventListener('drop', (e) => {
+    const tr = e.target.closest('tr.phase-header');
+    if (!tr) return;
+    handlePhaseDrop({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), clientY: e.clientY });
   });
 }
 
