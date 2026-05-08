@@ -511,7 +511,7 @@
   th.col-date, td.col-date { min-width: 120px; }
   th.col-deps, td.col-deps { min-width: 130px; }
   th.col-notes, td.col-notes { min-width: 160px; }
-  th.col-actions, td.col-actions { min-width: 60px; width: 60px; }
+  th.col-actions, td.col-actions { min-width: 88px; width: 88px; }
 
   td {
     padding: 0;
@@ -581,6 +581,16 @@
   }
   tr.drag-over-bottom td {
     box-shadow: inset 0 -2px 0 0 var(--primary);
+  }
+  tr.drag-over-nest td {
+    background: var(--primary-soft) !important;
+    box-shadow: inset 0 0 0 2px var(--primary);
+  }
+  tr.drag-over-nest td:first-child {
+    box-shadow: inset 2px 0 0 0 var(--primary), inset 0 2px 0 0 var(--primary), inset 0 -2px 0 0 var(--primary);
+  }
+  tr.drag-over-nest td:last-child {
+    box-shadow: inset -2px 0 0 0 var(--primary), inset 0 2px 0 0 var(--primary), inset 0 -2px 0 0 var(--primary);
   }
 
   .drag-info {
@@ -736,6 +746,104 @@
   .cell-desc {
     white-space: pre-wrap;
     word-break: break-word;
+  }
+  .cell-textarea[disabled] {
+    color: var(--text-subtle);
+    cursor: not-allowed;
+  }
+
+  /* Hiérarchie module / sous-module */
+  .module-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 0 6px 0 4px;
+  }
+  .module-cell.indented {
+    padding-left: 28px;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.04), transparent 60%);
+  }
+  .module-cell .cell-textarea {
+    flex: 1;
+    padding-left: 6px;
+  }
+  .module-toggle {
+    width: 20px;
+    height: 28px;
+    margin-top: 6px;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    border-radius: 4px;
+    transition: var(--transition);
+    flex-shrink: 0;
+  }
+  .module-toggle:hover {
+    background: var(--gray-soft);
+    color: var(--primary);
+  }
+  .module-toggle svg {
+    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .module-toggle.collapsed svg {
+    transform: rotate(-90deg);
+  }
+  .module-toggle-spacer {
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .child-marker {
+    width: 12px;
+    height: 14px;
+    margin-top: 14px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    border-left: 1.5px solid var(--border-strong);
+    border-bottom: 1.5px solid var(--border-strong);
+    border-bottom-left-radius: 6px;
+    align-self: flex-start;
+  }
+  .module-num {
+    margin-top: 11px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-subtle);
+    background: var(--gray-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    line-height: 1.3;
+    min-width: 24px;
+    text-align: center;
+  }
+  tr.is-child .module-num {
+    color: var(--primary);
+    background: var(--primary-soft);
+  }
+  tr.is-child td {
+    background: rgba(248, 250, 252, 0.5);
+  }
+  tr.is-child:hover td {
+    background: var(--surface-2);
+  }
+
+  .row-actions {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-add-sub {
+    color: var(--text-subtle);
+    opacity: 0;
+    transition: var(--transition);
+  }
+  tr:hover .btn-add-sub {
+    opacity: 1;
+  }
+  .btn-add-sub:hover {
+    background: var(--primary-soft);
+    color: var(--primary) !important;
   }
   .cell-select {
     cursor: pointer;
@@ -1232,34 +1340,7 @@ const PRIORITY_CLASS = {
 /* =========================================================
    DONNÉES PAR DÉFAUT
    ========================================================= */
-const DEFAULT_DATA = [
-  // PHASE 1 - Multi-property Thaïs
-  { id: 1,  phase: 'Phase 1', module: 'Déplacement réservation', description: 'Permettre le déplacement d\'une réservation entre établissements du groupe', priority: 'Haute',    status: 'En cours',  responsible: 'Équipe IT', targetDate: '2026-06-30', dependencies: '', notes: 'Nécessite sync Thaïs multi-sites' },
-  { id: 2,  phase: 'Phase 1', module: 'Gestion planning multi-sites', description: 'Vue consolidée du planning des chambres sur tous les hôtels', priority: 'Haute',  status: 'À définir', responsible: 'Équipe IT', targetDate: '2026-07-15', dependencies: 'Module 1',  notes: '' },
-  { id: 3,  phase: 'Phase 1', module: 'Postings restaurant',     description: 'Postings cross-sites entre restaurant et hôtel', priority: 'Moyenne', status: 'À définir', responsible: 'F&B',       targetDate: '2026-08-01', dependencies: '', notes: 'À cadrer avec restauration' },
-  { id: 4,  phase: 'Phase 1', module: 'Facturation multi-sites',  description: 'Centralisation et édition de factures groupe',  priority: 'Critique', status: 'À définir', responsible: 'Finance',  targetDate: '2026-08-30', dependencies: 'Module 1, 2',  notes: '' },
-
-  // PHASE 2 - Dashboard groupe
-  { id: 5,  phase: 'Phase 2', module: 'Centralisation data',     description: 'Data warehouse consolidant les données de tous les hôtels',  priority: 'Haute',   status: 'À définir', responsible: 'Data Team', targetDate: '2026-09-30', dependencies: 'Phase 1',     notes: '' },
-  { id: 6,  phase: 'Phase 2', module: 'Reporting',                description: 'Dashboards opérationnels et financiers temps réel',     priority: 'Haute',  status: 'À définir', responsible: 'Direction', targetDate: '2026-10-15', dependencies: 'Module 5',    notes: '' },
-  { id: 7,  phase: 'Phase 2', module: 'Statistiques',             description: 'KPIs groupe : RevPAR, ADR, occupation, mix segment',   priority: 'Moyenne', status: 'À définir', responsible: 'Direction', targetDate: '2026-10-30', dependencies: 'Module 5',    notes: '' },
-
-  // PHASE 3 - PSP
-  { id: 8,  phase: 'Phase 3', module: 'Intégration PSP',          description: 'Connexion à un Payment Service Provider unifié',        priority: 'Critique', status: 'À définir', responsible: 'Finance',  targetDate: '2026-11-15', dependencies: '', notes: 'Comparatif Stripe / Adyen / Worldline' },
-  { id: 9,  phase: 'Phase 3', module: 'Flux financiers',          description: 'Réconciliation automatique paiements / réservations',  priority: 'Haute',   status: 'À définir', responsible: 'Finance',  targetDate: '2026-12-01', dependencies: 'Module 8',    notes: '' },
-
-  // PHASE 4 - Communication
-  { id: 10, phase: 'Phase 4', module: 'Automatisation',           description: 'Emails pré/post séjour automatisés et personnalisés',  priority: 'Moyenne', status: 'À définir', responsible: 'Marketing', targetDate: '2027-01-15', dependencies: '', notes: '' },
-  { id: 11, phase: 'Phase 4', module: 'Communication client',     description: 'Centralisation canaux : email, SMS, WhatsApp',          priority: 'Moyenne', status: 'À définir', responsible: 'Marketing', targetDate: '2027-02-01', dependencies: 'Module 10',   notes: '' },
-
-  // PHASE 5 - Serrures & accès
-  { id: 12, phase: 'Phase 5', module: 'Intégration Sésame',       description: 'API serrures connectées Sésame sur l\'ensemble du parc',  priority: 'Haute',   status: 'À définir', responsible: 'Équipe IT', targetDate: '2027-02-28', dependencies: '', notes: '' },
-  { id: 13, phase: 'Phase 5', module: 'Codes accès',              description: 'Génération automatique codes selon réservation',         priority: 'Moyenne', status: 'À définir', responsible: 'Équipe IT', targetDate: '2027-03-15', dependencies: 'Module 12',   notes: '' },
-
-  // PHASE 6 - Site internet
-  { id: 14, phase: 'Phase 6', module: 'UX groupe',                description: 'Refonte ergonomie & identité visuelle site groupe',     priority: 'Moyenne', status: 'À définir', responsible: 'Marketing', targetDate: '2027-04-01', dependencies: '', notes: '' },
-  { id: 15, phase: 'Phase 6', module: 'Moteur de réservation',    description: 'Booking engine multi-property intégré',                priority: 'Haute',   status: 'À définir', responsible: 'Équipe IT', targetDate: '2027-05-01', dependencies: 'Module 14',   notes: '' }
-];
+const DEFAULT_DATA = JSON.parse(decodeURIComponent(escape(atob("W3siaWQiOiAxLCAicGhhc2UiOiAiQnJpZGdlIOKame+4jyBWMSAtIExvdCAxIiwgIm1vZHVsZSI6ICJEw6lwbGFjZW1lbnQgcsOpc2VydmF0aW9uIiwgImRlc2NyaXB0aW9uIjogIlBlcm1ldHRyZSBsZSBkw6lwbGFjZW1lbnQgZCd1bmUgcsOpc2VydmF0aW9uIGVudHJlIMOpdGFibGlzc2VtZW50cyBkdSBncm91cGUiLCAicHJpb3JpdHkiOiAiSGF1dGUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIkpvbmF0aGFuIiwgInRhcmdldERhdGUiOiAiMjAyNi0wNi0zMCIsICJkZXBlbmRlbmNpZXMiOiAiQ2FoaWVyIGRlcyBjaGFyZ2VzIiwgIm5vdGVzIjogIkNvbm5lY3Rpdml0w6kgVGhhaXMiLCAib3JkZXIiOiA4MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMiwgInBoYXNlIjogIkJyaWRnZSDimpnvuI8gVjEgLSBMb3QgMSIsICJtb2R1bGUiOiAiR2VzdGlvbiBwbGFubmluZyBtdWx0aS1zaXRlcyIsICJkZXNjcmlwdGlvbiI6ICJWdWUgY29uc29saWTDqWUgZHUgcGxhbm5pbmcgZGVzIGNoYW1icmVzIHN1ciB0b3VzIGxlcyBow7R0ZWxzIiwgInByaW9yaXR5IjogIkhhdXRlIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICJKb25hdGhhbiIsICJ0YXJnZXREYXRlIjogIjIwMjYtMDctMTUiLCAiZGVwZW5kZW5jaWVzIjogIkNhaGllciBkZXMgY2hhcmdlcyAxIiwgIm5vdGVzIjogIkNvbm5lY3Rpdml0w6kgVGhhaXMiLCAib3JkZXIiOiA5MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMywgInBoYXNlIjogIkJyaWRnZSDimpnvuI8gVjEgLSBMb3QgMSIsICJtb2R1bGUiOiAiUG9zdGluZ3MgcmVzdGF1cmFudCBtdWx0aS1zaXRlIiwgImRlc2NyaXB0aW9uIjogIlBvc3RpbmdzIGNyb3NzLXNpdGVzIGVudHJlIHJlc3RhdXJhbnQgZXQgaMO0dGVsIiwgInByaW9yaXR5IjogIkhhdXRlIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICJKb25hdGhhbiIsICJ0YXJnZXREYXRlIjogIjIwMjYtMDgtMDEiLCAiZGVwZW5kZW5jaWVzIjogIkNhaGllciBkZXMgY2hhcmdlcyIsICJub3RlcyI6ICJDb25uZWN0aXZpdMOpIFRoYWlzIiwgIm9yZGVyIjogMTAwMCwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiA0LCAicGhhc2UiOiAiQnJpZGdlIOKame+4jyBWMSAtIExvdCAxIiwgIm1vZHVsZSI6ICJGYWN0dXJhdGlvbiBtdWx0aS1zaXRlcyIsICJkZXNjcmlwdGlvbiI6ICJDZW50cmFsaXNhdGlvbiBldCDDqWRpdGlvbiBkZSBmYWN0dXJlcyBncm91cGUiLCAicHJpb3JpdHkiOiAiSGF1dGUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIkpvbmF0aGFuIiwgInRhcmdldERhdGUiOiAiMjAyNi0wOC0zMCIsICJkZXBlbmRlbmNpZXMiOiAiQ2FoaWVyIGRlcyBjaGFyZ2VzIiwgIm5vdGVzIjogIkNvbm5lY3Rpdml0w6kgVGhhaXMiLCAib3JkZXIiOiAxMTAwLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDUsICJwaGFzZSI6ICJCcmlkZ2Ug4pqZ77iPIFYxIC0gTG90IDEiLCAibW9kdWxlIjogIkNlbnRyYWxpc2F0aW9uIGRhdGEiLCAiZGVzY3JpcHRpb24iOiAiRGF0YSB3YXJlaG91c2UgY29uc29saWRhbnQgbGVzIGRvbm7DqWVzIGRlIHRvdXMgbGVzIGjDtHRlbHMiLCAicHJpb3JpdHkiOiAiSGF1dGUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIkpvbmF0aGFuIiwgInRhcmdldERhdGUiOiAiMjAyNi0wOS0zMCIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIkNvbm5lY3Rpdml0w6kgVGhhaXMiLCAib3JkZXIiOiA1MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogNiwgInBoYXNlIjogIkJyaWRnZSDimpnvuI8gVjEgLSBMb3QgMSIsICJtb2R1bGUiOiAiUmVwb3J0aW5nIiwgImRlc2NyaXB0aW9uIjogIkRhc2hib2FyZHMgb3DDqXJhdGlvbm5lbHMgZXQgZmluYW5jaWVycyB0ZW1wcyByw6llbCIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICJKb25hdGhhbiIsICJ0YXJnZXREYXRlIjogIjIwMjYtMTAtMTUiLCAiZGVwZW5kZW5jaWVzIjogIkNhaGllciBkZXMgY2hhcmdlcyIsICJub3RlcyI6ICIiLCAib3JkZXIiOiA2MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogNywgInBoYXNlIjogIkJyaWRnZSDimpnvuI8gVjEgLSBMb3QgMSIsICJtb2R1bGUiOiAiU3RhdGlzdGlxdWVzIiwgImRlc2NyaXB0aW9uIjogIktQSXMgZ3JvdXBlIDogUmV2UEFSLCBBRFIsIG9jY3VwYXRpb24sIG1peCBzZWdtZW50IiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIkpvbmF0aGFuIiwgInRhcmdldERhdGUiOiAiMjAyNi0xMC0zMCIsICJkZXBlbmRlbmNpZXMiOiAiQ2FoaWVyIGRlcyBjaGFyZ2VzIiwgIm5vdGVzIjogIiIsICJvcmRlciI6IDcwMCwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiA4LCAicGhhc2UiOiAiSW50w6lncmF0aW9uIFBTUCDwn5KzIiwgIm1vZHVsZSI6ICJELWVkZ2UgUGF5IiwgImRlc2NyaXB0aW9uIjogIsOJdmFsdWVyIEQtZWRnZSBQYXkgZGFucyBsZSBwYXJjb3VycyBkZSByw6lzZXJ2YXRpb24iLCAicHJpb3JpdHkiOiAiTW95ZW5uZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiT2PDqWFuZSIsICJ0YXJnZXREYXRlIjogIjIwMjYtMTEtMTUiLCAiZGVwZW5kZW5jaWVzIjogIkJyaWRnZXMgVjEiLCAibm90ZXMiOiAiUXVlbHMgc29udCBsZXMgbGltaXRlcyBkYW5zIGwnw6ljb3N5dMOobWUgYWN0dWVsID8iLCAib3JkZXIiOiAxNDAwLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDksICJwaGFzZSI6ICJJbnTDqWdyYXRpb24gUFNQIPCfkrMiLCAibW9kdWxlIjogIlBlbm55bGFuZSIsICJkZXNjcmlwdGlvbiI6ICLDiXZhbHVlciBQZW5ueWxhbmUgZGFucyBsZSBwYXJjb3VycyBkZSByw6lzZXJ2YXRpb24gIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk9jw6luYWUiLCAidGFyZ2V0RGF0ZSI6ICIyMDI2LTEyLTAxIiwgImRlcGVuZGVuY2llcyI6ICJNb2R1bGUgOCIsICJub3RlcyI6ICJRdWVscyBzb250IGxlcyBsaW1pdGVzIGRhbnMgbCfDqWNvc3l0w6htZSBhY3R1ZWwgPyIsICJvcmRlciI6IDE1MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMTAsICJwaGFzZSI6ICJDb21tdW5pY2F0aW9uIGNsaWVudCDwn6SzIiwgIm1vZHVsZSI6ICJBdXRvbWF0aXNhdGlvbiIsICJkZXNjcmlwdGlvbiI6ICJEw6l0ZXJtaW5lciBsZXMgcsOoZ2xlcyBkJ2F1dG9tYXRpc2F0aW9uIChzZWdtZW50LCBkw6lsYWksIGhvdGVsLCBldGMuIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk1hcmtldGluZyIsICJ0YXJnZXREYXRlIjogIjIwMjctMDEtMTUiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAib3JkZXIiOiAyMTAwLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDExLCAicGhhc2UiOiAiQ29tbXVuaWNhdGlvbiBjbGllbnQg8J+ksyIsICJtb2R1bGUiOiAiT3V0aWwgZGUgY29tbXVuaWNhdGlvbiIsICJkZXNjcmlwdGlvbiI6ICJEw6l0ZXJtaW5lciBxdWVscyBvdXRpbHMuXG5DZW50cmFsaXNlciBsZXMgY2FuYXV4IDogZW1haWwsIFNNUywgV2hhdHNBcHAuIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk1hcmtldGluZyIsICJ0YXJnZXREYXRlIjogIjIwMjctMDItMDEiLCAiZGVwZW5kZW5jaWVzIjogIk1vZHVsZSAxMCIsICJub3RlcyI6ICIiLCAib3JkZXIiOiAyMjAwLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDEyLCAicGhhc2UiOiAiR2VzdGlvbiBkZXMgc2VycnVyZSDwn5SRIiwgIm1vZHVsZSI6ICJJbnTDqWdyYXRpb24gU8Opc2FtZSIsICJkZXNjcmlwdGlvbiI6ICJBUEkgc2VycnVyZXMgY29ubmVjdMOpZXMgU8Opc2FtZSBzdXIgbCdlbnNlbWJsZSBkdSBwYXJjIiwgInByaW9yaXR5IjogIkhhdXRlIiwgInN0YXR1cyI6ICJEw6lwbG95w6kiLCAicmVzcG9uc2libGUiOiAiU8Opc2FtZSBUZWNobm9sb2dpZSIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiVGhhaXMgUE1TIiwgIm5vdGVzIjogIiIsICJvcmRlciI6IDE2MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMTMsICJwaGFzZSI6ICJHZXN0aW9uIGRlcyBzZXJydXJlIPCflJEiLCAibW9kdWxlIjogIkNvZGVzIGFjY8OocyIsICJkZXNjcmlwdGlvbiI6ICJHw6luw6lyYXRpb24gYXV0b21hdGlxdWUgY29kZXMgc2Vsb24gcsOpc2VydmF0aW9uIiwgInByaW9yaXR5IjogIkhhdXRlIiwgInN0YXR1cyI6ICJEw6lwbG95w6kiLCAicmVzcG9uc2libGUiOiAiU8Opc2FtZSBUZWNobm9sb2dpZSBJVCIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiVGhhaXMgUE1TIiwgIm5vdGVzIjogIiIsICJvcmRlciI6IDE3MDAsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMTQsICJwaGFzZSI6ICJTaXRlIGludGVybmV0IiwgIm1vZHVsZSI6ICJVWCBncm91cGUiLCAiZGVzY3JpcHRpb24iOiAiUmVmb250ZSBlcmdvbm9taWUgJiBpZGVudGl0w6kgdmlzdWVsbGUgc2l0ZSBncm91cGUiLCAicHJpb3JpdHkiOiAiTW95ZW5uZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiSm9uYXRoYW4iLCAidGFyZ2V0RGF0ZSI6ICIyMDI3LTA0LTAxIiwgImRlcGVuZGVuY2llcyI6ICIiLCAibm90ZXMiOiAiIiwgIm9yZGVyIjogMjgwMCwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiAxNSwgInBoYXNlIjogIkJSaWRnZSDimpnvuI8gVjMiLCAibW9kdWxlIjogIlBNUyIsICJkZXNjcmlwdGlvbiI6ICJQTVMgZW5naW5lIG11bHRpLXByb3BlcnR5IGludMOpZ3LDqSIsICJwcmlvcml0eSI6ICJIYXV0ZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiw4lxdWlwZSBJVCIsICJ0YXJnZXREYXRlIjogIjIwMjctMDUtMDEiLCAiZGVwZW5kZW5jaWVzIjogIk1vZHVsZSAxNCIsICJub3RlcyI6ICIiLCAib3JkZXIiOiAzNDAwLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDE2LCAib3JkZXIiOiAzMDAsICJwaGFzZSI6ICJDYWhpZXIgZGVzIGNoYXJnZXMg8J+TnSIsICJtb2R1bGUiOiAiUGFyY291cnMgVXRpbGlzYXRldXIiLCAiZGVzY3JpcHRpb24iOiAiTGlzdGVyIGxlcyBwYXJjb3VycyBvcMOpcmF0aW9ubmVscyBkZSBBIMOgIFogKGdlc3Rpb24gZGVzIHLDqXNlcnZhdGlvbnMsIGNoZWNrLWluL291dCwgZmFjdHVyYXRpb24sIGhvdXNla2VlcGluZyBldGMuKS4iLCAicHJpb3JpdHkiOiAiSGF1dGUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk9jw6lhbmUsIFRob21hcywgQ2FtaWxsZSIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIiIsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMTcsICJvcmRlciI6IDQwMCwgInBoYXNlIjogIkNhaGllciBkZXMgY2hhcmdlcyDwn5OdIiwgIm1vZHVsZSI6ICJTcMOpY2lmaWNhdGlvbnMgT3DDqXJhdGlvbm5lbGxlIC0+IFNww6kgdGVjaG5pcXVlIiwgImRlc2NyaXB0aW9uIjogIlN1aXRlIGF1eCBwYXJjb3VycyB1dGlsaXNhdGV1cnMgZMOpdGVybWluw6ksIHRyYWR1aXJlIGxlcyBzcMOpY2lmaWNpdMOpcyB0ZWNobmlxdWVzIHBvdXIgbGUgZMOpdmVsb3BwZW1lbnQgZGUgQlJJREdFLiIsICJwcmlvcml0eSI6ICJIYXV0ZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiT2PDqWFuZSwgVGhvbWFzLCBDYW1pbGxlIiwgInRhcmdldERhdGUiOiAiIiwgImRlcGVuZGVuY2llcyI6ICIiLCAibm90ZXMiOiAiIiwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiAxOCwgIm9yZGVyIjogMTAwLCAicGhhc2UiOiAiRGV2aXMg8J+TmiIsICJtb2R1bGUiOiAiRGV2aXMgVGhhaXMiLCAiZGVzY3JpcHRpb24iOiAiUsOpY29sdGVzIGRlcyBkZXZpcyBUaGFpcyBwb3VyIGxhIGRpc2xvY2F0aW9uIGRlIGwnZW52aXJvbm5lbWVudCBIUk0gYWN0dWVsIGVuIDUgVGhhaXMgZGlzdGluYy4iLCAicHJpb3JpdHkiOiAiTW95ZW5uZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiT2PDqWFuZSIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIiIsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMTksICJvcmRlciI6IDIwMCwgInBoYXNlIjogIkRldmlzIPCfk5oiLCAibW9kdWxlIjogIkRldmlzIFBTUCAoUGxhdGVmb3JtZSBTeXN0ZW1lIFBheWVtZW50KSIsICJkZXNjcmlwdGlvbiI6ICJSw6ljb2x0ZSBkZXMgY291dHMgRC1lZGdlUGF5IGF1cnDDqHMgZGUgQ29udGFjdCBIb3RlbCAoeDYgLT4gMVBTUCAvbW90ZXVyKS4iLCAicHJpb3JpdHkiOiAiTW95ZW5uZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiT2PDqWFuZSIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIiIsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMjAsICJvcmRlciI6IDEzMDAsICJwaGFzZSI6ICJJbnTDqWdyYXRpb24gUFNQIPCfkrMiLCAibW9kdWxlIjogIlBhcmNvdXJzIGRlIHLDqXNlcnZhdGlvbiIsICJkZXNjcmlwdGlvbiI6ICJEw6l0ZXJtaW5lciDDoCBxdWVsIG1vbWVudCBsZXMgcGFpZW1lbnRzIGRvaXZlbnQgw6p0cmUgc8OpY3VyaXPDqXMgKMOgIGxhIHLDqXNlcnZhdGlvbiwgZW52b2llIGxpZW4gM0QgU2VjdXJlLCBhdXRvbWF0aXNhdGlvbiwuLi4pLiAiLCAicHJpb3JpdHkiOiAiSGF1dGUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk9jw6lhbmUsIFRob21hcywgQ2FtaWxsZSIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiQ2FoaWVyIGRlcyBjaGFyZ2VzIiwgIm5vdGVzIjogIjMgb3V0aWxzIGNvbmNlcm7DqXMgOiBUaGFpcyArIEQtZWRnZSArIEJyaWRnZSIsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMjEsICJvcmRlciI6IDEyMDAsICJwaGFzZSI6ICJCcmlkZ2Ug4pqZ77iPIFYxIC0gTG90IDEiLCAibW9kdWxlIjogIlRlc3QgJiBHb2xpdmUiLCAiZGVzY3JpcHRpb24iOiAiVsOpcmlmaWVyIGxlcyBwYXJjb3VycyB1dGlsaXNhdGV1cnMgZMOpdGVybWluw6lzLiIsICJwcmlvcml0eSI6ICJGYWlibGUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk9jw6lhbmUsIEpvbmF0aGFuIiwgInRhcmdldERhdGUiOiAiIiwgImRlcGVuZGVuY2llcyI6ICJDYWhpZXIgZGVzIGNoYXJnZXMiLCAibm90ZXMiOiAiIiwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiAyMiwgIm9yZGVyIjogMTgwMCwgInBoYXNlIjogIkdlc3Rpb24gZGVzIHNlcnJ1cmUg8J+UkSIsICJtb2R1bGUiOiAiVGVzdCBvcMOpcmF0aW9ubmVsIiwgImRlc2NyaXB0aW9uIjogIlRlc3QgZGUgbGEgY29ubmVjdGl2aXTDqSBlbiBjb3VycyBzdXIgdW4gw6l0YWJsaXNzZW1lbnQuIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIkVuIGNvdXJzIiwgInJlc3BvbnNpYmxlIjogIkhSTSBUZWFtIiwgInRhcmdldERhdGUiOiAiIiwgImRlcGVuZGVuY2llcyI6ICIiLCAibm90ZXMiOiAiIiwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiAyMywgIm9yZGVyIjogMTkwMCwgInBoYXNlIjogIkdlc3Rpb24gZGVzIHNlcnJ1cmUg8J+UkSIsICJtb2R1bGUiOiAiw4l2YWx1YXRpb24gU8Opc2FtZSIsICJkZXNjcmlwdGlvbiI6ICLDiXZhbHVlciBsYSBwZXJ0aW5lbmNlIGRlIHPDqXNhbWUgZGFucyBsJ8OpY29zeXN0w6htZSBhY3R1ZWwuIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIk9jw6lhbmUsIFRob21hcywgQ2FtaWxsZSIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIkF2ZWMgbCdhcnJpdsOpZSBkZSBCUklER0UgaWwgZXhpc3RlcmFpIGxhIHBvc3NpYmlsaXTDqSBkZSBnw6lyZXIgbGVzIGNvZGVzIGQnYWNjw6hzIGF2ZWMgZW52b2llIGluZGl2aWR1ZWwuIiwgInBhcmVudElkIjogbnVsbH0sIHsiaWQiOiAyNCwgIm9yZGVyIjogMjAwMCwgInBoYXNlIjogIkNvbW11bmljYXRpb24gY2xpZW50IPCfpLMiLCAibW9kdWxlIjogIlBvaW50IGRlIGNvbnRhY3QiLCAiZGVzY3JpcHRpb24iOiAiRGFucyBsJ2V4cMOpcmllbmNlIGNsaWVudCwgZMOpdGVybWluZXIgw6AgcXVlbCBtb21lbnQsIGRlIHF1ZWxsZSBtYW5pw6hyZSBldCBwb3VyIHF1ZWwgc3VqZXQsIG5vdXMgc291aGFpdG9ucyBjb250YWN0ZXIgbGUgY2xpZW50LiIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICIiLCAidGFyZ2V0RGF0ZSI6ICIiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDI1LCAib3JkZXIiOiAyMzAwLCAicGhhc2UiOiAiQ29tbXVuaWNhdGlvbiBjbGllbnQg8J+ksyIsICJtb2R1bGUiOiAiQ29udGVudSIsICJkZXNjcmlwdGlvbiI6ICJSw6lkYWN0aW9uIGRlcyB0eXBlcyBkZSBjb21tdW5pY2F0aW9uLiIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICIiLCAidGFyZ2V0RGF0ZSI6ICIiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDI2LCAib3JkZXIiOiAyNDAwLCAicGhhc2UiOiAiQ29tbXVuaWNhdGlvbiBjbGllbnQg8J+ksyIsICJtb2R1bGUiOiAiTm91dmVhdSBtb2R1bGUiLCAiZGVzY3JpcHRpb24iOiAiw4l2YWx1ZXIgbGEgcGVydGluZW5jZSBkZSBUcmlnZ2VyRmxvdyBkYW5zIGwnw6ljb3N5c3TDqG1lIGFjdHVlbC4iLCAicHJpb3JpdHkiOiAiTW95ZW5uZSIsICJzdGF0dXMiOiAiw4AgZMOpZmluaXIiLCAicmVzcG9uc2libGUiOiAiIiwgInRhcmdldERhdGUiOiAiIiwgImRlcGVuZGVuY2llcyI6ICIiLCAibm90ZXMiOiAiQXZlYyBsJ2Fycml2w6llIGRlIEJSSURHRSBpbCBleGlzdGVyYWkgbGEgcG9zc2liaWxpdMOpIGRlIGfDqXJlciBsZSB3b3JrZmxvdy4iLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDI3LCAib3JkZXIiOiAyOTAwLCAicGhhc2UiOiAiUsOpc2VhdXggU29jaWF1eCAmIEUtcmVwdXRhdGlvbiIsICJtb2R1bGUiOiAiVmlzaWJpbGl0w6kiLCAiZGVzY3JpcHRpb24iOiAiU8OpbGVjdGlvbm5lciBsZXMgbGlldXggZGUgcHLDqXNlbmNlIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIiIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIiIsICJwYXJlbnRJZCI6IG51bGx9LCB7ImlkIjogMjgsICJvcmRlciI6IDMwMDAsICJwaGFzZSI6ICJSw6lzZWF1eCBTb2NpYXV4ICYgRS1yZXB1dGF0aW9uIiwgIm1vZHVsZSI6ICJHZXN0aW9uIGRlcyBvdXRpbHMiLCAiZGVzY3JpcHRpb24iOiAiQ2VudHJhbGlzYXRpb24gZXQgZ2VzdGlvbiBkZSB2b3RyZSBFLXLDqXB1dGF0aW9uIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIiIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiT1RBLCBNZXRhIiwgIm5vdGVzIjogIkwnaWTDqWFsZSBzZXJhaXQgZGUgY2VudHJhbGlzZXIgbGVzIGF2aXMsIG5vdGUgY2xpZW50IGRhbnMgQnJpZGdlcyBldCBmYWNpbGl0ZXIgbGEgZ2VzdGlvbmQgZXMgcsOpcG9uc2VzLiAiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDI5LCAib3JkZXIiOiAyNTAwLCAicGhhc2UiOiAibWFya2V0aW5nICYgYnJhbmRpbmciLCAibW9kdWxlIjogIlN0cmF0ZWdpZSBCcmFuZGluZyIsICJkZXNjcmlwdGlvbiI6ICJEw6l0ZXJtaW5lciBzaSB2b3VzIHNvdWhhaXRleiB1biBtYXJrZXRpbmcgZGl0IGRlIGdyb3VwZSBvdSBpbmRpdmlkdWVsIHBhciBow7R0ZWwuIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIiIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIlN0cmF0ZWdpZSBkZSBncm91cGUgOiBvZmZyZXMgaW50ZXItaG90ZWwsIHJlZGlyZWN0aW9uIGludGVyLWhvdGVsLCBtYXJxdWUgY2VudHJhbGUgZXQgc291cy1tYXJxdWUsIGdlc3Rpb24gZGVzIHLDqXNlYXV4IG5pdmVhdSBncm91cGUgZXQgcGFyIGhvdGVsID0gZm9yY2UgZGUgcmF5b25uZW1lbnQsIGVjdC4iLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDMwLCAib3JkZXIiOiAyNjAwLCAicGhhc2UiOiAibWFya2V0aW5nICYgYnJhbmRpbmciLCAibW9kdWxlIjogIkNoYXJ0ZSBncmFwaGlxdWUiLCAiZGVzY3JpcHRpb24iOiAiVHlwb2dyYXBoaWUsIGNvdWxldXIsIGxvZ28sIHBob3Rvcy4uLiIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICIiLCAidGFyZ2V0RGF0ZSI6ICIiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDMxLCAib3JkZXIiOiAyNzAwLCAicGhhc2UiOiAibWFya2V0aW5nICYgYnJhbmRpbmciLCAibW9kdWxlIjogIlNpdGUgaW50ZXJuZXQiLCAiZGVzY3JpcHRpb24iOiAiMSBzaXRlIGdyb3VwZSBlbiBwbHVzIGRlcyBzaXRlcy9ow7R0ZWxzLiIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICIiLCAidGFyZ2V0RGF0ZSI6ICIiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDMyLCAib3JkZXIiOiAzMTAwLCAicGhhc2UiOiAiQnJpZGdlcyDimpnvuI8gVjIiLCAibW9kdWxlIjogIkdlc3Rpb24gZGVzIFdvcmtmbG93IENvbW11bmljYXRpb24iLCAiZGVzY3JpcHRpb24iOiAiQSBjb25maXJtZXIgc2Vsb24gbGEgcHLDqXNlbmNlIGRlIFRyaWdnZ2VyRmxvdyIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICIiLCAidGFyZ2V0RGF0ZSI6ICIiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDMzLCAib3JkZXIiOiAzMjAwLCAicGhhc2UiOiAiQnJpZGdlcyDimpnvuI8gVjIiLCAibW9kdWxlIjogIkdlc3Rpb24gZGVzIGNvZGUgc2QnYWNjw6hzIiwgImRlc2NyaXB0aW9uIjogIkEgY29uZmlybWVyIHNlbG9uIGxhIHByw6lzZW5jZSBkZSBTw6lzYW1lLiIsICJwcmlvcml0eSI6ICJNb3llbm5lIiwgInN0YXR1cyI6ICLDgCBkw6lmaW5pciIsICJyZXNwb25zaWJsZSI6ICIiLCAidGFyZ2V0RGF0ZSI6ICIiLCAiZGVwZW5kZW5jaWVzIjogIiIsICJub3RlcyI6ICIiLCAicGFyZW50SWQiOiBudWxsfSwgeyJpZCI6IDM0LCAib3JkZXIiOiAzMzAwLCAicGhhc2UiOiAiQnJpZGdlcyDimpnvuI8gVjIiLCAibW9kdWxlIjogIkdlc3Rpb24gZGVzIHBhaWVtZW50cyIsICJkZXNjcmlwdGlvbiI6ICJBIGNvbmZpcm1lciBzZWxvbiBsYSBwcsOpc2VuY2UgZCd1biBQU1AuIiwgInByaW9yaXR5IjogIk1veWVubmUiLCAic3RhdHVzIjogIsOAIGTDqWZpbmlyIiwgInJlc3BvbnNpYmxlIjogIiIsICJ0YXJnZXREYXRlIjogIiIsICJkZXBlbmRlbmNpZXMiOiAiIiwgIm5vdGVzIjogIiIsICJwYXJlbnRJZCI6IG51bGx9XQ=="))));
 
 /* =========================================================
    ÉTAT
@@ -1292,8 +1373,13 @@ function loadData() {
   ensureOrder();
 }
 
-/* Garantit que chaque item a un champ "order" — assigne par phase puis id si absent */
+/* Garantit que chaque item a un champ "order" et "parentId" — assigne par phase puis id si absent */
 function ensureOrder() {
+  // Migration parentId
+  state.data.forEach(i => {
+    if (i.parentId === undefined) i.parentId = null;
+  });
+
   const needsInit = state.data.some(i => i.order === undefined);
   if (!needsInit) return;
   // Tri initial : par phase puis id
@@ -1341,6 +1427,46 @@ function togglePhaseCollapsed(phaseName) {
   setCollapsedPhases(collapsed);
 }
 
+/* Modules (parents) repliés : tableau d'ids */
+const COLLAPSED_MODULES_KEY = 'hrm-collapsed-modules';
+
+function getCollapsedModules() {
+  try {
+    const raw = localStorage.getItem(COLLAPSED_MODULES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setCollapsedModules(arr) {
+  localStorage.setItem(COLLAPSED_MODULES_KEY, JSON.stringify(arr));
+}
+
+function toggleModuleCollapsed(id) {
+  const collapsed = getCollapsedModules();
+  const idx = collapsed.indexOf(id);
+  if (idx === -1) collapsed.push(id);
+  else collapsed.splice(idx, 1);
+  setCollapsedModules(collapsed);
+}
+
+/* Helpers hiérarchie */
+function getChildren(parentId) {
+  return state.data
+    .filter(i => i.parentId === parentId)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+function isParent(id) {
+  return state.data.some(i => i.parentId === id);
+}
+
+function getParent(item) {
+  if (!item.parentId) return null;
+  return state.data.find(i => i.id === item.parentId);
+}
+
 /* =========================================================
    RENDU
    ========================================================= */
@@ -1351,25 +1477,53 @@ function render() {
   renderResponsibleFilter();
 }
 
-/* Tri par order (réordonnable via drag), avec fallback sur l'id */
+/* Tri hiérarchique : modules racines suivis de leurs enfants.
+   Filtre appliqué : un sous-module est inclus si lui ou son parent matche.
+   Renvoie une liste plate dans l'ordre d'affichage, avec un champ `_depth`. */
 function getSortedFilteredData() {
-  const filtered = state.data.filter(item => {
+  const matchesFilter = (item) => {
     if (state.filters.status !== 'all' && item.status !== state.filters.status) return false;
     if (state.filters.priority !== 'all' && item.priority !== state.filters.priority) return false;
     if (state.filters.responsible !== 'all' && item.responsible !== state.filters.responsible) return false;
     if (state.filters.search) {
       const q = state.filters.search.toLowerCase();
-      const haystack = [item.phase, item.module, item.description, item.responsible, item.notes, item.dependencies]
+      const hay = [item.phase, item.module, item.description, item.responsible, item.notes, item.dependencies]
         .join(' ').toLowerCase();
-      if (!haystack.includes(q)) return false;
+      if (!hay.includes(q)) return false;
     }
     return true;
+  };
+
+  // Ensemble des items à inclure : un parent dont un enfant matche est aussi inclus,
+  // et un enfant dont le parent matche aussi.
+  const include = new Set();
+  state.data.forEach(item => {
+    if (matchesFilter(item)) {
+      include.add(item.id);
+      // Inclut le parent si l'item est un enfant qui matche
+      if (item.parentId) include.add(item.parentId);
+      // Inclut tous les enfants si c'est un parent qui matche
+      getChildren(item.id).forEach(child => include.add(child.id));
+    }
   });
-  return filtered.sort((a, b) => {
-    const oa = a.order !== undefined ? a.order : a.id * 1000;
-    const ob = b.order !== undefined ? b.order : b.id * 1000;
-    return oa - ob;
+
+  // Construit la liste plate hiérarchique
+  const roots = state.data
+    .filter(i => !i.parentId && include.has(i.id))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  const result = [];
+  const collapsedModules = getCollapsedModules();
+
+  roots.forEach(root => {
+    result.push({ ...root, _depth: 0 });
+    if (collapsedModules.includes(root.id)) return; // sous-modules cachés
+    getChildren(root.id)
+      .filter(c => include.has(c.id))
+      .forEach(child => result.push({ ...child, _depth: 1 }));
   });
+
+  return result;
 }
 
 /* Indique si un filtre/recherche est actif (drag désactivé dans ce cas) */
@@ -1403,15 +1557,35 @@ function renderTable() {
   let html = '';
   let lastPhase = null;
   let collapsedPhases = getCollapsedPhases();
+  let collapsedModules = getCollapsedModules();
 
-  // Compte des modules par phase pour l'affichage
+  // Numérotation auto par phase : 1, 1.1, 1.2, 2, 2.1...
+  // On numérote sur les items racines visibles, et on numérote les enfants relativement à leur parent.
+  const phaseRootCounters = {}; // { phaseName: counter }
+  const numbering = {}; // { itemId: "1.2" }
+  const childCounters = {}; // { parentId: counter }
+
+  items.forEach(item => {
+    if (item._depth === 0) {
+      const ph = item.phase || '—';
+      phaseRootCounters[ph] = (phaseRootCounters[ph] || 0) + 1;
+      numbering[item.id] = String(phaseRootCounters[ph]);
+    } else {
+      const parentId = item.parentId;
+      childCounters[parentId] = (childCounters[parentId] || 0) + 1;
+      const parentNum = numbering[parentId] || '?';
+      numbering[item.id] = `${parentNum}.${childCounters[parentId]}`;
+    }
+  });
+
+  // Compte total visible par phase pour le compteur du bandeau
   const phaseCounts = {};
   items.forEach(i => { phaseCounts[i.phase] = (phaseCounts[i.phase] || 0) + 1; });
 
   let currentPhaseCollapsed = false;
 
   items.forEach(item => {
-    // Insertion d'un en-tête de phase quand la phase change
+    // En-tête de phase quand la phase change (uniquement pour les racines)
     if (item.phase !== lastPhase) {
       currentPhaseCollapsed = collapsedPhases.includes(item.phase);
       const collapsedClass = currentPhaseCollapsed ? ' collapsed' : '';
@@ -1439,14 +1613,21 @@ function renderTable() {
       lastPhase = item.phase;
     }
 
-    // Si la phase est collapsée, on saute les modules
     if (currentPhaseCollapsed) return;
 
+    const isChild = item._depth === 1;
+    const hasChildren = isParent(item.id);
+    const isCollapsed = collapsedModules.includes(item.id);
+    const num = numbering[item.id] || '';
+    const rowClasses = ['data-row'];
+    if (isChild) rowClasses.push('is-child');
+    if (hasChildren) rowClasses.push('has-children');
+
     html += `
-      <tr data-id="${item.id}" draggable="false">
+      <tr data-id="${item.id}" data-parent="${item.parentId || ''}" class="${rowClasses.join(' ')}" draggable="false">
         <td class="col-drag">
           <div class="drag-handle" title="Glisser pour réordonner">
-            <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
               <circle cx="3" cy="3" r="1.2" fill="currentColor"/>
               <circle cx="9" cy="3" r="1.2" fill="currentColor"/>
               <circle cx="3" cy="7" r="1.2" fill="currentColor"/>
@@ -1457,10 +1638,16 @@ function renderTable() {
           </div>
         </td>
         <td class="col-phase">
-          <input class="cell-input" data-field="phase" value="${escapeHtml(item.phase)}">
+          <textarea class="cell-textarea cell-desc" data-field="phase" rows="1" ${isChild ? 'disabled title="La phase est héritée du module parent"' : ''}>${escapeHtml(item.phase)}</textarea>
         </td>
         <td class="col-module">
-          <textarea class="cell-textarea cell-desc cell-module" data-field="module" rows="1" style="font-weight:500">${escapeHtml(item.module)}</textarea>
+          <div class="module-cell ${isChild ? 'indented' : ''}">
+            ${hasChildren ? `<button class="module-toggle ${isCollapsed ? 'collapsed' : ''}" data-toggle-id="${item.id}" title="${isCollapsed ? 'Déplier' : 'Replier'} les sous-modules">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>` : isChild ? '<span class="child-marker"></span>' : '<span class="module-toggle-spacer"></span>'}
+            <span class="module-num">${num}</span>
+            <textarea class="cell-textarea cell-desc cell-module" data-field="module" rows="1" style="font-weight:${isChild ? '500' : '600'}">${escapeHtml(item.module)}</textarea>
+          </div>
         </td>
         <td class="col-desc">
           <textarea class="cell-textarea cell-desc" data-field="description" rows="1">${escapeHtml(item.description)}</textarea>
@@ -1480,21 +1667,26 @@ function renderTable() {
           </div>
         </td>
         <td class="col-resp">
-          <input class="cell-input" data-field="responsible" value="${escapeHtml(item.responsible)}">
+          <textarea class="cell-textarea cell-desc" data-field="responsible" rows="1">${escapeHtml(item.responsible)}</textarea>
         </td>
         <td class="col-date">
           <input type="date" class="cell-input" data-field="targetDate" value="${escapeHtml(item.targetDate)}">
         </td>
         <td class="col-deps">
-          <input class="cell-input" data-field="dependencies" value="${escapeHtml(item.dependencies)}">
+          <textarea class="cell-textarea cell-desc" data-field="dependencies" rows="1">${escapeHtml(item.dependencies)}</textarea>
         </td>
         <td class="col-notes">
-          <input class="cell-input" data-field="notes" value="${escapeHtml(item.notes)}">
+          <textarea class="cell-textarea cell-desc" data-field="notes" rows="1">${escapeHtml(item.notes)}</textarea>
         </td>
         <td class="col-actions">
-          <button class="btn-icon btn-delete" data-id="${item.id}" title="Supprimer">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          </button>
+          <div class="row-actions">
+            ${!isChild ? `<button class="btn-icon btn-add-sub" data-parent-id="${item.id}" title="Ajouter un sous-module">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>` : ''}
+            <button class="btn-icon btn-delete" data-id="${item.id}" title="Supprimer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
         </td>
       </tr>`;
   });
@@ -1584,6 +1776,24 @@ function attachRowListeners() {
     btn.addEventListener('click', () => {
       const id = parseInt(btn.dataset.id);
       deleteRow(id);
+    });
+  });
+
+  // Boutons "ajouter un sous-module"
+  document.querySelectorAll('.btn-add-sub').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const parentId = parseInt(btn.dataset.parentId);
+      addSubModule(parentId);
+    });
+  });
+
+  // Toggle de pliage des sous-modules d'un module parent
+  document.querySelectorAll('.module-toggle[data-toggle-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.toggleId);
+      toggleModuleCollapsed(id);
+      render();
     });
   });
 
@@ -1725,9 +1935,7 @@ function attachDragListeners() {
     tr.addEventListener('dragleave', handleDragLeave);
     tr.addEventListener('drop',      handleDrop);
   });
-}
-
-function handleDragStart(e) {
+}function handleDragStart(e) {
   const tr = e.currentTarget;
   dragState.draggedId = parseInt(tr.dataset.id);
   dragState.draggedRow = tr;
@@ -1740,8 +1948,8 @@ function handleDragStart(e) {
 function handleDragEnd(e) {
   e.currentTarget.classList.remove('dragging');
   e.currentTarget.draggable = false;
-  document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
-    el.classList.remove('drag-over-top', 'drag-over-bottom');
+  document.querySelectorAll('.drag-over-top, .drag-over-bottom, .drag-over-nest').forEach(el => {
+    el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
   });
   dragState.draggedId = null;
   dragState.draggedRow = null;
@@ -1754,14 +1962,35 @@ function handleDragOver(e) {
 
   e.dataTransfer.dropEffect = 'move';
   const rect = tr.getBoundingClientRect();
-  const isTopHalf = (e.clientY - rect.top) < rect.height / 2;
+  const y = e.clientY - rect.top;
+  const h = rect.height;
 
-  tr.classList.toggle('drag-over-top', isTopHalf);
-  tr.classList.toggle('drag-over-bottom', !isTopHalf);
+  // Détermine si la nidification est autorisée :
+  // - la cible doit être un module racine (pas un sous-module)
+  // - le draggé ne doit pas être déjà l'enfant ou parent direct de la cible
+  const targetId = parseInt(tr.dataset.id);
+  const target = state.data.find(i => i.id === targetId);
+  const dragged = state.data.find(i => i.id === dragState.draggedId);
+  const targetIsRoot = target && !target.parentId;
+  const draggedIsParent = dragged && state.data.some(i => i.parentId === dragged.id);
+  // On n'autorise pas un parent (avec enfants) à devenir lui-même sous-module
+  const canNest = targetIsRoot && !draggedIsParent;
+
+  // Reset des classes
+  tr.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
+
+  if (canNest && y > h * 0.33 && y < h * 0.66) {
+    // Zone centrale : nidification
+    tr.classList.add('drag-over-nest');
+  } else if (y < h / 2) {
+    tr.classList.add('drag-over-top');
+  } else {
+    tr.classList.add('drag-over-bottom');
+  }
 }
 
 function handleDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+  e.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
 }
 
 function handleDrop(e) {
@@ -1772,47 +2001,124 @@ function handleDrop(e) {
   const targetId = parseInt(targetTr.dataset.id);
   const draggedId = dragState.draggedId;
 
-  targetTr.classList.remove('drag-over-top', 'drag-over-bottom');
+  const wasNest = targetTr.classList.contains('drag-over-nest');
+  targetTr.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
 
   if (!draggedId || draggedId === targetId) return;
 
+  if (wasNest) {
+    nestUnder(draggedId, targetId);
+    return;
+  }
+
   const rect = targetTr.getBoundingClientRect();
   const dropAbove = (e.clientY - rect.top) < rect.height / 2;
-
   reorderItems(draggedId, targetId, dropAbove);
 }
 
+/* Transforme un module en sous-module d'un autre module (cible).
+   Si le module déplacé a lui-même des enfants, on refuse (max 1 niveau de hiérarchie). */
+function nestUnder(draggedId, targetId) {
+  const dragged = state.data.find(i => i.id === draggedId);
+  const target  = state.data.find(i => i.id === targetId);
+  if (!dragged || !target) return;
+  if (target.parentId) return; // la cible doit être racine
+  if (state.data.some(i => i.parentId === draggedId)) {
+    showToast('Impossible : ce module a déjà ses propres sous-modules');
+    return;
+  }
+
+  dragged.parentId = targetId;
+  dragged.phase = target.phase;
+
+  // Place dragged juste après le dernier enfant existant de la cible (ou juste après la cible)
+  const siblings = getChildren(targetId).filter(s => s.id !== draggedId);
+  const insertAfterOrder = siblings.length
+    ? Math.max(...siblings.map(s => s.order || 0))
+    : (target.order || 0);
+  dragged.order = insertAfterOrder + 1;
+
+  // S'assure que le parent n'est pas replié pour voir le résultat
+  const collapsed = getCollapsedModules();
+  if (collapsed.includes(targetId)) {
+    setCollapsedModules(collapsed.filter(id => id !== targetId));
+  }
+
+  reindexAllOrders();
+  saveData();
+  render();
+  showToast(`Module imbriqué sous "${target.module}"`);
+}
+
 /* Réordonne un item en l'insérant avant ou après la cible.
-   La phase de l'élément déplacé s'aligne sur la phase de la cible
-   afin que le regroupement par phase reste cohérent visuellement. */
+   Règles :
+   - Un parent emmène ses enfants avec lui
+   - Un sous-module reste à plat parmi les sous-modules (pas converti en parent)
+   - Si on dépose un sous-module sur un autre module parent, il change de parent
+   - Si on dépose un sous-module sur un autre sous-module, il devient sibling */
 function reorderItems(draggedId, targetId, dropAbove) {
   const dragged = state.data.find(i => i.id === draggedId);
   const target  = state.data.find(i => i.id === targetId);
   if (!dragged || !target) return;
 
-  // Aligne la phase sur celle de la cible (utile si on traverse les groupes)
-  const phaseChanged = dragged.phase !== target.phase;
-  if (phaseChanged) {
-    dragged.phase = target.phase;
+  const draggedChildren = getChildren(draggedId);
+  const draggedIsParent = draggedChildren.length > 0;
+  const draggedIsChild = !!dragged.parentId;
+  const targetIsChild = !!target.parentId;
+
+  // Cas 1 : on déplace un sous-module
+  if (draggedIsChild) {
+    if (targetIsChild) {
+      // Le sous-module s'insère parmi les sibling de la cible (même parent)
+      dragged.parentId = target.parentId;
+    } else {
+      // Cible = module racine : le sous-module devient enfant de la cible
+      dragged.parentId = target.id;
+    }
+    // Phase héritée
+    const newParent = getParent(dragged) || target;
+    dragged.phase = newParent.phase;
+  } else {
+    // Cas 2 : on déplace un module racine (avec ses enfants)
+    // Si la cible est un sous-module, on prend son parent comme cible effective
+    if (targetIsChild) {
+      // Pour éviter les cas tordus, on aligne sur le parent de la cible
+      const targetParent = getParent(target);
+      if (targetParent) {
+        // On déplace dragged au-dessus/en-dessous du PARENT de la cible
+        // Reprend le calcul comme si la cible était le parent
+        return reorderItems(draggedId, targetParent.id, dropAbove);
+      }
+    }
+    // Phase alignée sur la cible
+    const phaseChanged = dragged.phase !== target.phase;
+    if (phaseChanged) {
+      dragged.phase = target.phase;
+      draggedChildren.forEach(c => { c.phase = target.phase; });
+    }
   }
 
-  // Reconstruit l'ordre de tous les items, dragged retiré puis ré-inséré
-  const sorted = [...state.data]
-    .filter(i => i.id !== draggedId)
+  // Reconstruit l'ordre en plaçant dragged (et ses enfants si parent) près de la cible
+  const block = draggedIsParent ? [dragged, ...draggedChildren] : [dragged];
+  const blockIds = new Set(block.map(b => b.id));
+
+  const others = [...state.data]
+    .filter(i => !blockIds.has(i.id))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  const targetIdx = sorted.findIndex(i => i.id === targetId);
+  const targetIdx = others.findIndex(i => i.id === targetId);
+  if (targetIdx === -1) return;
   const insertIdx = dropAbove ? targetIdx : targetIdx + 1;
-  sorted.splice(insertIdx, 0, dragged);
+  others.splice(insertIdx, 0, ...block);
 
-  // Réassigne les orders avec un espacement constant
-  sorted.forEach((item, idx) => {
-    item.order = (idx + 1) * 100;
-  });
+  others.forEach((item, idx) => { item.order = (idx + 1) * 100; });
+
+  // Réindex pour s'assurer que les enfants sont toujours juste après leurs parents
+  reindexAllOrders();
 
   saveData();
   render();
-  showToast(phaseChanged ? `Module déplacé vers ${target.phase}` : 'Ordre mis à jour');
+  showToast('Ordre mis à jour');
 }
 
 function updateDragInfo() {
@@ -1827,7 +2133,7 @@ function updateDragInfo() {
     info.className = 'drag-info';
     info.innerHTML = `
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
-      Glissez la poignée à gauche pour réordonner — cliquez sur une phase pour la replier`;
+      Glissez la poignée à gauche pour réordonner — déposez au centre d'une ligne pour créer un sous-module`;
   }
 }
 
@@ -1984,6 +2290,13 @@ function handleCellChange(e) {
   if (!item || item[field] === value) return;
 
   item[field] = value;
+
+  // Si la phase d'un parent change, propage aux enfants
+  if (field === 'phase' && !item.parentId) {
+    const children = getChildren(item.id);
+    children.forEach(c => { c.phase = value; });
+  }
+
   saveData();
 
   // Re-render uniquement si statut/priorité (badges) ou phase/responsable (filtres)
@@ -2000,11 +2313,24 @@ function handleCellChange(e) {
 }
 
 function deleteRow(id) {
-  if (!confirm('Supprimer ce module ?')) return;
-  state.data = state.data.filter(i => i.id !== id);
+  const item = state.data.find(i => i.id === id);
+  if (!item) return;
+
+  const children = getChildren(id);
+  let msg;
+  if (children.length > 0) {
+    msg = `Supprimer ce module et ses ${children.length} sous-module${children.length > 1 ? 's' : ''} ?`;
+  } else {
+    msg = 'Supprimer ce module ?';
+  }
+  if (!confirm(msg)) return;
+
+  // Supprime l'item et tous ses enfants
+  const idsToDelete = new Set([id, ...children.map(c => c.id)]);
+  state.data = state.data.filter(i => !idsToDelete.has(i.id));
   saveData();
   render();
-  showToast('Module supprimé');
+  showToast(idsToDelete.size > 1 ? `${idsToDelete.size} éléments supprimés` : 'Module supprimé');
 }
 
 function addRow() {
@@ -2012,6 +2338,7 @@ function addRow() {
   const maxOrder = state.data.length ? Math.max(...state.data.map(i => i.order || 0)) : 0;
   const newItem = {
     id: newId,
+    parentId: null,
     order: maxOrder + 100,
     phase: 'Phase 1',
     module: 'Nouveau module',
@@ -2041,6 +2368,74 @@ function addRow() {
       newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, 50);
+}
+
+/* Ajoute un sous-module à un module parent.
+   Le sous-module hérite de la phase et est inséré juste après le dernier enfant existant. */
+function addSubModule(parentId) {
+  const parent = state.data.find(i => i.id === parentId);
+  if (!parent) return;
+
+  const newId = Math.max(...state.data.map(i => i.id)) + 1;
+  // Position juste après les enfants existants (ou juste après le parent s'il n'en a pas)
+  const siblings = getChildren(parentId);
+  const insertAfterOrder = siblings.length
+    ? Math.max(...siblings.map(s => s.order || 0))
+    : (parent.order || 0);
+  const newOrder = insertAfterOrder + 1; // sera réindexé proprement ensuite
+
+  const newItem = {
+    id: newId,
+    parentId: parentId,
+    order: newOrder,
+    phase: parent.phase,
+    module: 'Nouveau sous-module',
+    description: '',
+    priority: 'Moyenne',
+    status: 'À définir',
+    responsible: '',
+    targetDate: '',
+    dependencies: '',
+    notes: ''
+  };
+  state.data.push(newItem);
+
+  // S'assure que le parent n'est pas replié, sinon le sous-module ne serait pas visible
+  const collapsedMods = getCollapsedModules();
+  if (collapsedMods.includes(parentId)) {
+    setCollapsedModules(collapsedMods.filter(id => id !== parentId));
+  }
+
+  reindexAllOrders();
+  saveData();
+  render();
+  showToast('Sous-module ajouté');
+
+  setTimeout(() => {
+    const newRow = document.querySelector(`tr[data-id="${newId}"]`);
+    if (newRow) {
+      newRow.classList.add('row-enter');
+      const firstInput = newRow.querySelector('[data-field="module"]');
+      if (firstInput) {
+        firstInput.focus();
+        firstInput.select();
+      }
+      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 50);
+}
+
+/* Réindexe les orders en respectant l'ordre courant + la hiérarchie (enfants après parent) */
+function reindexAllOrders() {
+  const sorted = [...state.data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const roots = sorted.filter(i => !i.parentId);
+  let counter = 1;
+  roots.forEach(root => {
+    root.order = counter++ * 100;
+    sorted
+      .filter(i => i.parentId === root.id)
+      .forEach(child => { child.order = counter++ * 100; });
+  });
 }
 
 function handleFilterClick(filterType, value) {
