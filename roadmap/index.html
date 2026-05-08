@@ -519,12 +519,11 @@
     border-right: 1px solid var(--border);
     vertical-align: middle;
     background: var(--surface);
-    transition: background var(--transition);
   }
   td:last-child { border-right: none; }
 
   tr {
-    transition: background var(--transition);
+    transition: none;
   }
   tr:hover td {
     background: var(--surface-2);
@@ -1757,18 +1756,28 @@ function renderResponsibleFilter() {
    ÉVÉNEMENTS
    ========================================================= */
 function attachRowListeners() {
-  // Inputs et selects pour modification inline
+  // Inputs et selects pour modification inline.
+  // 'change' se déclenche au blur ou Enter pour input/textarea, et au change pour select.
+  // Pas besoin d'un listener 'blur' supplémentaire.
   document.querySelectorAll('#table-body input, #table-body select, #table-body textarea').forEach(el => {
     el.addEventListener('change', handleCellChange);
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-      el.addEventListener('blur', handleCellChange);
-    }
   });
 
-  // Auto-resize des textareas de description
-  document.querySelectorAll('#table-body textarea.cell-desc').forEach(ta => {
-    autoResizeTextarea(ta);
-    ta.addEventListener('input', () => autoResizeTextarea(ta));
+  // Auto-resize des textareas en batch (évite les reflows multiples)
+  const textareas = document.querySelectorAll('#table-body textarea.cell-desc');
+  batchAutoResize(textareas);
+  // Pendant la frappe, on resize via requestAnimationFrame pour éviter
+  // un calcul à chaque keystroke (qui force un reflow synchrone)
+  textareas.forEach(ta => {
+    let pending = false;
+    ta.addEventListener('input', () => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        autoResizeTextarea(ta);
+        pending = false;
+      });
+    });
   });
 
   // Boutons supprimer
@@ -2287,7 +2296,7 @@ function handleCellChange(e) {
   const value = e.target.value;
 
   const item = state.data.find(i => i.id === id);
-  if (!item || item[field] === value) return;
+  if (!item || item[field] === value) return; // pas de changement réel
 
   item[field] = value;
 
@@ -2299,17 +2308,37 @@ function handleCellChange(e) {
 
   saveData();
 
-  // Re-render uniquement si statut/priorité (badges) ou phase/responsable (filtres)
+  // Re-render minimal selon le type de champ modifié :
   if (field === 'status' || field === 'priority') {
-    render();
-    showToast('Modifications enregistrées');
-  } else if (field === 'phase' || field === 'responsible') {
-    render();
-    showToast('Modifications enregistrées');
-  } else {
+    // Badges + stats à recalculer ; pas besoin de tout reconstruire le DOM,
+    // on update juste la classe du select et les stats
+    updateBadgeClass(e.target, field, value);
     renderStats();
-    showToast('Modifications enregistrées');
+    renderFilters();
+  } else if (field === 'phase') {
+    // Changement de phase = restructuration complète du tableau
+    render();
+  } else if (field === 'responsible') {
+    // Met à jour le filtre responsable mais pas la table entière
+    renderResponsibleFilter();
+    renderStats();
+  } else {
+    // Champs texte simples : juste les stats (et même elles n'ont pas vraiment changé)
+    // On ne fait rien — la valeur est déjà dans le DOM (l'utilisateur a tapé)
   }
+}
+
+/* Met à jour la classe CSS d'un select badge sans re-render le tableau */
+function updateBadgeClass(selectEl, field, value) {
+  const map = field === 'status' ? STATUS_CLASS : (field === 'priority' ? PRIORITY_CLASS : null);
+  if (!map) return;
+  // Retire toutes les classes badge-* puis ajoute la nouvelle
+  Array.from(selectEl.classList).forEach(c => {
+    if (c.startsWith('badge-status-') || c.startsWith('badge-priority-')) {
+      selectEl.classList.remove(c);
+    }
+  });
+  if (map[value]) selectEl.classList.add(map[value]);
 }
 
 function deleteRow(id) {
@@ -2567,6 +2596,21 @@ function escapeHtml(str) {
 function autoResizeTextarea(ta) {
   ta.style.height = 'auto';
   ta.style.height = Math.max(40, ta.scrollHeight) + 'px';
+}
+
+/* Auto-resize batch : recalcule toutes les hauteurs en une seule frame
+   pour éviter les reflows multiples synchrones */
+function batchAutoResize(textareas) {
+  // Phase 1 : on lit toutes les hauteurs (force un seul reflow)
+  const heights = [];
+  textareas.forEach(ta => {
+    ta.style.height = 'auto';
+    heights.push(Math.max(40, ta.scrollHeight));
+  });
+  // Phase 2 : on écrit toutes les hauteurs (pas de reflow entre les écritures)
+  textareas.forEach((ta, i) => {
+    ta.style.height = heights[i] + 'px';
+  });
 }
 
 let toastTimer = null;
