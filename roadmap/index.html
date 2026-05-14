@@ -478,7 +478,7 @@
   th.col-date, td.col-date { min-width: 120px; }
   th.col-deps, td.col-deps { min-width: 130px; }
   th.col-notes, td.col-notes { min-width: 160px; }
-  th.col-actions, td.col-actions { min-width: 88px; width: 88px; }
+  th.col-actions, td.col-actions { min-width: 116px; width: 116px; }
 
   td {
     padding: 0;
@@ -513,7 +513,6 @@
     cursor: grab;
     color: var(--text-subtle);
     opacity: 0;
-    transition: opacity var(--transition), color var(--transition), background var(--transition);
     user-select: none;
   }
   tr:hover .drag-handle {
@@ -837,6 +836,14 @@
   tr.is-child:hover td {
     background: var(--surface-2);
   }
+  /* 3e niveau : fond légèrement plus marqué pour différencier */
+  tr.depth-2 td {
+    background: rgba(239, 246, 255, 0.5);
+  }
+  tr.depth-2 .module-num {
+    background: #dbeafe;
+    color: var(--primary-hover);
+  }
 
   .row-actions {
     display: flex;
@@ -853,6 +860,18 @@
     opacity: 1;
   }
   .btn-add-sub:hover {
+    background: var(--primary-soft);
+    color: var(--primary) !important;
+  }
+  .btn-duplicate, .btn-bduplicate {
+    color: var(--text-subtle);
+    opacity: 0;
+    transition: var(--transition);
+  }
+  tr:hover .btn-duplicate, tr:hover .btn-bduplicate {
+    opacity: 1;
+  }
+  .btn-duplicate:hover, .btn-bduplicate:hover {
     background: var(--primary-soft);
     color: var(--primary) !important;
   }
@@ -990,6 +1009,128 @@
     .stats { grid-template-columns: repeat(2, 1fr); }
     .header { padding: 14px 16px; }
     .main { padding: 16px; }
+  }
+
+  /* === SECTION BUDGET === */
+  .budget-section {
+    margin-top: 40px;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    gap: 20px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin: 0 0 4px 0;
+  }
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  .budget-stats {
+    margin-bottom: 20px;
+  }
+
+  /* Largeurs colonnes budget */
+  .budget-table { min-width: 900px; }
+  .budget-table th.bcol-drag, .budget-table td.bcol-drag { width: 32px; min-width: 32px; padding: 0; }
+  .budget-table th.bcol-software, .budget-table td.bcol-software { min-width: 280px; width: 40%; }
+  .budget-table th.bcol-amount, .budget-table td.bcol-amount { min-width: 130px; text-align: right; }
+  .budget-table th.bcol-notes, .budget-table td.bcol-notes { min-width: 200px; }
+  .budget-table th.bcol-actions, .budget-table td.bcol-actions { min-width: 116px; width: 116px; }
+
+  .budget-table th.bcol-amount {
+    text-align: right;
+    padding-right: 14px;
+  }
+
+  /* Cellule logiciel : numérotation + indentation + chevron */
+  .budget-software-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 0 6px 0 4px;
+  }
+  .budget-software-cell.indented {
+    padding-left: 28px;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.04), transparent 60%);
+  }
+  .budget-software-cell .cell-view {
+    flex: 1;
+    padding-left: 6px;
+  }
+  .budget-num {
+    margin-top: 11px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-subtle);
+    background: var(--gray-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    line-height: 1.3;
+    min-width: 24px;
+    text-align: center;
+  }
+  tr.budget-row.is-child .budget-num {
+    color: var(--primary);
+    background: var(--primary-soft);
+  }
+  tr.budget-row.is-child td {
+    background: rgba(248, 250, 252, 0.5);
+  }
+  tr.budget-row.is-child:hover td {
+    background: var(--surface-2);
+  }
+
+  /* Cellules de montants */
+  .amount-cell {
+    padding: 11px 14px;
+    font-size: 13px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    line-height: 1.45;
+    min-height: 40px;
+    cursor: text;
+    box-sizing: border-box;
+  }
+  .amount-cell.amount-total {
+    font-weight: 700;
+    color: var(--primary);
+    cursor: default;
+    background: var(--primary-soft);
+  }
+  .amount-cell.amount-empty {
+    color: var(--text-subtle);
+  }
+  tr.budget-row.is-parent .amount-cell {
+    font-weight: 600;
+  }
+  /* Éditeur montant */
+  .amount-editor {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: var(--primary-soft);
+    box-shadow: inset 0 0 0 2px var(--primary);
+    padding: 11px 14px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.45;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    box-sizing: border-box;
   }
 
   /* === IMPRESSION / EXPORT PDF === */
@@ -1217,6 +1358,38 @@
       print-color-adjust: exact;
     }
     .progress-fill::after { display: none; }
+
+    /* Section budget en print */
+    .budget-section {
+      page-break-before: always;
+      margin-top: 0;
+    }
+    .section-header {
+      border-top: none !important;
+      padding-top: 0 !important;
+      margin-bottom: 10px !important;
+    }
+    .section-title { font-size: 14px !important; }
+    .section-subtitle { font-size: 9px !important; }
+    .budget-table { min-width: 0 !important; }
+    .budget-table th.bcol-software, .budget-table td.bcol-software { width: 35%; }
+    .budget-table th.bcol-amount, .budget-table td.bcol-amount { width: 14%; }
+    .budget-table th.bcol-notes, .budget-table td.bcol-notes { width: 23%; }
+    .amount-cell {
+      padding: 4px 6px !important;
+      font-size: 8.5px !important;
+      min-height: 0 !important;
+    }
+    .amount-cell.amount-total {
+      background: #eff6ff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .budget-num {
+      font-size: 7.5px !important;
+      padding: 1px 4px !important;
+      margin-top: 4px !important;
+    }
   }
 </style>
 </head>
@@ -1427,6 +1600,62 @@
       </div>
     </div>
 
+    <!-- ============= SECTION BUDGET ============= -->
+    <section class="budget-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Gestion des coûts</h2>
+          <p class="section-subtitle">Suivi budgétaire par logiciel sur 2 ans — sous-lignes additionnées automatiquement</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-software">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouveau logiciel
+        </button>
+      </div>
+
+      <!-- Stats budget -->
+      <div class="stats budget-stats">
+        <div class="stat-card">
+          <div class="stat-label">Total Année 1</div>
+          <div class="stat-value" id="budget-total-y1">0 €</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Année 2</div>
+          <div class="stat-value" id="budget-total-y2">0 €</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total cumulé 2 ans</div>
+          <div class="stat-value" id="budget-total-cumul">0 €</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Nombre de logiciels</div>
+          <div class="stat-value" id="budget-count">0</div>
+        </div>
+      </div>
+
+      <!-- Table budget -->
+      <div class="table-container">
+        <div class="table-scroll">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th class="bcol-drag" title="Glisser pour réordonner"></th>
+                <th class="bcol-software">Logiciel / Poste</th>
+                <th class="bcol-amount">Année 1</th>
+                <th class="bcol-amount">Année 2</th>
+                <th class="bcol-amount">Total 2 ans</th>
+                <th class="bcol-notes">Notes</th>
+                <th class="bcol-actions"></th>
+              </tr>
+            </thead>
+            <tbody id="budget-body">
+              <!-- Lignes générées en JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 
 </div>
@@ -1606,16 +1835,31 @@ function getParent(item) {
 }
 
 /* === RENDU === */
+
+let renderScheduled = false;
+
+/* Le render() public est une planification : on attend la prochaine frame
+   pour effectuer le travail lourd. Le navigateur peut ainsi répondre
+   visuellement au clic immédiatement. */
 function render() {
+  if (renderScheduled) return;
+  renderScheduled = true;
+  requestAnimationFrame(() => {
+    renderScheduled = false;
+    renderImmediate();
+  });
+}
+
+/* Force un rendu synchrone (utile avant un export par exemple) */
+function renderImmediate() {
   renderTable();
   renderStats();
   renderFilters();
   renderResponsibleFilter();
 }
 
-/* Tri hiérarchique : modules racines suivis de leurs enfants.
-   Filtre appliqué : un sous-module est inclus si lui ou son parent matche.
-   Renvoie une liste plate dans l'ordre d'affichage, avec un champ `_depth`. */
+/* Tri hiérarchique récursif (jusqu'à 3 niveaux : depth 0, 1, 2).
+   Renvoie une liste plate avec champ `_depth` (0, 1 ou 2). */
 function getSortedFilteredData() {
   const matchesFilter = (item) => {
     if (state.filters.status !== 'all' && item.status !== state.filters.status) return false;
@@ -1630,34 +1874,60 @@ function getSortedFilteredData() {
     return true;
   };
 
-  // Ensemble des items à inclure : un parent dont un enfant matche est aussi inclus,
-  // et un enfant dont le parent matche aussi.
+  // Ensemble des items à inclure : matchs + ancêtres + descendants directs
   const include = new Set();
+  const idToItem = new Map(state.data.map(i => [i.id, i]));
+
+  function getAncestors(item) {
+    const result = [];
+    let cur = item;
+    while (cur && cur.parentId) {
+      const parent = idToItem.get(cur.parentId);
+      if (!parent) break;
+      result.push(parent);
+      cur = parent;
+    }
+    return result;
+  }
+  function getDescendants(itemId) {
+    const result = [];
+    const queue = [itemId];
+    while (queue.length) {
+      const id = queue.shift();
+      state.data.filter(i => i.parentId === id).forEach(c => {
+        result.push(c);
+        queue.push(c.id);
+      });
+    }
+    return result;
+  }
+
   state.data.forEach(item => {
     if (matchesFilter(item)) {
       include.add(item.id);
-      // Inclut le parent si l'item est un enfant qui matche
-      if (item.parentId) include.add(item.parentId);
-      // Inclut tous les enfants si c'est un parent qui matche
-      getChildren(item.id).forEach(child => include.add(child.id));
+      getAncestors(item).forEach(a => include.add(a.id));
+      getDescendants(item.id).forEach(d => include.add(d.id));
     }
   });
 
-  // Construit la liste plate hiérarchique
-  const roots = state.data
-    .filter(i => !i.parentId && include.has(i.id))
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-  const result = [];
   const collapsedModules = getCollapsedModules();
+  const result = [];
 
-  roots.forEach(root => {
-    result.push({ ...root, _depth: 0 });
-    if (collapsedModules.includes(root.id)) return; // sous-modules cachés
-    getChildren(root.id)
-      .filter(c => include.has(c.id))
-      .forEach(child => result.push({ ...child, _depth: 1 }));
-  });
+  /* Récursion : depth 0 (racines), 1 (enfants), 2 (petits-enfants). */
+  function visit(parentId, depth) {
+    if (depth > 2) return; // limite max
+    state.data
+      .filter(i => i.parentId === parentId && include.has(i.id))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .forEach(item => {
+        result.push({ ...item, _depth: depth });
+        // Si l'item est replié, on saute ses descendants
+        if (!collapsedModules.includes(item.id)) {
+          visit(item.id, depth + 1);
+        }
+      });
+  }
+  visit(null, 0);
 
   return result;
 }
@@ -1751,13 +2021,19 @@ function renderTable() {
 
     if (currentPhaseCollapsed) return;
 
-    const isChild = item._depth === 1;
+    const depth = item._depth || 0;
+    const isChild = depth > 0;
     const hasChildren = isParent(item.id);
     const isCollapsed = collapsedModules.includes(item.id);
     const num = numbering[item.id] || '';
     const rowClasses = ['data-row'];
     if (isChild) rowClasses.push('is-child');
     if (hasChildren) rowClasses.push('has-children');
+    rowClasses.push(`depth-${depth}`);
+
+    // Indentation visuelle progressive selon la profondeur
+    const indentPx = depth * 22;
+    const indentStyle = depth > 0 ? `padding-left:${4 + indentPx}px` : '';
 
     html += `
       <tr data-id="${item.id}" data-parent="${item.parentId || ''}" class="${rowClasses.join(' ')}" draggable="false">
@@ -1777,7 +2053,7 @@ function renderTable() {
           <div class="cell-view ${isChild ? 'cell-disabled' : ''}" data-field="phase" ${isChild ? 'title="La phase est héritée du module parent"' : ''}>${escapeHtml(item.phase)}</div>
         </td>
         <td class="col-module">
-          <div class="module-cell ${isChild ? 'indented' : ''}">
+          <div class="module-cell ${isChild ? 'indented' : ''}" style="${indentStyle}">
             ${hasChildren ? `<button class="module-toggle ${isCollapsed ? 'collapsed' : ''}" data-toggle-id="${item.id}" title="${isCollapsed ? 'Déplier' : 'Replier'} les sous-modules">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </button>` : isChild ? '<span class="child-marker"></span>' : '<span class="module-toggle-spacer"></span>'}
@@ -1816,9 +2092,12 @@ function renderTable() {
         </td>
         <td class="col-actions">
           <div class="row-actions">
-            ${!isChild ? `<button class="btn-icon btn-add-sub" data-parent-id="${item.id}" title="Ajouter un sous-module">
+            ${depth < 2 ? `<button class="btn-icon btn-add-sub" data-parent-id="${item.id}" title="Ajouter un sous-module">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>` : ''}
+            <button class="btn-icon btn-duplicate" data-id="${item.id}" title="Dupliquer (avec sous-modules)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
             <button class="btn-icon btn-delete" data-id="${item.id}" title="Supprimer">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
@@ -1891,9 +2170,9 @@ function renderResponsibleFilter() {
 
 /* === ÉVÉNEMENTS === */
 function attachRowListeners() {
-  // Setup unique de la délégation (idempotent)
   setupTableDelegation();
-  // Met à jour les flags drag selon les filtres
+  setupDragRoot();
+  // Mise à jour visuelle des handles selon les filtres (rapide, juste classes)
   attachDragListeners();
   attachPhaseDragListeners();
   updateDragInfo();
@@ -1967,67 +2246,128 @@ let dragState = {
   draggedRow: null
 };
 
-/* Drag & drop des modules : entièrement délégué au tbody.
-   Les handles activent dynamiquement draggable=true sur leur tr parent. */
-let dragDelegationDone = false;
+/* Drag & drop des modules : architecture "lazy listeners".
+   Aucun listener n'est attaché au tbody par défaut. Ils ne s'activent
+   que quand un drag est réellement en cours. Évite que les events
+   mousemove/dragover ne polluent chaque interaction normale. */
+let dragListenersAttached = false;
+let lastFilteredState = null; // memo pour éviter les requeries inutiles
+
 function attachDragListeners() {
-  // Maj du flag draggable selon les filtres
+  // Met à jour visuellement les handles selon les filtres SEULEMENT
+  // si l'état des filtres a changé depuis le dernier appel.
   const filtered = isFiltered();
-  document.querySelectorAll('#table-body tr[data-id] .drag-handle').forEach(handle => {
-    if (filtered) {
-      handle.classList.add('disabled');
-      handle.title = 'Désactivez les filtres pour réordonner';
-    } else {
-      handle.classList.remove('disabled');
-      handle.title = 'Glisser pour réordonner';
+  if (filtered === lastFilteredState) return;
+  lastFilteredState = filtered;
+
+  document.querySelectorAll('#table-body .drag-handle, #table-body .phase-drag-handle').forEach(handle => {
+    handle.classList.toggle('disabled', filtered);
+  });
+}
+
+/* Listener UNIQUE attaché au tbody en mode "passive" : juste détecte le start
+   d'un drag sur un handle. Quand ça démarre, on attache les autres listeners
+   le temps du drag, puis on les retire. */
+function setupDragRoot() {
+  const tbody = document.getElementById('table-body');
+  if (!tbody || tbody.dataset.dragRoot === '1') return;
+  tbody.dataset.dragRoot = '1';
+
+  // dragstart natif HTML5 : le navigateur le déclenche quand draggable=true et qu'on commence à drag
+  tbody.addEventListener('dragstart', (e) => {
+    // Cas 1 : drag d'une phase
+    const phaseTr = e.target.closest('tr.phase-header');
+    if (phaseTr && phaseTr.draggable) {
+      e.stopPropagation();
+      handlePhaseDragStart({ currentTarget: phaseTr, dataTransfer: e.dataTransfer, stopPropagation: () => e.stopPropagation() });
+      attachActiveDragListeners(tbody, 'phase');
+      return;
+    }
+    // Cas 2 : drag d'un module
+    const tr = e.target.closest('tr[data-id]');
+    if (tr && tr.draggable) {
+      handleDragStart({ currentTarget: tr, dataTransfer: e.dataTransfer });
+      attachActiveDragListeners(tbody, 'module');
     }
   });
 
-  if (dragDelegationDone) return;
-  dragDelegationDone = true;
-
-  const tbody = document.getElementById('table-body');
-
-  // Mousedown sur un handle → active le drag sur le tr parent
+  // mousedown sur un handle : active draggable=true sur le tr parent
   tbody.addEventListener('mousedown', (e) => {
+    const phaseHandle = e.target.closest('.phase-drag-handle');
+    if (phaseHandle && !phaseHandle.classList.contains('disabled')) {
+      const tr = phaseHandle.closest('tr.phase-header');
+      if (tr) tr.draggable = true;
+      return;
+    }
     const handle = e.target.closest('.drag-handle');
-    if (!handle || handle.classList.contains('disabled')) return;
-    const tr = handle.closest('tr[data-id]');
-    if (tr) tr.draggable = true;
-  });
-  tbody.addEventListener('mouseup', (e) => {
-    const handle = e.target.closest('.drag-handle');
-    if (!handle) return;
-    const tr = handle.closest('tr[data-id]');
-    if (tr) tr.draggable = false;
+    if (handle && !handle.classList.contains('disabled')) {
+      const tr = handle.closest('tr[data-id]');
+      if (tr) tr.draggable = true;
+    }
   });
 
-  tbody.addEventListener('dragstart', (e) => {
-    const tr = e.target.closest('tr[data-id]');
-    if (!tr || !tr.draggable) return;
-    handleDragStart({ currentTarget: tr, dataTransfer: e.dataTransfer });
+  // mouseup partout : reset draggable
+  tbody.addEventListener('mouseup', () => {
+    tbody.querySelectorAll('[draggable="true"]').forEach(el => el.draggable = false);
   });
-  tbody.addEventListener('dragend', (e) => {
-    const tr = e.target.closest('tr[data-id]');
+}
+
+/* Attachés UNIQUEMENT pendant un drag actif. Retirés à dragend/drop. */
+function attachActiveDragListeners(tbody, type) {
+  if (dragListenersAttached) return;
+  dragListenersAttached = true;
+
+  const isPhase = type === 'phase';
+
+  const onDragOver = (e) => {
+    if (isPhase) {
+      const tr = e.target.closest('tr.phase-header');
+      if (!tr) return;
+      handlePhaseDragOver({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), dataTransfer: e.dataTransfer, clientY: e.clientY });
+    } else {
+      const tr = e.target.closest('tr[data-id]');
+      if (!tr) return;
+      handleDragOver({ currentTarget: tr, preventDefault: () => e.preventDefault(), dataTransfer: e.dataTransfer, clientY: e.clientY });
+    }
+  };
+  const onDragLeave = (e) => {
+    const tr = e.target.closest(isPhase ? 'tr.phase-header' : 'tr[data-id]');
     if (!tr) return;
-    handleDragEnd({ currentTarget: tr });
-  });
-  tbody.addEventListener('dragover', (e) => {
-    const tr = e.target.closest('tr[data-id]');
+    if (isPhase) handlePhaseDragLeave({ currentTarget: tr });
+    else handleDragLeave({ currentTarget: tr });
+  };
+  const onDrop = (e) => {
+    const tr = e.target.closest(isPhase ? 'tr.phase-header' : 'tr[data-id]');
     if (!tr) return;
-    handleDragOver({ currentTarget: tr, preventDefault: () => e.preventDefault(), dataTransfer: e.dataTransfer, clientY: e.clientY });
-  });
-  tbody.addEventListener('dragleave', (e) => {
-    const tr = e.target.closest('tr[data-id]');
-    if (!tr) return;
-    handleDragLeave({ currentTarget: tr });
-  });
-  tbody.addEventListener('drop', (e) => {
-    const tr = e.target.closest('tr[data-id]');
-    if (!tr) return;
-    handleDrop({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), clientY: e.clientY });
-  });
-}function handleDragStart(e) {
+    if (isPhase) handlePhaseDrop({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), clientY: e.clientY });
+    else handleDrop({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), clientY: e.clientY });
+  };
+  const onDragEnd = (e) => {
+    const tr = e.target.closest(isPhase ? 'tr.phase-header' : 'tr[data-id]');
+    if (tr) {
+      if (isPhase) handlePhaseDragEnd({ currentTarget: tr });
+      else handleDragEnd({ currentTarget: tr });
+    }
+    // Retire tous les listeners
+    tbody.removeEventListener('dragover', onDragOver);
+    tbody.removeEventListener('dragleave', onDragLeave);
+    tbody.removeEventListener('drop', onDrop);
+    tbody.removeEventListener('dragend', onDragEnd);
+    dragListenersAttached = false;
+  };
+
+  tbody.addEventListener('dragover', onDragOver);
+  tbody.addEventListener('dragleave', onDragLeave);
+  tbody.addEventListener('drop', onDrop);
+  tbody.addEventListener('dragend', onDragEnd);
+}
+
+/* Plus rien à faire ici, attachDragListeners couvre les deux types de handles */
+function attachPhaseDragListeners() {
+  // no-op : maj groupée dans attachDragListeners
+}
+
+function handleDragStart(e) {
   const tr = e.currentTarget;
   dragState.draggedId = parseInt(tr.dataset.id);
   dragState.draggedRow = tr;
@@ -2057,28 +2397,64 @@ function handleDragOver(e) {
   const y = e.clientY - rect.top;
   const h = rect.height;
 
-  // Détermine si la nidification est autorisée :
-  // - la cible doit être un module racine (pas un sous-module)
-  // - le draggé ne doit pas être déjà l'enfant ou parent direct de la cible
+  // Détermine si la nidification est autorisée.
+  // Règle : max 3 niveaux (depth 0, 1, 2).
+  // Donc on peut nidifier sous une cible de depth ≤ 1 (cible sera depth_n -> dragged sera depth_n+1)
+  // Sauf si le dragged a lui-même des descendants : sa profondeur après nest doit rester ≤ 2.
   const targetId = parseInt(tr.dataset.id);
   const target = state.data.find(i => i.id === targetId);
   const dragged = state.data.find(i => i.id === dragState.draggedId);
-  const targetIsRoot = target && !target.parentId;
-  const draggedIsParent = dragged && state.data.some(i => i.parentId === dragged.id);
-  // On n'autorise pas un parent (avec enfants) à devenir lui-même sous-module
-  const canNest = targetIsRoot && !draggedIsParent;
+
+  const targetDepth = getRoadmapDepth(target);
+  const draggedSubtreeDepth = getRoadmapSubtreeDepth(dragged); // 0 = pas d'enfants, 1 = a des enfants...
+
+  // Après nidification : target sera parent du dragged, donc dragged sera à targetDepth + 1.
+  // Son enfant le plus profond sera à targetDepth + 1 + draggedSubtreeDepth.
+  // On veut que ce max ne dépasse pas 2.
+  const canNest = (targetDepth + 1 + draggedSubtreeDepth) <= 2 && canRoadmapNest(dragState.draggedId, targetId);
 
   // Reset des classes
   tr.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
 
   if (canNest && y > h * 0.33 && y < h * 0.66) {
-    // Zone centrale : nidification
     tr.classList.add('drag-over-nest');
   } else if (y < h / 2) {
     tr.classList.add('drag-over-top');
   } else {
     tr.classList.add('drag-over-bottom');
   }
+}
+
+/* Profondeur d'un item dans l'arbre (0 = racine) */
+function getRoadmapDepth(item) {
+  let depth = 0;
+  let cur = item;
+  const seen = new Set();
+  while (cur && cur.parentId) {
+    if (seen.has(cur.id)) break;
+    seen.add(cur.id);
+    cur = state.data.find(i => i.id === cur.parentId);
+    depth++;
+  }
+  return depth;
+}
+
+/* Profondeur max de la sous-arborescence d'un item (0 = feuille) */
+function getRoadmapSubtreeDepth(item) {
+  const children = getChildren(item.id);
+  if (children.length === 0) return 0;
+  return 1 + Math.max(...children.map(c => getRoadmapSubtreeDepth(c)));
+}
+
+/* Anti-cycle : target ne doit pas être descendant du dragged */
+function canRoadmapNest(draggedId, targetId) {
+  if (draggedId === targetId) return false;
+  let cur = state.data.find(i => i.id === targetId);
+  while (cur && cur.parentId) {
+    if (cur.parentId === draggedId) return false;
+    cur = state.data.find(i => i.id === cur.parentId);
+  }
+  return true;
 }
 
 function handleDragLeave(e) {
@@ -2114,23 +2490,34 @@ function nestUnder(draggedId, targetId) {
   const dragged = state.data.find(i => i.id === draggedId);
   const target  = state.data.find(i => i.id === targetId);
   if (!dragged || !target) return;
-  if (target.parentId) return; // la cible doit être racine
-  if (state.data.some(i => i.parentId === draggedId)) {
-    showToast('Impossible : ce module a déjà ses propres sous-modules');
+
+  // Vérifie la contrainte de profondeur (3 niveaux max)
+  const targetDepth = getRoadmapDepth(target);
+  const draggedSubtreeDepth = getRoadmapSubtreeDepth(dragged);
+  if (targetDepth + 1 + draggedSubtreeDepth > 2) {
+    showToast('Impossible : profondeur maximale atteinte (3 niveaux)');
+    return;
+  }
+  if (!canRoadmapNest(draggedId, targetId)) {
+    showToast('Déplacement impossible (cycle)');
     return;
   }
 
   dragged.parentId = targetId;
-  dragged.phase = target.phase;
+  // La phase est héritée de l'ancêtre racine
+  const rootPhase = findRoadmapRootPhase(target);
+  dragged.phase = rootPhase;
+  // Propage la phase à tous les descendants du dragged
+  getAllRoadmapDescendants(dragged.id).forEach(d => { d.phase = rootPhase; });
 
-  // Place dragged juste après le dernier enfant existant de la cible (ou juste après la cible)
+  // Place juste après les enfants existants de la cible
   const siblings = getChildren(targetId).filter(s => s.id !== draggedId);
   const insertAfterOrder = siblings.length
     ? Math.max(...siblings.map(s => s.order || 0))
     : (target.order || 0);
   dragged.order = insertAfterOrder + 1;
 
-  // S'assure que le parent n'est pas replié pour voir le résultat
+  // S'assure que la cible est dépliée
   const collapsed = getCollapsedModules();
   if (collapsed.includes(targetId)) {
     setCollapsedModules(collapsed.filter(id => id !== targetId));
@@ -2142,56 +2529,64 @@ function nestUnder(draggedId, targetId) {
   showToast(`Module imbriqué sous "${target.module}"`);
 }
 
-/* Réordonne un item en l'insérant avant ou après la cible.
-   Règles :
-   - Un parent emmène ses enfants avec lui
-   - Un sous-module reste à plat parmi les sous-modules (pas converti en parent)
-   - Si on dépose un sous-module sur un autre module parent, il change de parent
-   - Si on dépose un sous-module sur un autre sous-module, il devient sibling */
+/* Trouve la phase de l'ancêtre racine d'un item */
+function findRoadmapRootPhase(item) {
+  let cur = item;
+  while (cur && cur.parentId) {
+    const parent = state.data.find(i => i.id === cur.parentId);
+    if (!parent) break;
+    cur = parent;
+  }
+  return cur ? cur.phase : item.phase;
+}
+
+/* Tous les descendants d'un item (récursif) */
+function getAllRoadmapDescendants(id) {
+  const result = [];
+  const queue = [id];
+  while (queue.length) {
+    const currentId = queue.shift();
+    state.data.filter(i => i.parentId === currentId).forEach(c => {
+      result.push(c);
+      queue.push(c.id);
+    });
+  }
+  return result;
+}
+
+/* Réordonne un item en l'insérant avant ou après une cible (drop avant/après).
+   Le dragged hérite du parent de la cible (devient sibling). */
 function reorderItems(draggedId, targetId, dropAbove) {
   const dragged = state.data.find(i => i.id === draggedId);
   const target  = state.data.find(i => i.id === targetId);
   if (!dragged || !target) return;
 
-  const draggedChildren = getChildren(draggedId);
-  const draggedIsParent = draggedChildren.length > 0;
-  const draggedIsChild = !!dragged.parentId;
-  const targetIsChild = !!target.parentId;
-
-  // Cas 1 : on déplace un sous-module
-  if (draggedIsChild) {
-    if (targetIsChild) {
-      // Le sous-module s'insère parmi les sibling de la cible (même parent)
-      dragged.parentId = target.parentId;
-    } else {
-      // Cible = module racine : le sous-module devient enfant de la cible
-      dragged.parentId = target.id;
-    }
-    // Phase héritée
-    const newParent = getParent(dragged) || target;
-    dragged.phase = newParent.phase;
-  } else {
-    // Cas 2 : on déplace un module racine (avec ses enfants)
-    // Si la cible est un sous-module, on prend son parent comme cible effective
-    if (targetIsChild) {
-      // Pour éviter les cas tordus, on aligne sur le parent de la cible
-      const targetParent = getParent(target);
-      if (targetParent) {
-        // On déplace dragged au-dessus/en-dessous du PARENT de la cible
-        // Reprend le calcul comme si la cible était le parent
-        return reorderItems(draggedId, targetParent.id, dropAbove);
-      }
-    }
-    // Phase alignée sur la cible
-    const phaseChanged = dragged.phase !== target.phase;
-    if (phaseChanged) {
-      dragged.phase = target.phase;
-      draggedChildren.forEach(c => { c.phase = target.phase; });
-    }
+  // Vérification anti-cycle
+  if (!canRoadmapNest(draggedId, targetId) && dragged.parentId !== target.parentId) {
+    showToast('Déplacement impossible (cycle)');
+    return;
   }
 
-  // Reconstruit l'ordre en plaçant dragged (et ses enfants si parent) près de la cible
-  const block = draggedIsParent ? [dragged, ...draggedChildren] : [dragged];
+  // Vérification de profondeur : si on devient sibling de target, on prend son depth
+  const newDepth = getRoadmapDepth(target);
+  const draggedSubtreeDepth = getRoadmapSubtreeDepth(dragged);
+  if (newDepth + draggedSubtreeDepth > 2) {
+    showToast('Impossible : profondeur maximale atteinte (3 niveaux)');
+    return;
+  }
+
+  // Le dragged hérite du parent de la cible
+  dragged.parentId = target.parentId;
+  // Phase alignée sur la cible (et propagée aux descendants)
+  const targetPhase = target.phase;
+  if (dragged.phase !== targetPhase) {
+    dragged.phase = targetPhase;
+    getAllRoadmapDescendants(dragged.id).forEach(d => { d.phase = targetPhase; });
+  }
+
+  // Reconstruit l'ordre : tous les descendants suivent le dragged
+  const descendants = getAllRoadmapDescendants(draggedId);
+  const block = [dragged, ...descendants];
   const blockIds = new Set(block.map(b => b.id));
 
   const others = [...state.data]
@@ -2205,9 +2600,7 @@ function reorderItems(draggedId, targetId, dropAbove) {
 
   others.forEach((item, idx) => { item.order = (idx + 1) * 100; });
 
-  // Réindex pour s'assurer que les enfants sont toujours juste après leurs parents
   reindexAllOrders();
-
   saveData();
   render();
   showToast('Ordre mis à jour');
@@ -2251,6 +2644,8 @@ function setupTableDelegation() {
     if (delBtn) { deleteRow(parseInt(delBtn.dataset.id)); return; }
     const addSubBtn = e.target.closest('.btn-add-sub');
     if (addSubBtn) { addSubModule(parseInt(addSubBtn.dataset.parentId)); return; }
+    const dupBtn = e.target.closest('.btn-duplicate');
+    if (dupBtn) { duplicateRow(parseInt(dupBtn.dataset.id)); return; }
     const toggleBtn = e.target.closest('.module-toggle[data-toggle-id]');
     if (toggleBtn) {
       e.stopPropagation();
@@ -2277,10 +2672,11 @@ function setupTableDelegation() {
     const phaseTitle = e.target.closest('tr.phase-header .phase-title');
     if (!phaseTitle) return;
     if (e.target.closest('.phase-drag-handle')) return;
-    if (phaseClickTimers.has(phaseTitle)) {
-      clearTimeout(phaseClickTimers.get(phaseTitle));
-      phaseClickTimers.delete(phaseTitle);
-    }
+    // Annule le toggle qui vient potentiellement d'avoir lieu (dans la fenêtre 220ms)
+    const tr = phaseTitle.closest('tr');
+    if (tr) maybeRevertRecentToggle(tr.dataset.phase);
+    // Re-render si nécessaire avant l'édition du label
+    if (tr && recentPhaseToggles.has(tr.dataset.phase)) render();
     startPhaseRename({ currentTarget: phaseTitle });
   });
 }
@@ -2358,7 +2754,7 @@ function commitEdit(editor) {
   if (item && item[field] !== newValue) {
     item[field] = newValue;
     if (field === 'phase' && !item.parentId) {
-      getChildren(item.id).forEach(c => { c.phase = newValue; });
+      getAllRoadmapDescendants(item.id).forEach(c => { c.phase = newValue; });
       needsRender = true;
     }
     scheduleSave();
@@ -2398,19 +2794,31 @@ function moveToNextCell(editor, direction) {
   }
 }
 
-/* Gestion du single-click sur phase (avec délai pour différencier du dblclick) */
+/* Gestion du single-click sur phase : action immédiate (visuellement instantané).
+   Si un double-clic arrive dans les 220ms qui suivent, on annule (le dblclick déclenche le rename). */
 const phaseClickTimers = new Map();
+const recentPhaseToggles = new Map(); // phase -> timestamp
+
 function handlePhaseTitleClick(titleEl, e) {
-  if (phaseClickTimers.has(titleEl)) return;
-  const timer = setTimeout(() => {
-    phaseClickTimers.delete(titleEl);
-    const tr = titleEl.closest('tr');
-    if (tr) {
-      togglePhaseCollapsed(tr.dataset.phase);
-      render();
-    }
-  }, 220);
-  phaseClickTimers.set(titleEl, timer);
+  const tr = titleEl.closest('tr');
+  if (!tr) return;
+  const phaseName = tr.dataset.phase;
+
+  // Action immédiate : toggle collapse
+  togglePhaseCollapsed(phaseName);
+  render();
+
+  // Mémorise pour pouvoir annuler si double-clic suit
+  recentPhaseToggles.set(phaseName, Date.now());
+  setTimeout(() => recentPhaseToggles.delete(phaseName), 220);
+}
+
+/* Si un double-clic survient juste après un toggle, on revert le toggle */
+function maybeRevertRecentToggle(phaseName) {
+  if (recentPhaseToggles.has(phaseName)) {
+    togglePhaseCollapsed(phaseName); // re-toggle pour annuler
+    recentPhaseToggles.delete(phaseName);
+  }
 }
 
 /* === DRAG & DROP DES PHASES ENTIÈRES === */
@@ -2419,64 +2827,7 @@ let phaseDragState = {
   draggedRow: null
 };
 
-let phaseDragDelegationDone = false;
-function attachPhaseDragListeners() {
-  const filtered = isFiltered();
-  document.querySelectorAll('tr.phase-header .phase-drag-handle').forEach(handle => {
-    if (filtered) {
-      handle.classList.add('disabled');
-      handle.title = 'Désactivez les filtres pour réorganiser les phases';
-    } else {
-      handle.classList.remove('disabled');
-      handle.title = 'Glisser pour déplacer la phase entière';
-    }
-  });
 
-  if (phaseDragDelegationDone) return;
-  phaseDragDelegationDone = true;
-
-  const tbody = document.getElementById('table-body');
-
-  tbody.addEventListener('mousedown', (e) => {
-    const handle = e.target.closest('.phase-drag-handle');
-    if (!handle || handle.classList.contains('disabled')) return;
-    e.stopPropagation();
-    const tr = handle.closest('tr.phase-header');
-    if (tr) tr.draggable = true;
-  });
-  tbody.addEventListener('mouseup', (e) => {
-    const handle = e.target.closest('.phase-drag-handle');
-    if (!handle) return;
-    const tr = handle.closest('tr.phase-header');
-    if (tr) tr.draggable = false;
-  });
-
-  tbody.addEventListener('dragstart', (e) => {
-    const tr = e.target.closest('tr.phase-header');
-    if (!tr || !tr.draggable) return;
-    handlePhaseDragStart({ currentTarget: tr, dataTransfer: e.dataTransfer, stopPropagation: () => e.stopPropagation() });
-  }, true); // capture pour précéder le dragstart des modules
-  tbody.addEventListener('dragend', (e) => {
-    const tr = e.target.closest('tr.phase-header');
-    if (!tr) return;
-    handlePhaseDragEnd({ currentTarget: tr });
-  });
-  tbody.addEventListener('dragover', (e) => {
-    const tr = e.target.closest('tr.phase-header');
-    if (!tr) return;
-    handlePhaseDragOver({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), dataTransfer: e.dataTransfer, clientY: e.clientY });
-  });
-  tbody.addEventListener('dragleave', (e) => {
-    const tr = e.target.closest('tr.phase-header');
-    if (!tr) return;
-    handlePhaseDragLeave({ currentTarget: tr });
-  });
-  tbody.addEventListener('drop', (e) => {
-    const tr = e.target.closest('tr.phase-header');
-    if (!tr) return;
-    handlePhaseDrop({ currentTarget: tr, preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation(), clientY: e.clientY });
-  });
-}
 
 function handlePhaseDragStart(e) {
   const tr = e.currentTarget;
@@ -2614,21 +2965,64 @@ function updateBadgeClass(selectEl, field, value) {
   if (map[value]) selectEl.classList.add(map[value]);
 }
 
+/* Duplique un item et tous ses descendants en préservant la hiérarchie.
+   La copie est insérée juste après l'original. */
+function duplicateRow(id) {
+  const item = state.data.find(i => i.id === id);
+  if (!item) return;
+
+  const descendants = getAllRoadmapDescendants(id);
+  const itemsToDuplicate = [item, ...descendants];
+
+  // Remappe les IDs : oldId -> newId
+  const idMap = {};
+  const nextId = Math.max(...state.data.map(i => i.id)) + 1;
+  itemsToDuplicate.forEach((it, idx) => { idMap[it.id] = nextId + idx; });
+
+  // Position : juste après l'item d'origine (avec son sous-arbre)
+  const baseOrder = item.order || 0;
+  const clones = itemsToDuplicate.map((it, idx) => ({
+    ...it,
+    id: idMap[it.id],
+    // Pour l'item racine du clone : même parent que l'original.
+    // Pour ses descendants : remappe vers le nouvel id parent.
+    parentId: it.id === id ? it.parentId : idMap[it.parentId],
+    order: baseOrder + idx + 1,
+    module: it.id === id ? `${it.module} (copie)` : it.module
+  }));
+
+  state.data.push(...clones);
+  reindexAllOrders();
+  saveData();
+  render();
+  showToast(clones.length > 1 ? `${clones.length} lignes dupliquées` : 'Ligne dupliquée');
+
+  // Focus sur le nom de la copie pour renommer rapidement
+  setTimeout(() => {
+    const newRow = document.querySelector(`tr[data-id="${idMap[id]}"]`);
+    if (newRow) {
+      newRow.classList.add('row-enter');
+      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const cellView = newRow.querySelector('.cell-view[data-field="module"]');
+      if (cellView) enterEditMode(cellView);
+    }
+  }, 50);
+}
+
 function deleteRow(id) {
   const item = state.data.find(i => i.id === id);
   if (!item) return;
 
-  const children = getChildren(id);
+  const descendants = getAllRoadmapDescendants(id);
   let msg;
-  if (children.length > 0) {
-    msg = `Supprimer ce module et ses ${children.length} sous-module${children.length > 1 ? 's' : ''} ?`;
+  if (descendants.length > 0) {
+    msg = `Supprimer ce module et ses ${descendants.length} sous-module${descendants.length > 1 ? 's' : ''} ?`;
   } else {
     msg = 'Supprimer ce module ?';
   }
   if (!confirm(msg)) return;
 
-  // Supprime l'item et tous ses enfants
-  const idsToDelete = new Set([id, ...children.map(c => c.id)]);
+  const idsToDelete = new Set([id, ...descendants.map(d => d.id)]);
   state.data = state.data.filter(i => !idsToDelete.has(i.id));
   saveData();
   render();
@@ -2674,6 +3068,13 @@ function addRow() {
 function addSubModule(parentId) {
   const parent = state.data.find(i => i.id === parentId);
   if (!parent) return;
+
+  // Garde : max 3 niveaux (depth 0, 1, 2). Le parent doit être à depth ≤ 1.
+  const parentDepth = getRoadmapDepth(parent);
+  if (parentDepth >= 2) {
+    showToast('Profondeur maximale atteinte (3 niveaux)');
+    return;
+  }
 
   const newId = Math.max(...state.data.map(i => i.id)) + 1;
   // Position juste après les enfants existants (ou juste après le parent s'il n'en a pas)
@@ -2723,15 +3124,17 @@ function addSubModule(parentId) {
 
 /* Réindexe les orders en respectant l'ordre courant + la hiérarchie (enfants après parent) */
 function reindexAllOrders() {
-  const sorted = [...state.data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  const roots = sorted.filter(i => !i.parentId);
   let counter = 1;
-  roots.forEach(root => {
-    root.order = counter++ * 100;
-    sorted
-      .filter(i => i.parentId === root.id)
-      .forEach(child => { child.order = counter++ * 100; });
-  });
+  function visit(parentId) {
+    const items = state.data
+      .filter(i => i.parentId === parentId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    items.forEach(item => {
+      item.order = counter++ * 100;
+      visit(item.id);
+    });
+  }
+  visit(null);
 }
 
 function handleFilterClick(filterType, value) {
@@ -2773,16 +3176,21 @@ function exportCSV() {
 function exportPDF() {
   // Si une cellule est en cours d'édition, on la valide d'abord
   if (activeEditor) commitEdit(activeEditor);
+  if (activeBudgetEditor) commitBudgetEdit(activeBudgetEditor);
   flushSave();
+  flushBudgetSave();
 
-  // Sauvegarde l'état des phases/modules repliés
+  // Sauvegarde l'état des phases/modules/budget repliés
   const savedCollapsedPhases = getCollapsedPhases();
   const savedCollapsedModules = getCollapsedModules();
+  const savedCollapsedBudget = getCollapsedBudget();
 
   // Force le dépliage complet pour le PDF
   setCollapsedPhases([]);
   setCollapsedModules([]);
-  render();
+  setCollapsedBudget([]);
+  renderImmediate();
+  renderBudget();
 
   showToast('Préparation de l\'impression…');
 
@@ -2812,19 +3220,25 @@ function exportPDF() {
       });
       setCollapsedPhases(savedCollapsedPhases);
       setCollapsedModules(savedCollapsedModules);
+      setCollapsedBudget(savedCollapsedBudget);
       render();
+      renderBudget();
     }, 500);
   }, 350);
 }
 
 /* Sauvegarde complète : JSON avec métadonnées (date, version) */
 function backupJSON() {
+  if (activeEditor) commitEdit(activeEditor);
+  if (activeBudgetEditor) commitBudgetEdit(activeBudgetEditor);
   flushSave();
+  flushBudgetSave();
   const payload = {
     app: 'roadmap-hrm',
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    data: state.data
+    data: state.data,
+    budget: budgetState.data
   };
   const json = JSON.stringify(payload, null, 2);
   downloadFile(json, `roadmap-hrm-backup-${todayStr()}.json`, 'application/json');
@@ -2858,6 +3272,12 @@ function restoreJSON(file) {
       state.data = items;
       ensureOrder();
       saveData();
+      // Restaure aussi le budget si présent dans la sauvegarde
+      if (parsed && Array.isArray(parsed.budget)) {
+        budgetState.data = parsed.budget;
+        saveBudget();
+        renderBudget();
+      }
       render();
       showToast(`${items.length} modules restaurés`);
     } catch (err) {
@@ -2926,6 +3346,750 @@ function showToast(message) {
 }
 
 /* === INIT === */
+/* =========================================================
+   MODULE BUDGET - Gestion des coûts par logiciel
+   Structure : { id, parentId, software, year1, year2, notes, order }
+   Les lignes parentes affichent une SOMME automatique des sous-lignes.
+   ========================================================= */
+
+const BUDGET_STORAGE_KEY = 'hrm-budget-v1';
+
+const DEFAULT_BUDGET = [
+  { id: 1, parentId: null, software: 'Thais',       year1: 0, year2: 0, notes: 'PMS multi-property', order: 100 },
+  { id: 2, parentId: null, software: 'D-edge',      year1: 0, year2: 0, notes: 'Channel manager + PSP', order: 200 },
+  { id: 3, parentId: null, software: 'TriggerFlow', year1: 0, year2: 0, notes: 'Automatisation communication', order: 300 },
+  { id: 4, parentId: null, software: 'KeySuite',    year1: 0, year2: 0, notes: 'Gestion accès / serrures', order: 400 },
+  { id: 5, parentId: null, software: 'Website',     year1: 0, year2: 0, notes: 'Site internet groupe', order: 500 },
+  { id: 6, parentId: null, software: 'Sésame',      year1: 0, year2: 0, notes: 'Serrures connectées', order: 600 },
+];
+
+let budgetState = { data: [] };
+
+function loadBudget() {
+  try {
+    const stored = localStorage.getItem(BUDGET_STORAGE_KEY);
+    if (stored) {
+      budgetState.data = JSON.parse(stored);
+      return;
+    }
+  } catch (e) {}
+  budgetState.data = JSON.parse(JSON.stringify(DEFAULT_BUDGET));
+}
+
+let budgetSaveTimer = null;
+function saveBudget() {
+  try {
+    localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgetState.data));
+  } catch (e) { console.warn('Erreur sauvegarde budget', e); }
+}
+function scheduleBudgetSave() {
+  if (budgetSaveTimer) clearTimeout(budgetSaveTimer);
+  budgetSaveTimer = setTimeout(() => { saveBudget(); budgetSaveTimer = null; }, 300);
+}
+function flushBudgetSave() {
+  if (budgetSaveTimer) { clearTimeout(budgetSaveTimer); budgetSaveTimer = null; saveBudget(); }
+}
+
+/* Children & helpers */
+function getBudgetChildren(parentId) {
+  return budgetState.data
+    .filter(i => i.parentId === parentId)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+function isBudgetParent(id) {
+  return budgetState.data.some(i => i.parentId === id);
+}
+
+/* Profondeur d'un item dans l'arbre (0 = racine, 1 = enfant, etc.) */
+function getBudgetDepth(item) {
+  let depth = 0;
+  let current = item;
+  const seen = new Set();
+  while (current && current.parentId) {
+    if (seen.has(current.id)) break; // sécurité anti-cycle
+    seen.add(current.id);
+    current = budgetState.data.find(i => i.id === current.parentId);
+    depth++;
+  }
+  return depth;
+}
+
+/* Vérifie qu'on peut nidifier `draggedId` sous `targetId` sans créer un cycle.
+   (impossible si target est un descendant du dragged) */
+function canBudgetNest(draggedId, targetId) {
+  if (draggedId === targetId) return false;
+  let current = budgetState.data.find(i => i.id === targetId);
+  while (current && current.parentId) {
+    if (current.parentId === draggedId) return false;
+    current = budgetState.data.find(i => i.id === current.parentId);
+  }
+  return true;
+}
+
+/* Tous les descendants (récursif) */
+function getAllBudgetDescendants(id) {
+  const result = [];
+  const queue = [id];
+  while (queue.length) {
+    const currentId = queue.shift();
+    const children = getBudgetChildren(currentId);
+    children.forEach(c => {
+      result.push(c);
+      queue.push(c.id);
+    });
+  }
+  return result;
+}
+
+/* Calcul des totaux RÉCURSIF : un item parent = somme des descendants directs
+   (qui peuvent eux-mêmes être parents et sommer leurs enfants).
+   Les feuilles utilisent leur propre valeur. */
+function getBudgetYearTotal(item, year) {
+  const children = getBudgetChildren(item.id);
+  if (children.length === 0) return item[year] || 0;
+  return children.reduce((sum, c) => sum + getBudgetYearTotal(c, year), 0);
+}
+
+/* Formatage monétaire FR : 1234 → "1 234 €" */
+function formatMoney(amount) {
+  if (!amount || isNaN(amount)) return '0 €';
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
+}
+
+/* Parse une saisie utilisateur en nombre :
+   accepte "1 200", "1.200,50", "1200", "1200€", etc. */
+function parseMoney(str) {
+  if (typeof str === 'number') return str;
+  if (!str) return 0;
+  // Retire tout sauf chiffres, virgules, points, signe moins
+  let cleaned = String(str).replace(/[^\d.,\-]/g, '');
+  // Si une virgule ET un point coexistent : on suppose format FR (virgule = décimal)
+  if (cleaned.includes(',') && cleaned.includes('.')) {
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  } else if (cleaned.includes(',')) {
+    cleaned = cleaned.replace(',', '.');
+  }
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+/* === COLLAPSE DES LIGNES BUDGET === */
+const COLLAPSED_BUDGET_KEY = 'hrm-budget-collapsed';
+
+function getCollapsedBudget() {
+  try {
+    const raw = localStorage.getItem(COLLAPSED_BUDGET_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function setCollapsedBudget(arr) {
+  localStorage.setItem(COLLAPSED_BUDGET_KEY, JSON.stringify(arr));
+}
+function toggleBudgetCollapsed(id) {
+  const arr = getCollapsedBudget();
+  const idx = arr.indexOf(id);
+  if (idx === -1) arr.push(id);
+  else arr.splice(idx, 1);
+  setCollapsedBudget(arr);
+}
+
+/* === RENDU BUDGET === */
+
+function renderBudget() {
+  renderBudgetTable();
+  renderBudgetStats();
+}
+
+function renderBudgetTable() {
+  const tbody = document.getElementById('budget-body');
+  if (!tbody) return;
+
+  const collapsedBudgetRows = getCollapsedBudget();
+
+  const roots = budgetState.data
+    .filter(i => !i.parentId)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  const numbering = {};
+  let html = '';
+  let rootCounter = 0;
+
+  /* Fonction récursive de rendu : génère le HTML d'un item et de ses descendants */
+  function renderRow(item, parentNum, indexInSiblings, depth) {
+    // Numérotation : 1, 1.1, 1.1.1, 1.2, 2, etc.
+    const num = parentNum ? `${parentNum}.${indexInSiblings}` : String(indexInSiblings);
+    numbering[item.id] = num;
+
+    const children = getBudgetChildren(item.id);
+    const hasChildren = children.length > 0;
+    const isCollapsed = collapsedBudgetRows.includes(item.id);
+    const y1Total = getBudgetYearTotal(item, 'year1');
+    const y2Total = getBudgetYearTotal(item, 'year2');
+    const totalCumul = y1Total + y2Total;
+
+    const rowClasses = ['budget-row'];
+    if (depth === 0) rowClasses.push('is-root');
+    else rowClasses.push('is-child');
+    if (hasChildren) rowClasses.push('is-parent');
+    rowClasses.push(`depth-${depth}`);
+
+    // Indentation visuelle : padding-left = 14 + 22*depth
+    const indentPx = depth * 22;
+    const indentClass = depth > 0 ? 'indented' : '';
+
+    // Style du nom : plus gras au plus haut niveau
+    let nameWeight = '500';
+    if (depth === 0) nameWeight = '700';
+    else if (depth === 1) nameWeight = '600';
+
+    // Une cellule de montant est éditable SEULEMENT si l'item n'a pas d'enfants (feuille)
+    const editableY1 = !hasChildren;
+    const editableY2 = !hasChildren;
+
+    html += `
+      <tr class="${rowClasses.join(' ')}" data-bid="${item.id}" data-bdepth="${depth}" draggable="false">
+        <td class="bcol-drag">
+          <div class="drag-handle" title="Glisser pour réordonner">
+            <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
+              <circle cx="3" cy="3" r="1.2" fill="currentColor"/>
+              <circle cx="9" cy="3" r="1.2" fill="currentColor"/>
+              <circle cx="3" cy="7" r="1.2" fill="currentColor"/>
+              <circle cx="9" cy="7" r="1.2" fill="currentColor"/>
+              <circle cx="3" cy="11" r="1.2" fill="currentColor"/>
+              <circle cx="9" cy="11" r="1.2" fill="currentColor"/>
+            </svg>
+          </div>
+        </td>
+        <td class="bcol-software">
+          <div class="budget-software-cell ${indentClass}" style="${indentPx ? `padding-left:${14 + indentPx}px` : ''}">
+            ${depth > 0 ? '<span class="child-marker"></span>' : ''}
+            ${hasChildren
+              ? `<button class="module-toggle ${isCollapsed ? 'collapsed' : ''}" data-btoggle-id="${item.id}" title="${isCollapsed ? 'Déplier' : 'Replier'}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>`
+              : '<span class="module-toggle-spacer"></span>'}
+            <span class="budget-num">${num}</span>
+            <div class="cell-view" data-bfield="software" style="font-weight:${nameWeight}">${escapeHtml(item.software)}</div>
+          </div>
+        </td>
+        <td class="bcol-amount">
+          ${editableY1
+            ? `<div class="amount-cell amount-edit ${y1Total ? '' : 'amount-empty'}" data-bfield="year1">${formatMoney(y1Total)}</div>`
+            : `<div class="amount-cell amount-total">${formatMoney(y1Total)}</div>`}
+        </td>
+        <td class="bcol-amount">
+          ${editableY2
+            ? `<div class="amount-cell amount-edit ${y2Total ? '' : 'amount-empty'}" data-bfield="year2">${formatMoney(y2Total)}</div>`
+            : `<div class="amount-cell amount-total">${formatMoney(y2Total)}</div>`}
+        </td>
+        <td class="bcol-amount">
+          <div class="amount-cell amount-total">${formatMoney(totalCumul)}</div>
+        </td>
+        <td class="bcol-notes">
+          <div class="cell-view" data-bfield="notes">${escapeHtml(item.notes || '')}</div>
+        </td>
+        <td class="bcol-actions">
+          <div class="row-actions">
+            <button class="btn-icon btn-add-bsub" data-bparent-id="${item.id}" title="Ajouter une sous-ligne">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn-icon btn-bduplicate" data-bid="${item.id}" title="Dupliquer (avec sous-lignes)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button class="btn-icon btn-bdelete" data-bid="${item.id}" title="Supprimer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+
+    // Récursion sur les enfants si pas collapsé
+    if (hasChildren && !isCollapsed) {
+      children.forEach((child, idx) => {
+        renderRow(child, num, idx + 1, depth + 1);
+      });
+    }
+  }
+
+  roots.forEach(root => {
+    rootCounter++;
+    renderRow(root, '', rootCounter, 0);
+  });
+
+  tbody.innerHTML = html;
+}
+
+function renderBudgetStats() {
+  const roots = budgetState.data.filter(i => !i.parentId);
+  let totalY1 = 0, totalY2 = 0;
+  roots.forEach(r => {
+    totalY1 += getBudgetYearTotal(r, 'year1');
+    totalY2 += getBudgetYearTotal(r, 'year2');
+  });
+  const totalCumul = totalY1 + totalY2;
+
+  const elY1 = document.getElementById('budget-total-y1');
+  const elY2 = document.getElementById('budget-total-y2');
+  const elCumul = document.getElementById('budget-total-cumul');
+  const elCount = document.getElementById('budget-count');
+  if (elY1) elY1.textContent = formatMoney(totalY1);
+  if (elY2) elY2.textContent = formatMoney(totalY2);
+  if (elCumul) elCumul.textContent = formatMoney(totalCumul);
+  if (elCount) elCount.textContent = roots.length;
+}
+
+/* === ÉDITION INLINE BUDGET (calque sur l'édition roadmap) === */
+
+let activeBudgetEditor = null;
+
+function enterBudgetEditMode(cellView) {
+  if (activeBudgetEditor) commitBudgetEdit(activeBudgetEditor);
+
+  const field = cellView.dataset.bfield;
+  const tr = cellView.closest('tr[data-bid]');
+  if (!tr) return;
+  const itemId = parseInt(tr.dataset.bid);
+  const item = budgetState.data.find(i => i.id === itemId);
+  if (!item) return;
+
+  const isAmount = (field === 'year1' || field === 'year2');
+  const currentValue = isAmount ? String(item[field] || 0) : (item[field] || '');
+
+  const editor = document.createElement(isAmount ? 'input' : 'textarea');
+  editor.className = isAmount ? 'amount-editor' : 'cell-editor';
+  editor.dataset.bfield = field;
+  if (isAmount) {
+    editor.type = 'text';
+    editor.value = currentValue;
+    editor.inputMode = 'decimal';
+  } else {
+    editor.value = currentValue;
+  }
+  if (cellView.style.cssText) editor.style.cssText += cellView.style.cssText;
+
+  cellView.classList.add('editing');
+  cellView.style.display = 'none';
+  cellView.parentNode.insertBefore(editor, cellView.nextSibling);
+
+  if (!isAmount) {
+    editor.style.height = 'auto';
+    editor.style.height = Math.max(40, editor.scrollHeight) + 'px';
+  }
+
+  activeBudgetEditor = { editor, view: cellView, itemId, field, isAmount };
+
+  editor.focus();
+  if (isAmount) editor.select();
+  else editor.setSelectionRange(currentValue.length, currentValue.length);
+
+  if (!isAmount) {
+    editor.addEventListener('input', () => {
+      editor.style.height = 'auto';
+      editor.style.height = Math.max(40, editor.scrollHeight) + 'px';
+    });
+  }
+
+  editor.addEventListener('blur', () => commitBudgetEdit(activeBudgetEditor));
+  editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelBudgetEdit(activeBudgetEditor);
+    }
+    if (e.key === 'Enter' && isAmount) {
+      e.preventDefault();
+      editor.blur();
+    }
+  });
+}
+
+function commitBudgetEdit(editor) {
+  if (!editor || editor !== activeBudgetEditor) return;
+  activeBudgetEditor = null;
+
+  const { editor: el, view, itemId, field, isAmount } = editor;
+  const item = budgetState.data.find(i => i.id === itemId);
+
+  let newValue;
+  if (isAmount) newValue = parseMoney(el.value);
+  else newValue = el.value;
+
+  let changed = false;
+  if (item && item[field] !== newValue) {
+    item[field] = newValue;
+    changed = true;
+    scheduleBudgetSave();
+  }
+
+  view.classList.remove('editing');
+  view.style.display = '';
+  el.remove();
+
+  if (changed) {
+    // Re-render complet du budget (recalcul des totaux)
+    if (isAmount) {
+      renderBudget();
+    } else {
+      view.textContent = newValue;
+    }
+  }
+}
+
+function cancelBudgetEdit(editor) {
+  if (!editor || editor !== activeBudgetEditor) return;
+  activeBudgetEditor = null;
+  editor.view.classList.remove('editing');
+  editor.view.style.display = '';
+  editor.editor.remove();
+}
+
+/* === ACTIONS BUDGET === */
+
+function addSoftware() {
+  const newId = budgetState.data.length ? Math.max(...budgetState.data.map(i => i.id)) + 1 : 1;
+  const maxOrder = budgetState.data.length ? Math.max(...budgetState.data.map(i => i.order || 0)) : 0;
+  budgetState.data.push({
+    id: newId, parentId: null, order: maxOrder + 100,
+    software: 'Nouveau logiciel', year1: 0, year2: 0, notes: ''
+  });
+  saveBudget();
+  renderBudget();
+  showToast('Logiciel ajouté');
+  setTimeout(() => {
+    const row = document.querySelector(`tr[data-bid="${newId}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const cell = row.querySelector('.cell-view[data-bfield="software"]');
+      if (cell) enterBudgetEditMode(cell);
+    }
+  }, 50);
+}
+
+function addBudgetSubLine(parentId) {
+  const parent = budgetState.data.find(i => i.id === parentId);
+  if (!parent) return;
+  const newId = Math.max(...budgetState.data.map(i => i.id)) + 1;
+  const siblings = getBudgetChildren(parentId);
+  const baseOrder = siblings.length
+    ? Math.max(...siblings.map(s => s.order || 0))
+    : (parent.order || 0);
+  budgetState.data.push({
+    id: newId, parentId, order: baseOrder + 1,
+    software: 'Nouvelle sous-ligne', year1: 0, year2: 0, notes: ''
+  });
+  // S'assure que le parent n'est pas replié, sinon la nouvelle sous-ligne serait cachée
+  const collapsed = getCollapsedBudget();
+  if (collapsed.includes(parentId)) {
+    setCollapsedBudget(collapsed.filter(id => id !== parentId));
+  }
+  saveBudget();
+  renderBudget();
+  showToast('Sous-ligne ajoutée');
+  setTimeout(() => {
+    const row = document.querySelector(`tr[data-bid="${newId}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const cell = row.querySelector('.cell-view[data-bfield="software"]');
+      if (cell) enterBudgetEditMode(cell);
+    }
+  }, 50);
+}
+
+/* Duplique une ligne budget et tous ses descendants en préservant la hiérarchie */
+function duplicateBudgetRow(id) {
+  const item = budgetState.data.find(i => i.id === id);
+  if (!item) return;
+
+  const descendants = getAllBudgetDescendants(id);
+  const itemsToDuplicate = [item, ...descendants];
+
+  const idMap = {};
+  const nextId = budgetState.data.length ? Math.max(...budgetState.data.map(i => i.id)) + 1 : 1;
+  itemsToDuplicate.forEach((it, idx) => { idMap[it.id] = nextId + idx; });
+
+  const baseOrder = item.order || 0;
+  const clones = itemsToDuplicate.map((it, idx) => ({
+    ...it,
+    id: idMap[it.id],
+    parentId: it.id === id ? it.parentId : idMap[it.parentId],
+    order: baseOrder + idx + 1,
+    software: it.id === id ? `${it.software} (copie)` : it.software
+  }));
+
+  budgetState.data.push(...clones);
+  reindexBudgetOrders();
+  saveBudget();
+  renderBudget();
+  showToast(clones.length > 1 ? `${clones.length} lignes dupliquées` : 'Ligne dupliquée');
+
+  setTimeout(() => {
+    const newRow = document.querySelector(`tr[data-bid="${idMap[id]}"]`);
+    if (newRow) {
+      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const cellView = newRow.querySelector('.cell-view[data-bfield="software"]');
+      if (cellView) enterBudgetEditMode(cellView);
+    }
+  }, 50);
+}
+
+function deleteBudgetRow(id) {
+  const item = budgetState.data.find(i => i.id === id);
+  if (!item) return;
+  const descendants = getAllBudgetDescendants(id);
+  const msg = descendants.length > 0
+    ? `Supprimer "${item.software}" et ses ${descendants.length} ligne(s) imbriquée(s) ?`
+    : `Supprimer "${item.software}" ?`;
+  if (!confirm(msg)) return;
+  const idsToDelete = new Set([id, ...descendants.map(d => d.id)]);
+  budgetState.data = budgetState.data.filter(i => !idsToDelete.has(i.id));
+  saveBudget();
+  renderBudget();
+  showToast('Supprimé');
+}
+
+/* Délégation des événements sur le tbody budget */
+function setupBudgetDelegation() {
+  const tbody = document.getElementById('budget-body');
+  if (!tbody || tbody.dataset.delegated === '1') return;
+  tbody.dataset.delegated = '1';
+
+  tbody.addEventListener('click', (e) => {
+    // Toggle collapse d'une ligne parente
+    const toggleBtn = e.target.closest('.module-toggle[data-btoggle-id]');
+    if (toggleBtn) {
+      e.stopPropagation();
+      toggleBudgetCollapsed(parseInt(toggleBtn.dataset.btoggleId));
+      renderBudget();
+      return;
+    }
+    // Cellules éditables
+    const cellView = e.target.closest('.cell-view[data-bfield]');
+    if (cellView && !cellView.classList.contains('editing')) {
+      enterBudgetEditMode(cellView);
+      return;
+    }
+    const amountEdit = e.target.closest('.amount-edit');
+    if (amountEdit && !amountEdit.classList.contains('editing')) {
+      enterBudgetEditMode(amountEdit);
+      return;
+    }
+    // Actions
+    const addSubBtn = e.target.closest('.btn-add-bsub');
+    if (addSubBtn) { addBudgetSubLine(parseInt(addSubBtn.dataset.bparentId)); return; }
+    const dupBtn = e.target.closest('.btn-bduplicate');
+    if (dupBtn) { duplicateBudgetRow(parseInt(dupBtn.dataset.bid)); return; }
+    const delBtn = e.target.closest('.btn-bdelete');
+    if (delBtn) { deleteBudgetRow(parseInt(delBtn.dataset.bid)); return; }
+  });
+}
+
+/* === DRAG & DROP BUDGET ===
+   Mêmes règles que la roadmap :
+   - poignée à gauche déclenche le drag
+   - drop tiers haut/bas = insert avant/après
+   - drop tiers central sur une ligne racine = nidification (transforme en sous-ligne)
+   - lazy listeners : attachés uniquement pendant un drag actif */
+let budgetDragState = { draggedId: null };
+let budgetDragListenersAttached = false;
+
+function setupBudgetDragRoot() {
+  const tbody = document.getElementById('budget-body');
+  if (!tbody || tbody.dataset.dragRoot === '1') return;
+  tbody.dataset.dragRoot = '1';
+
+  // dragstart natif : déclenché quand draggable=true et qu'on commence à drag
+  tbody.addEventListener('dragstart', (e) => {
+    const tr = e.target.closest('tr.budget-row');
+    if (!tr || !tr.draggable) return;
+    budgetDragState.draggedId = parseInt(tr.dataset.bid);
+    tr.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(budgetDragState.draggedId));
+    attachActiveBudgetDragListeners(tbody);
+  });
+
+  // mousedown sur poignée → active draggable sur le tr
+  tbody.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle || handle.classList.contains('disabled')) return;
+    const tr = handle.closest('tr.budget-row');
+    if (tr) tr.draggable = true;
+  });
+  tbody.addEventListener('mouseup', () => {
+    tbody.querySelectorAll('tr.budget-row[draggable="true"]').forEach(el => el.draggable = false);
+  });
+}
+
+function attachActiveBudgetDragListeners(tbody) {
+  if (budgetDragListenersAttached) return;
+  budgetDragListenersAttached = true;
+
+  const onDragOver = (e) => {
+    const tr = e.target.closest('tr.budget-row');
+    if (!tr) return;
+    const draggedId = budgetDragState.draggedId;
+    if (!draggedId || parseInt(tr.dataset.bid) === draggedId) return;
+
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    const rect = tr.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const h = rect.height;
+
+    // Nidification possible si on peut éviter un cycle
+    // (target ne doit pas être descendant du dragged)
+    const targetId = parseInt(tr.dataset.bid);
+    const canNest = canBudgetNest(draggedId, targetId);
+
+    tr.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
+    if (canNest && y > h * 0.33 && y < h * 0.66) {
+      tr.classList.add('drag-over-nest');
+    } else if (y < h / 2) {
+      tr.classList.add('drag-over-top');
+    } else {
+      tr.classList.add('drag-over-bottom');
+    }
+  };
+
+  const onDragLeave = (e) => {
+    const tr = e.target.closest('tr.budget-row');
+    if (tr) tr.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
+  };
+
+  const onDrop = (e) => {
+    const tr = e.target.closest('tr.budget-row');
+    if (!tr) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const targetId = parseInt(tr.dataset.bid);
+    const draggedId = budgetDragState.draggedId;
+    const wasNest = tr.classList.contains('drag-over-nest');
+    tr.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
+    if (!draggedId || draggedId === targetId) return;
+
+    if (wasNest) {
+      nestBudgetUnder(draggedId, targetId);
+    } else {
+      const rect = tr.getBoundingClientRect();
+      const dropAbove = (e.clientY - rect.top) < rect.height / 2;
+      reorderBudget(draggedId, targetId, dropAbove);
+    }
+  };
+
+  const onDragEnd = (e) => {
+    const tr = e.target.closest('tr.budget-row');
+    if (tr) {
+      tr.classList.remove('dragging');
+      tr.draggable = false;
+    }
+    tbody.querySelectorAll('.drag-over-top, .drag-over-bottom, .drag-over-nest').forEach(el => {
+      el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-nest');
+    });
+    tbody.removeEventListener('dragover', onDragOver);
+    tbody.removeEventListener('dragleave', onDragLeave);
+    tbody.removeEventListener('drop', onDrop);
+    tbody.removeEventListener('dragend', onDragEnd);
+    budgetDragListenersAttached = false;
+    budgetDragState.draggedId = null;
+  };
+
+  tbody.addEventListener('dragover', onDragOver);
+  tbody.addEventListener('dragleave', onDragLeave);
+  tbody.addEventListener('drop', onDrop);
+  tbody.addEventListener('dragend', onDragEnd);
+}
+
+/* Réordonne en respectant la hiérarchie de profondeur libre.
+   - Un item déplacé emmène TOUS ses descendants avec lui
+   - Si on dépose sur un sibling, on garde le même parent
+   - Si on dépose sur un autre niveau, on prend le parentId de la cible */
+function reorderBudget(draggedId, targetId, dropAbove) {
+  const dragged = budgetState.data.find(i => i.id === draggedId);
+  const target  = budgetState.data.find(i => i.id === targetId);
+  if (!dragged || !target) return;
+
+  // Protection anti-cycle : impossible de déplacer un ancêtre dans son descendant
+  if (!canBudgetNest(draggedId, targetId) && dragged.parentId !== target.parentId) {
+    showToast('Déplacement impossible (cycle)');
+    return;
+  }
+
+  // Le dragged hérite du parent de la cible (drop avant/après = sibling de target)
+  dragged.parentId = target.parentId;
+
+  // Reconstruit l'ordre : tous les descendants suivent leur parent
+  const descendants = getAllBudgetDescendants(draggedId);
+  const block = [dragged, ...descendants];
+  const blockIds = new Set(block.map(b => b.id));
+
+  const others = [...budgetState.data]
+    .filter(i => !blockIds.has(i.id))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const targetIdx = others.findIndex(i => i.id === targetId);
+  if (targetIdx === -1) return;
+  const insertIdx = dropAbove ? targetIdx : targetIdx + 1;
+  others.splice(insertIdx, 0, ...block);
+  others.forEach((item, idx) => { item.order = (idx + 1) * 100; });
+
+  reindexBudgetOrders();
+  saveBudget();
+  renderBudget();
+  showToast('Ordre mis à jour');
+}
+
+/* Transforme un item en enfant d'un autre. Garde tous ses propres descendants. */
+function nestBudgetUnder(draggedId, targetId) {
+  const dragged = budgetState.data.find(i => i.id === draggedId);
+  const target = budgetState.data.find(i => i.id === targetId);
+  if (!dragged || !target) return;
+  if (!canBudgetNest(draggedId, targetId)) {
+    showToast('Déplacement impossible (cycle)');
+    return;
+  }
+
+  dragged.parentId = targetId;
+  // Place juste après les enfants existants de la cible
+  const siblings = getBudgetChildren(targetId).filter(s => s.id !== draggedId);
+  const insertAfter = siblings.length
+    ? Math.max(...siblings.map(s => s.order || 0))
+    : (target.order || 0);
+  dragged.order = insertAfter + 1;
+  // S'assure que la cible est dépliée pour voir le résultat
+  const collapsed = getCollapsedBudget();
+  if (collapsed.includes(targetId)) {
+    setCollapsedBudget(collapsed.filter(id => id !== targetId));
+  }
+  reindexBudgetOrders();
+  saveBudget();
+  renderBudget();
+  showToast(`Imbriqué sous "${target.software}"`);
+}
+
+/* Réindexe les orders en parcourant l'arbre en profondeur */
+function reindexBudgetOrders() {
+  let counter = 1;
+  function visit(parentId) {
+    const items = budgetState.data
+      .filter(i => i.parentId === parentId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    items.forEach(item => {
+      item.order = counter++ * 100;
+      visit(item.id);
+    });
+  }
+  visit(null);
+}
+
+function initBudget() {
+  loadBudget();
+  setupBudgetDelegation();
+  setupBudgetDragRoot();
+  renderBudget();
+  document.getElementById('btn-add-software').addEventListener('click', addSoftware);
+  // Flush la sauvegarde avant fermeture
+  window.addEventListener('beforeunload', flushBudgetSave);
+}
+
 function init() {
   loadData();
   render();
@@ -2991,6 +4155,9 @@ function init() {
 
   // Sécurité : flush la sauvegarde en attente avant fermeture/refresh
   window.addEventListener('beforeunload', flushSave);
+
+  // Initialise le module budget
+  initBudget();
 }
 
 document.addEventListener('DOMContentLoaded', init);
