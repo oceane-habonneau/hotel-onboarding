@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des Charges – Pilotage Hôtelier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8fa;--surface:#fff;--surface-2:#fafbfc;
+  --border:#e6e8ec;--border-strong:#d4d7dd;
+  --text:#1a1d23;--text-muted:#6b7280;--text-subtle:#9ca3af;
+  --primary:#2563eb;--primary-h:#1d4ed8;--primary-soft:#eff6ff;
+  --green:#10b981;--green-soft:#ecfdf5;
+  --orange:#f59e0b;--orange-soft:#fffbeb;
+  --red:#ef4444;--red-soft:#fef2f2;
+  --purple:#8b5cf6;--purple-soft:#f5f3ff;
+  --gray:#6b7280;--gray-soft:#f3f4f6;
+  --teal:#14b8a6;--teal-soft:#f0fdfa;
+  --r:10px;--rs:6px;--rl:14px;
+  --sh-sm:0 1px 2px rgba(16,24,40,.04);
+  --sh:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+  --sh-lg:0 10px 24px rgba(16,24,40,.08),0 4px 8px rgba(16,24,40,.04);
+  --tr:160ms cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;font-size:14px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:260px 1fr;grid-template-rows:auto 1fr;grid-template-areas:"hd hd""sb mn";min-height:100vh;transition:grid-template-columns 240ms cubic-bezier(.4,0,.2,1)}
+.app.sb-off{grid-template-columns:0 1fr}
+.app.sb-off .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}
+
+/* ── HEADER ── */
+.header{grid-area:hd;background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;justify-content:space-between;align-items:center;gap:20px;position:sticky;top:0;z-index:100}
+.hbrand{display:flex;align-items:center;gap:12px}
+.logo{height:34px;padding:0 12px;border-radius:var(--rs);background:var(--text);display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;letter-spacing:.06em;flex-shrink:0}
+.htitles h1{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.htitles p{font-size:12px;color:var(--text-muted);margin-top:1px}
+.hactions{display:flex;gap:8px;align-items:center}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--rs);font-size:13px;font-weight:500;transition:var(--tr);border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-h);transform:translateY(-1px);box-shadow:var(--sh)}
+.btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border-strong)}
+.btn-secondary:hover{background:var(--surface-2)}
+.btn-ghost{background:transparent;color:var(--text-muted)}
+.btn-ghost:hover{background:var(--gray-soft);color:var(--text)}
+.btn-icon{padding:5px;border-radius:var(--rs);color:var(--text-subtle);display:grid;place-items:center;transition:var(--tr)}
+.btn-icon:hover{background:var(--gray-soft);color:var(--text)}
+.btn-icon.danger:hover{background:var(--red-soft);color:var(--red)}
+.btn-sb{width:34px;height:34px;border-radius:var(--rs);display:grid;place-items:center;color:var(--text-muted);transition:var(--tr)}
+.btn-sb:hover{background:var(--gray-soft);color:var(--text)}
+.btn-sb svg{transition:transform 240ms cubic-bezier(.4,0,.2,1)}
+.app.sb-off .btn-sb svg{transform:rotate(180deg)}
+
+/* ── SIDEBAR ── */
+.sidebar{grid-area:sb;background:var(--surface);border-right:1px solid var(--border);padding:22px 18px;overflow-y:auto;overflow-x:hidden;transition:transform 240ms cubic-bezier(.4,0,.2,1),opacity 240ms}
+.sb-sec{margin-bottom:26px}
+.sb-ttl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-subtle);margin-bottom:10px}
+.search-box{position:relative;margin-bottom:22px}
+.search-box input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface-2);font-size:13px;transition:var(--tr)}
+.search-box input:focus{outline:none;border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 3px var(--primary-soft)}
+.search-box .sico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-subtle);pointer-events:none}
+.fgrp{display:flex;flex-direction:column;gap:3px}
+.fi{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:var(--rs);cursor:pointer;transition:var(--tr);font-size:13px}
+.fi:hover{background:var(--gray-soft)}
+.fi.on{background:var(--primary-soft);color:var(--primary);font-weight:500}
+.fi .ct{font-size:11px;color:var(--text-subtle);background:var(--gray-soft);padding:2px 7px;border-radius:10px;font-weight:500;flex-shrink:0}
+.fi.on .ct{background:#fff;color:var(--primary)}
+.dot{width:8px;height:8px;border-radius:50%;margin-right:6px;display:inline-block;flex-shrink:0}
+
+/* ── MAIN ── */
+.main{grid-area:mn;padding:24px 28px 40px;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;transition:var(--tr)}
+.sc:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+.sl{font-size:12px;color:var(--text-muted);font-weight:500;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.sv{font-size:24px;font-weight:700;letter-spacing:-.02em}
+
+/* ── PROGRESS ── */
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:18px}
+.phdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.phdr h3{font-size:13px;font-weight:600}
+.ppct{font-size:13px;font-weight:600;color:var(--primary)}
+.pbar{height:7px;background:var(--gray-soft);border-radius:100px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--primary),#4f7ef5);border-radius:100px;transition:width 500ms cubic-bezier(.4,0,.2,1)}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.tb-info{font-size:13px;color:var(--text-muted)}
+.tb-info strong{color:var(--text);font-weight:600}
+.drag-info{font-size:12px;color:var(--text-subtle);display:inline-flex;align-items:center;gap:5px;margin-left:12px}
+.drag-info.warn{color:var(--orange)}
+
+/* ── TABLE ── */
+.twrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;flex:1;display:flex;flex-direction:column;box-shadow:var(--sh-sm);min-height:0}
+.tscroll{overflow:auto;flex:1}
+table{border-collapse:collapse;width:100%;min-width:900px}
+thead{position:sticky;top:0;z-index:10;background:var(--surface-2)}
+th{text-align:left;padding:11px 14px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;user-select:none}
+th:last-child{border-right:none}
+.col-drag{width:32px;min-width:32px;padding:0!important}
+.col-num{width:42px;min-width:42px;text-align:center}
+.col-feat{min-width:280px;width:36%}
+.col-pri{min-width:155px;width:14%}
+.col-typ{min-width:145px;width:13%}
+.col-notes{min-width:170px}
+.col-act{width:96px;min-width:96px}
+td{padding:0;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;background:var(--surface)}
+td:last-child{border-right:none}
+tr:hover td{background:var(--surface-2)}
+@keyframes rowIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+tr.row-enter td{animation:rowIn 260ms cubic-bezier(.4,0,.2,1)}
+
+/* ── DRAG HANDLE ── */
+.drag-handle{width:32px;height:100%;min-height:42px;display:grid;place-items:center;cursor:grab;color:var(--text-subtle);opacity:0;user-select:none}
+tr:hover .drag-handle{opacity:1}
+.drag-handle:hover{color:var(--primary);background:var(--primary-soft)}
+.drag-handle:active{cursor:grabbing}
+tr.is-dragging td{opacity:.4;background:var(--primary-soft)!important}
+tr.drop-top td{box-shadow:inset 0 2px 0 var(--primary)}
+tr.drop-bot td{box-shadow:inset 0 -2px 0 var(--primary)}
+tr.drop-nest td{background:var(--primary-soft)!important;box-shadow:inset 0 0 0 2px var(--primary)}
+
+/* ── PHASE HEADER ── */
+tr.ph-hdr td{background:linear-gradient(90deg,var(--primary-soft),transparent);padding:0}
+tr.ph-hdr:hover td{background:linear-gradient(90deg,rgba(37,99,235,.1),transparent)}
+tr.ph-hdr.is-dragging-ph td{opacity:.5}
+tr.ph-hdr.drop-top td{box-shadow:inset 0 3px 0 var(--primary)}
+tr.ph-hdr.drop-bot td{box-shadow:inset 0 -3px 0 var(--primary)}
+.ph-inner{padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.ph-inner:hover{background:linear-gradient(90deg,rgba(37,99,235,.12),transparent)}
+.ph-chev{flex-shrink:0;transition:transform 200ms;color:var(--primary)}
+tr.ph-hdr.ph-closed .ph-chev{transform:rotate(-90deg)}
+.ph-drag-handle{width:18px;height:18px;display:grid;place-items:center;cursor:grab;color:var(--primary);opacity:0;border-radius:4px;flex-shrink:0;transition:opacity var(--tr)}
+.ph-inner:hover .ph-drag-handle{opacity:.5}
+.ph-drag-handle:hover{opacity:1!important;background:rgba(37,99,235,.15)}
+.ph-drag-handle:active{cursor:grabbing}
+.ph-emoji{font-size:14px}
+.ph-label{flex:1;font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.04em}
+.ph-input{flex:1;border:none;background:#fff;padding:5px 10px;border-radius:var(--rs);font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.04em;outline:none;box-shadow:0 0 0 2px var(--primary);font-family:inherit}
+.ph-badge{font-size:10px;font-weight:500;color:var(--primary);background:#fff;padding:2px 8px;border-radius:100px;opacity:.8}
+.ph-hint{font-size:10px;color:var(--primary);opacity:0;transition:opacity var(--tr);text-transform:none;letter-spacing:0}
+.ph-inner:hover .ph-hint{opacity:.5}
+
+/* ── CELL VIEW / EDITOR ── */
+.cv{padding:11px 14px;font-size:13px;color:var(--text);line-height:1.45;min-height:42px;white-space:pre-wrap;word-break:break-word;cursor:text;width:100%;box-sizing:border-box}
+.cv.disabled{color:var(--text-subtle);cursor:not-allowed;background:var(--surface-2)}
+.cell-editor{width:100%;border:none;outline:none;background:var(--primary-soft);box-shadow:inset 0 0 0 2px var(--primary);padding:11px 14px;font-size:13px;color:var(--text);line-height:1.45;font-family:inherit;resize:none;min-height:42px;box-sizing:border-box;display:block}
+.num-cv{padding:0 6px;text-align:center;font-size:11px;font-weight:600;color:var(--text-subtle);height:42px;display:flex;align-items:center;justify-content:center}
+
+/* ── FEATURE CELL HIERARCHY ── */
+.feat-cell{display:flex;align-items:flex-start;gap:4px;padding:0 6px 0 4px}
+.feat-cell.depth-1{padding-left:26px;background:linear-gradient(90deg,rgba(37,99,235,.04),transparent 60%)}
+.feat-cell.depth-2{padding-left:48px;background:linear-gradient(90deg,rgba(37,99,235,.07),transparent 60%)}
+.feat-cell.depth-3{padding-left:70px;background:linear-gradient(90deg,rgba(37,99,235,.1),transparent 60%)}
+.feat-toggle{width:20px;height:28px;margin-top:7px;display:grid;place-items:center;color:var(--text-muted);border-radius:4px;transition:var(--tr);flex-shrink:0;cursor:pointer}
+.feat-toggle:hover{background:var(--gray-soft);color:var(--primary)}
+.feat-toggle svg{transition:transform 200ms}
+.feat-toggle.closed svg{transform:rotate(-90deg)}
+.feat-toggle-spacer{width:20px;flex-shrink:0}
+.child-marker{width:12px;height:14px;margin-top:14px;margin-right:4px;flex-shrink:0;border-left:1.5px solid var(--border-strong);border-bottom:1.5px solid var(--border-strong);border-bottom-left-radius:6px;align-self:flex-start}
+.feat-num{margin-top:11px;font-size:11px;font-weight:600;color:var(--text-subtle);background:var(--gray-soft);padding:2px 6px;border-radius:4px;flex-shrink:0;line-height:1.3;min-width:24px;text-align:center}
+tr.is-child .feat-num{color:var(--primary);background:var(--primary-soft)}
+tr.is-child td{background:rgba(248,250,252,.5)}
+tr.is-child:hover td{background:var(--surface-2)}
+tr.depth-2 td{background:rgba(239,246,255,.4)}
+tr.depth-2:hover td{background:var(--surface-2)}
+
+/* ── SELECTS BADGES ── */
+.sel-wrap{padding:8px 12px}
+.badge-sel{display:inline-block;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:500;border:none;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;transition:var(--tr)}
+.badge-sel:focus{box-shadow:0 0 0 3px var(--primary-soft)}
+.p1{color:var(--red);background:var(--red-soft)}
+.p2{color:var(--orange);background:var(--orange-soft)}
+.p3{color:var(--gray);background:var(--gray-soft)}
+.tGET{color:var(--teal);background:var(--teal-soft)}
+.tPUSH{color:var(--purple);background:var(--purple-soft)}
+.tBOTH{color:var(--primary);background:var(--primary-soft)}
+
+/* ── ROW ACTIONS ── */
+.row-acts{display:flex;align-items:center;justify-content:center;padding:4px;gap:2px}
+.btn-add-child,.btn-dup,.btn-del{opacity:0;transition:var(--tr)}
+tr:hover .btn-add-child,tr:hover .btn-dup,tr:hover .btn-del{opacity:1}
+.btn-add-child:hover{background:var(--primary-soft);color:var(--primary)!important}
+.btn-dup:hover{background:var(--primary-soft);color:var(--primary)!important}
+.btn-del:hover{background:var(--red-soft);color:var(--red)!important}
+
+/* ── EMPTY ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty-state h3{font-size:15px;color:var(--text);margin-bottom:6px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:11px 16px;border-radius:var(--r);font-size:13px;font-weight:500;box-shadow:var(--sh-lg);z-index:9999;opacity:0;transform:translateY(10px);transition:var(--tr);pointer-events:none;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:none}
+.toast-icon{width:17px;height:17px;border-radius:50%;background:var(--green);display:grid;place-items:center;flex-shrink:0}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#d4d7dd;border-radius:100px;border:2px solid var(--surface)}
+::-webkit-scrollbar-thumb:hover{background:#9ca3af}
+
+@media(max-width:1024px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;grid-template-areas:"hd""mn"}
+  .sidebar{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .main{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="hbrand">
+    <button class="btn-sb" id="btn-sb">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+    </button>
+    <div class="logo">HRM</div>
+    <div class="htitles">
+      <h1>Cahier des Charges – Pilotage Hôtelier</h1>
+      <p>Spécifications fonctionnelles · Outil de pilotage complémentaire</p>
+    </div>
+  </div>
+  <div class="hactions">
+    <button class="btn btn-secondary" id="btn-csv">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+    <button class="btn btn-secondary" id="btn-backup">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Sauvegarde
+    </button>
+    <button class="btn btn-secondary" id="btn-restore">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Restaurer
+    </button>
+    <input type="file" id="fi-restore" accept=".json" style="display:none">
+    <button class="btn btn-primary" id="btn-add">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une feature
+    </button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="search-box">
+    <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="s-input" placeholder="Rechercher…">
+  </div>
+  <div class="sb-sec">
+    <div class="sb-ttl">Priorité</div>
+    <div class="fgrp">
+      <div class="fi on" data-f="p" data-v="all"><span>Toutes</span><span class="ct" id="fp-all">0</span></div>
+      <div class="fi" data-f="p" data-v="1"><span><span class="dot" style="background:var(--red)"></span>P1 – Critique</span><span class="ct" id="fp-1">0</span></div>
+      <div class="fi" data-f="p" data-v="2"><span><span class="dot" style="background:var(--orange)"></span>P2 – Importante</span><span class="ct" id="fp-2">0</span></div>
+      <div class="fi" data-f="p" data-v="3"><span><span class="dot" style="background:var(--gray)"></span>P3 – Nice to have</span><span class="ct" id="fp-3">0</span></div>
+    </div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-ttl">Type</div>
+    <div class="fgrp">
+      <div class="fi on" data-f="t" data-v="all"><span>Tous</span><span class="ct" id="ft-all">0</span></div>
+      <div class="fi" data-f="t" data-v="GET"><span><span class="dot" style="background:var(--teal)"></span>GET – Lecture</span><span class="ct" id="ft-get">0</span></div>
+      <div class="fi" data-f="t" data-v="PUSH"><span><span class="dot" style="background:var(--purple)"></span>PUSH – Écriture</span><span class="ct" id="ft-push">0</span></div>
+      <div class="fi" data-f="t" data-v="GET+PUSH"><span><span class="dot" style="background:var(--primary)"></span>GET + PUSH</span><span class="ct" id="ft-both">0</span></div>
+    </div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-ttl">Module</div>
+    <div class="fgrp" id="fm">
+      <div class="fi on" data-f="m" data-v="all"><span>Tous</span><span class="ct" id="fm-all">0</span></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="stats">
+    <div class="sc"><div class="sl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Total features</div><div class="sv" id="s-tot">0</div></div>
+    <div class="sc"><div class="sl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>P1 – Critique</div><div class="sv" id="s-p1" style="color:var(--red)">0</div></div>
+    <div class="sc"><div class="sl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>GET (lecture)</div><div class="sv" id="s-get" style="color:var(--teal)">0</div></div>
+    <div class="sc"><div class="sl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>PUSH (écriture)</div><div class="sv" id="s-push" style="color:var(--purple)">0</div></div>
+  </div>
+
+  <div class="pcard">
+    <div class="phdr"><h3>Features P1 qualifiées (type renseigné)</h3><span class="ppct" id="ppct">0%</span></div>
+    <div class="pbar"><div class="pfill" id="pfill" style="width:0"></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tb-info">
+      <strong id="cnt-vis">0</strong> feature(s) affichée(s)
+      <span class="drag-info" id="drag-info"></span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" id="btn-expand" style="font-size:12px">↕ Tout déplier</button>
+      <button class="btn btn-ghost" id="btn-reset" style="font-size:12px;color:var(--red)">↺ Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="twrap">
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-drag"></th>
+            <th class="col-num">#</th>
+            <th class="col-feat">Feature / Process opérationnel</th>
+            <th class="col-pri">Priorité</th>
+            <th class="col-typ">Type (GET / PUSH)</th>
+            <th class="col-notes">Notes équipe</th>
+            <th class="col-act"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <span id="tmsg"></span>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════ */
+const SK = 'hrm-cdc-v4';
+
+// Phases = ordered groups; features = hierarchical items
+const DEF_PHASES = [
+  {id:'ph1',emoji:'🔹',label:'Réservations individuelles',open:true},
+  {id:'ph2',emoji:'🔹',label:'Réservations multi-property',open:true},
+  {id:'ph3',emoji:'🔹',label:'Délogement',open:true},
+  {id:'ph4',emoji:'🔹',label:'Check-in / Check-out',open:true},
+  {id:'ph5',emoji:'🔹',label:'Facturation',open:true},
+  {id:'ph6',emoji:'🔹',label:'Transfert restaurant → chambre',open:true},
+  {id:'ph7',emoji:'🔹',label:'Accueil virtuel / autonome',open:true},
+];
+
+const DEF_ITEMS = [
+  // ph1
+  {id:1, phaseId:'ph1',parentId:null,order:100, feature:'Création / modification / annulation cross-PMS',      pri:'1',type:'GET+PUSH',notes:'Couvre tous les PMS du groupe'},
+  {id:2, phaseId:'ph1',parentId:null,order:200, feature:'Vue client unifiée (historique multi-établissements)', pri:'1',type:'GET',      notes:'Profil centralisé 360°'},
+  {id:3, phaseId:'ph1',parentId:null,order:300, feature:'Détection doublons / conflits de réservation',         pri:'2',type:'GET',      notes:'Alertes en temps réel'},
+  // ph2
+  {id:4, phaseId:'ph2',parentId:null,order:400, feature:'Booking groupé multi-sites',                           pri:'1',type:'GET+PUSH',notes:'Un seul flux pour N hôtels'},
+  {id:5, phaseId:'ph2',parentId:null,order:500, feature:'Allocation automatique des chambres',                  pri:'2',type:'PUSH',     notes:'Règles de priorité paramétrables'},
+  {id:6, phaseId:'ph2',parentId:null,order:600, feature:'Suivi centralisé du séjour (multi-lieux)',             pri:'2',type:'GET',      notes:'Dashboard opérationnel temps réel'},
+  // ph3
+  {id:7, phaseId:'ph3',parentId:null,order:700, feature:'Suggestion automatique de relogement',                 pri:'1',type:'GET+PUSH',notes:'Basé sur dispo + profil client'},
+  {id:8, phaseId:'ph3',parentId:null,order:800, feature:"Simulation d'impact (CA, satisfaction client)",        pri:'2',type:'GET',      notes:'Module analytics embarqué'},
+  {id:9, phaseId:'ph3',parentId:null,order:900, feature:'Workflow de validation équipes',                        pri:'2',type:'PUSH',     notes:'Approbation chef de réception'},
+  // ph4
+  {id:10,phaseId:'ph4',parentId:null,order:1000,feature:'Pré check-in en ligne',                                pri:'1',type:'GET+PUSH',notes:'Parcours client digital J-1'},
+  {id:11,phaseId:'ph4',parentId:null,order:1100,feature:'Assignation automatique chambre',                       pri:'2',type:'PUSH',     notes:'Critères : préférences + disponibilité'},
+  {id:12,phaseId:'ph4',parentId:null,order:1200,feature:'Check-out rapide + facture automatique',                pri:'1',type:'GET+PUSH',notes:'Envoi email / PDF instantané'},
+  // ph5
+  {id:13,phaseId:'ph5',parentId:null,order:1300,feature:'Consolidation multi-séjours / multi-sites',            pri:'1',type:'GET',      notes:'Facture unique ou groupée'},
+  {id:14,phaseId:'ph5',parentId:null,order:1400,feature:'Split billing (client / entreprise / tiers)',           pri:'2',type:'PUSH',     notes:'Ventilation par poste de dépense'},
+  {id:15,phaseId:'ph5',parentId:null,order:1500,feature:'Génération & export comptable',                         pri:'2',type:'GET+PUSH',notes:'Formats : PDF, CSV, FEC'},
+  // ph6
+  {id:16,phaseId:'ph6',parentId:null,order:1600,feature:'Imputation automatique sur la bonne chambre',           pri:'1',type:'PUSH',     notes:'Lecture badge / numéro chambre'},
+  {id:17,phaseId:'ph6',parentId:null,order:1700,feature:'Gestion erreurs (mauvaise chambre, no-show)',           pri:'2',type:'GET+PUSH',notes:'Alerte + correction manuelle'},
+  {id:18,phaseId:'ph6',parentId:null,order:1800,feature:'Synchronisation PMS temps réel',                        pri:'1',type:'GET+PUSH',notes:'Webhooks ou polling court'},
+  // ph7
+  {id:19,phaseId:'ph7',parentId:null,order:1900,feature:'Parcours client digital (avant / pendant séjour)',      pri:'2',type:'GET+PUSH',notes:'App ou web responsive'},
+  {id:20,phaseId:'ph7',parentId:null,order:2000,feature:'Accès chambre (clé digitale)',                          pri:'2',type:'PUSH',     notes:'NFC / BLE selon équipement'},
+  {id:21,phaseId:'ph7',parentId:null,order:2100,feature:'Support client automatisé (chat / IA)',                 pri:'3',type:'GET+PUSH',notes:'Escalade vers humain si besoin'},
+];
+
+let PH = [], IT = [], NID = 100;
+let F = {p:'all', t:'all', m:'all', s:''};
+let collapsedItems = new Set(); // ids of collapsed parent items
+
+function cloneDef(){
+  PH = JSON.parse(JSON.stringify(DEF_PHASES));
+  IT = JSON.parse(JSON.stringify(DEF_ITEMS));
+  NID = 100;
+  collapsedItems = new Set();
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SK);
+    if(!raw){cloneDef();return}
+    const p = JSON.parse(raw);
+    PH = p.PH && p.PH.length ? p.PH : JSON.parse(JSON.stringify(DEF_PHASES));
+    IT = p.IT && p.IT.length ? p.IT : JSON.parse(JSON.stringify(DEF_ITEMS));
+    NID = p.NID || 100;
+    collapsedItems = new Set(p.CI || []);
+  }catch(e){cloneDef()}
+}
+let _st=null;
+function save(){clearTimeout(_st);_st=setTimeout(persist,400)}
+function persist(){
+  clearTimeout(_st);
+  try{localStorage.setItem(SK,JSON.stringify({PH,IT,NID,CI:[...collapsedItems]}))}catch(e){}
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function newId(){return++NID}
+function maxOrder(){return IT.length?Math.max(...IT.map(i=>i.order||0)):0}
+
+function getChildren(id){return IT.filter(i=>i.parentId===id).sort((a,b)=>(a.order||0)-(b.order||0))}
+function getAllDesc(id){
+  const res=[];const q=[id];
+  while(q.length){const cur=q.shift();IT.filter(i=>i.parentId===cur).forEach(c=>{res.push(c);q.push(c.id)})}
+  return res;
+}
+function getDepth(item){
+  let d=0,cur=item,seen=new Set();
+  while(cur&&cur.parentId){if(seen.has(cur.id))break;seen.add(cur.id);cur=IT.find(i=>i.id===cur.parentId);d++}
+  return d;
+}
+function getSubtreeDepth(item){
+  const ch=getChildren(item.id);if(!ch.length)return 0;
+  return 1+Math.max(...ch.map(c=>getSubtreeDepth(c)));
+}
+function canNest(dragId,targetId){
+  if(dragId===targetId)return false;
+  let cur=IT.find(i=>i.id===targetId);
+  while(cur&&cur.parentId){if(cur.parentId===dragId)return false;cur=IT.find(i=>i.id===cur.parentId)}
+  return true;
+}
+function reindexOrders(){
+  // Walk the tree depth-first per phase and assign orders
+  let counter=1;
+  PH.forEach(ph=>{
+    function walk(parentId){
+      IT.filter(i=>i.phaseId===ph.id&&i.parentId===parentId).sort((a,b)=>(a.order||0)-(b.order||0))
+        .forEach(i=>{i.order=counter++*100;walk(i.id)})
+    }
+    walk(null);
+  });
+}
+
+function isFiltered(){return F.p!=='all'||F.t!=='all'||F.m!=='all'||F.s!==''}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+let _tt;
+function toast(msg){
+  document.getElementById('tmsg').textContent=msg;
+  const el=document.getElementById('toast');el.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════ */
+function render(){renderTable();renderStats();renderModFilter()}
+
+function renderTable(){
+  const tbody=document.getElementById('tbody');
+  const isF=isFiltered();
+  let html='';let idx=0;
+
+  // Collect visible item ids when filtering
+  const visibleIds = isF ? new Set(IT.filter(item=>matchFilter(item)).map(i=>i.id)) : null;
+
+  PH.forEach(ph=>{
+    const phItems = IT.filter(i=>i.phaseId===ph.id&&i.parentId===null).sort((a,b)=>(a.order||0)-(b.order||0));
+    // Count visible items in this phase (including children)
+    const allPhItems = IT.filter(i=>i.phaseId===ph.id);
+    const visInPh = isF ? allPhItems.filter(i=>visibleIds.has(i.id)).length : allPhItems.length;
+    if(isF && visInPh===0) return;
+
+    const badge = isF&&visInPh!==allPhItems.length
+      ? `${visInPh}/${allPhItems.length} features`
+      : `${allPhItems.length} feature${allPhItems.length!==1?'s':''}`;
+
+    html+=`<tr class="ph-hdr${ph.open?'':' ph-closed'}" data-phid="${esc(ph.id)}" draggable="false">
+      <td colspan="7">
+        <div class="ph-inner">
+          <div class="ph-drag-handle" title="Glisser pour déplacer la catégorie">
+            <svg width="10" height="10" viewBox="0 0 12 14" fill="none"><circle cx="3" cy="3" r="1.2" fill="currentColor"/><circle cx="9" cy="3" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="11" r="1.2" fill="currentColor"/><circle cx="9" cy="11" r="1.2" fill="currentColor"/></svg>
+          </div>
+          <svg class="ph-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <span class="ph-emoji">${ph.emoji}</span>
+          <span class="ph-label">${esc(ph.label)}</span>
+          <span class="ph-hint">double-clic pour renommer</span>
+          <span class="ph-badge">${badge}</span>
+        </div>
+      </td>
+    </tr>`;
+
+    if(!ph.open)return;
+
+    function renderItem(item, depth){
+      if(isF && !visibleIds.has(item.id))return;
+      const children = getChildren(item.id);
+      const hasChildren = children.length>0;
+      const isCollapsed = collapsedItems.has(item.id);
+      const isChild = depth>0;
+      idx++;
+
+      const pCls = item.pri==='1'?'p1':item.pri==='2'?'p2':'p3';
+      const tCls = item.type==='GET'?'tGET':item.type==='PUSH'?'tPUSH':'tBOTH';
+      const rowCls = ['data-row'];
+      if(isChild)rowCls.push('is-child');
+      if(depth===2)rowCls.push('depth-2');
+      if(depth>=3)rowCls.push('depth-2');// reuse style for deep
+
+      const depthCls = depth>0 ? `depth-${Math.min(depth,3)}` : '';
+
+      html+=`<tr class="${rowCls.join(' ')}" data-id="${item.id}" data-phid="${esc(item.phaseId)}" data-parent="${item.parentId||''}" data-depth="${depth}" draggable="false">
+        <td class="col-drag">
+          <div class="drag-handle" title="Glisser pour réordonner · déposer au centre pour imbriquer">
+            <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><circle cx="3" cy="3" r="1.2" fill="currentColor"/><circle cx="9" cy="3" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="11" r="1.2" fill="currentColor"/><circle cx="9" cy="11" r="1.2" fill="currentColor"/></svg>
+          </div>
+        </td>
+        <td class="col-num"><div class="num-cv">${idx}</div></td>
+        <td class="col-feat">
+          <div class="feat-cell ${depthCls}">
+            ${hasChildren
+              ? `<button class="feat-toggle${isCollapsed?' closed':''}" data-toggle="${item.id}" title="${isCollapsed?'Déplier':'Replier'}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>`
+              : isChild
+                ? '<span class="child-marker"></span>'
+                : '<span class="feat-toggle-spacer"></span>'}
+            <span class="feat-num">${idx}</span>
+            <div class="cv" data-field="feature" data-id="${item.id}" style="font-weight:${depth===0?600:500}">${esc(item.feature)}</div>
+          </div>
+        </td>
+        <td class="col-pri">
+          <div class="sel-wrap">
+            <select class="badge-sel ${pCls}" data-field="pri" data-id="${item.id}">
+              <option value="1" ${item.pri==='1'?'selected':''}>🔴 P1 – Critique</option>
+              <option value="2" ${item.pri==='2'?'selected':''}>🟡 P2 – Importante</option>
+              <option value="3" ${item.pri==='3'?'selected':''}>⚪ P3 – Nice to have</option>
+            </select>
+          </div>
+        </td>
+        <td class="col-typ">
+          <div class="sel-wrap">
+            <select class="badge-sel ${tCls}" data-field="type" data-id="${item.id}">
+              <option value="GET"      ${item.type==='GET'     ?'selected':''}>⬇ GET – Lecture</option>
+              <option value="PUSH"     ${item.type==='PUSH'    ?'selected':''}>⬆ PUSH – Écriture</option>
+              <option value="GET+PUSH" ${item.type==='GET+PUSH'?'selected':''}>↕ GET + PUSH</option>
+            </select>
+          </div>
+        </td>
+        <td class="col-notes">
+          <div class="cv" data-field="notes" data-id="${item.id}">${esc(item.notes)}</div>
+        </td>
+        <td class="col-act">
+          <div class="row-acts">
+            <button class="btn-icon btn-add-child" data-id="${item.id}" title="Ajouter une sous-feature">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn-icon btn-dup" data-id="${item.id}" title="Dupliquer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button class="btn-icon btn-del danger" data-id="${item.id}" title="Supprimer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+
+      if(hasChildren && !isCollapsed){
+        children.forEach(ch=>renderItem(ch, depth+1));
+      }
+    }
+    phItems.forEach(item=>renderItem(item,0));
+  });
+
+  if(isF && idx===0){
+    html=`<tr><td colspan="7"><div class="empty-state"><h3>Aucun résultat</h3><p>Modifiez les filtres.</p></div></td></tr>`;
+  }
+
+  tbody.innerHTML=html;
+  document.getElementById('cnt-vis').textContent=idx;
+  bindDelegation();
+  updateDragInfo();
+}
+
+function matchFilter(item){
+  if(F.p!=='all'&&item.pri!==F.p)return false;
+  if(F.t!=='all'&&item.type!==F.t)return false;
+  if(F.m!=='all'&&item.phaseId!==F.m)return false;
+  if(F.s){const q=F.s.toLowerCase();if(!(item.feature||'').toLowerCase().includes(q)&&!(item.notes||'').toLowerCase().includes(q))return false}
+  return true;
+}
+
+/* ═══════════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════════ */
+function renderStats(){
+  const rows=IT;
+  const tot=rows.length;
+  const p1=rows.filter(r=>r.pri==='1').length;
+  const p2=rows.filter(r=>r.pri==='2').length;
+  const p3=rows.filter(r=>r.pri==='3').length;
+  const get=rows.filter(r=>r.type==='GET').length;
+  const push=rows.filter(r=>r.type==='PUSH').length;
+  const both=rows.filter(r=>r.type==='GET+PUSH').length;
+
+  document.getElementById('s-tot').textContent=tot;
+  document.getElementById('s-p1').textContent=p1;
+  document.getElementById('s-get').textContent=get+both;
+  document.getElementById('s-push').textContent=push+both;
+  document.getElementById('fp-all').textContent=tot;
+  document.getElementById('fp-1').textContent=p1;
+  document.getElementById('fp-2').textContent=p2;
+  document.getElementById('fp-3').textContent=p3;
+  document.getElementById('ft-all').textContent=tot;
+  document.getElementById('ft-get').textContent=get;
+  document.getElementById('ft-push').textContent=push;
+  document.getElementById('ft-both').textContent=both;
+  document.getElementById('fm-all').textContent=tot;
+
+  const p1rows=rows.filter(r=>r.pri==='1');
+  const pct=p1rows.length?Math.round(p1rows.filter(r=>r.type).length/p1rows.length*100):0;
+  document.getElementById('ppct').textContent=pct+'%';
+  document.getElementById('pfill').style.width=pct+'%';
+}
+
+function renderModFilter(){
+  const fm=document.getElementById('fm');
+  fm.querySelectorAll('[data-v]:not([data-v="all"])').forEach(el=>el.remove());
+  PH.forEach(ph=>{
+    const cnt=IT.filter(i=>i.phaseId===ph.id).length;if(!cnt)return;
+    const el=document.createElement('div');
+    el.className='fi'+(F.m===ph.id?' on':'');
+    el.dataset.f='m';el.dataset.v=ph.id;
+    el.innerHTML=`<span>${ph.emoji} ${esc(ph.label)}</span><span class="ct">${cnt}</span>`;
+    el.addEventListener('click',()=>setFilter('m',ph.id));
+    fm.appendChild(el);
+  });
+}
+
+function updateDragInfo(){
+  const el=document.getElementById('drag-info');
+  if(isFiltered()){
+    el.className='drag-info warn';
+    el.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Réorganisation désactivée pendant le filtrage`;
+  }else{
+    el.className='drag-info';
+    el.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>Glisser ⟨⋮⟩ pour réordonner · déposer au centre pour imbriquer`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   EVENT DELEGATION (single bind on tbody)
+═══════════════════════════════════════════════════ */
+let activeEditor=null;
+
+function bindDelegation(){
+  const tbody=document.getElementById('tbody');
+  if(tbody.dataset.bound==='1')return;
+  tbody.dataset.bound='1';
+
+  tbody.addEventListener('click',e=>{
+    // Toggle item collapse
+    const tgl=e.target.closest('.feat-toggle[data-toggle]');
+    if(tgl){e.stopPropagation();const id=+tgl.dataset.toggle;collapsedItems.has(id)?collapsedItems.delete(id):collapsedItems.add(id);save();renderTable();return}
+    // Phase toggle (single click)
+    const phInner=e.target.closest('.ph-inner');
+    if(phInner&&!e.target.closest('.ph-drag-handle')&&!e.target.closest('.ph-input')){
+      const tr=phInner.closest('tr.ph-hdr');if(!tr)return;
+      const ph=PH.find(p=>p.id===tr.dataset.phid);if(!ph)return;
+      ph.open=!ph.open;save();renderTable();return;
+    }
+    // Cell edit
+    const cv=e.target.closest('.cv');
+    if(cv&&!cv.closest('.ph-inner')){enterEdit(cv);return}
+    // Add child
+    const addCh=e.target.closest('.btn-add-child');
+    if(addCh){addChild(+addCh.dataset.id);return}
+    // Duplicate
+    const dup=e.target.closest('.btn-dup');
+    if(dup){dupRow(+dup.dataset.id);return}
+    // Delete
+    const del=e.target.closest('.btn-del');
+    if(del){delRow(+del.dataset.id);return}
+  });
+
+  tbody.addEventListener('dblclick',e=>{
+    const phInner=e.target.closest('.ph-inner');
+    if(phInner&&!e.target.closest('.ph-drag-handle')&&!e.target.closest('.ph-input')){
+      const tr=phInner.closest('tr.ph-hdr');if(!tr)return;
+      startPhaseRename(tr);return;
+    }
+  });
+
+  tbody.addEventListener('change',e=>{
+    const sel=e.target.closest('select.badge-sel[data-field]');
+    if(!sel)return;
+    const id=+sel.dataset.id,field=sel.dataset.field;
+    const item=IT.find(i=>i.id===id);if(!item)return;
+    item[field]=sel.value;
+    if(field==='pri') sel.className='badge-sel '+(sel.value==='1'?'p1':sel.value==='2'?'p2':'p3');
+    else sel.className='badge-sel '+(sel.value==='GET'?'tGET':sel.value==='PUSH'?'tPUSH':'tBOTH');
+    save();renderStats();
+  });
+}
+
+/* ── Inline edit ── */
+function enterEdit(cv){
+  if(activeEditor)commitEdit();
+  const id=+cv.dataset.id,field=cv.dataset.field;
+  const item=IT.find(i=>i.id===id);if(!item)return;
+  const orig=item[field]||'';
+  const ta=document.createElement('textarea');
+  ta.className='cell-editor';ta.value=orig;
+  cv.style.display='none';
+  cv.classList.add('editing');
+  cv.parentNode.insertBefore(ta,cv.nextSibling);
+  ta.style.height='auto';ta.style.height=Math.max(42,ta.scrollHeight)+'px';
+  ta.focus();ta.setSelectionRange(orig.length,orig.length);
+  activeEditor={ta,cv,item,field,orig};
+  ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.max(42,ta.scrollHeight)+'px'});
+  ta.addEventListener('blur',()=>commitEdit());
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ta.blur()}
+    if(e.key==='Escape'){cancelEdit()}
+    if(e.key==='Tab'){e.preventDefault();const dir=e.shiftKey?-1:1;moveCell(dir)}
+  });
+}
+function commitEdit(){
+  if(!activeEditor)return;
+  const{ta,cv,item,field}=activeEditor;activeEditor=null;
+  item[field]=ta.value;
+  cv.textContent=item[field];
+  cv.style.display='';cv.classList.remove('editing');
+  ta.remove();save();renderStats();
+}
+function cancelEdit(){
+  if(!activeEditor)return;
+  const{ta,cv,orig}=activeEditor;activeEditor=null;
+  cv.style.display='';cv.classList.remove('editing');ta.remove();
+}
+function moveCell(dir){
+  if(!activeEditor)return;
+  const all=[...document.querySelectorAll('#tbody .cv[data-field="feature"],.cv[data-field="notes"]')];
+  const cur=all.indexOf(activeEditor.cv);
+  commitEdit();
+  const next=all[cur+dir];
+  if(next)setTimeout(()=>{next.scrollIntoView({block:'nearest',behavior:'smooth'});enterEdit(next)},30);
+}
+
+/* ── Phase rename ── */
+let recentPhToggles=new Map();
+function startPhaseRename(tr){
+  const ph=PH.find(p=>p.id===tr.dataset.phid);if(!ph)return;
+  const labelEl=tr.querySelector('.ph-label');if(!labelEl)return;
+  if(tr.querySelector('.ph-input'))return;
+  const inp=document.createElement('input');
+  inp.type='text';inp.className='ph-input';inp.value=ph.label;inp.maxLength=80;
+  labelEl.style.display='none';labelEl.parentNode.insertBefore(inp,labelEl.nextSibling);
+  inp.focus();inp.select();
+  let done=false;
+  const finish=(commit)=>{
+    if(done)return;done=true;
+    const v=inp.value.trim();
+    if(commit&&v&&v!==ph.label){ph.label=v;save();render();}
+    else{inp.remove();labelEl.style.display='';}
+  };
+  inp.addEventListener('blur',()=>finish(true));
+  inp.addEventListener('click',e=>e.stopPropagation());
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur()}
+    if(e.key==='Escape'){inp.removeEventListener('blur',()=>finish(true));finish(false)}
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   CRUD OPERATIONS
+═══════════════════════════════════════════════════ */
+function addRow(){
+  // Add at bottom – create new phase or add to last one
+  const ph = PH.length ? PH[PH.length-1] : null;
+  let targetPhId;
+  if(!ph){
+    // Create a default phase
+    const newPh={id:'ph'+newId(),emoji:'🔹',label:'Nouveau module',open:true};
+    PH.push(newPh);targetPhId=newPh.id;
+  }else{
+    targetPhId=ph.id;ph.open=true;
+  }
+  const id=newId();
+  IT.push({id,phaseId:targetPhId,parentId:null,order:maxOrder()+100,feature:'',pri:'2',type:'GET',notes:''});
+  save();renderTable();renderStats();renderModFilter();
+  setTimeout(()=>{
+    const tr=document.querySelector(`tr[data-id="${id}"]`);
+    if(tr){tr.classList.add('row-enter');tr.scrollIntoView({behavior:'smooth',block:'nearest'});
+      const cv=tr.querySelector('.cv[data-field="feature"]');if(cv)enterEdit(cv);}
+  },40);
+  toast('Feature ajoutée en bas du tableau');
+}
+
+function addChild(parentId){
+  const parent=IT.find(i=>i.id===parentId);if(!parent)return;
+  // Expand parent
+  collapsedItems.delete(parentId);
+  // Find last sibling order
+  const siblings=getChildren(parentId);
+  const ord=siblings.length?Math.max(...siblings.map(s=>s.order||0))+50:parent.order+50;
+  const id=newId();
+  IT.push({id,phaseId:parent.phaseId,parentId,order:ord,feature:'',pri:parent.pri,type:parent.type,notes:''});
+  save();renderTable();renderStats();
+  setTimeout(()=>{
+    const tr=document.querySelector(`tr[data-id="${id}"]`);
+    if(tr){tr.classList.add('row-enter');tr.scrollIntoView({behavior:'smooth',block:'nearest'});
+      const cv=tr.querySelector('.cv[data-field="feature"]');if(cv)enterEdit(cv);}
+  },40);
+  toast('Sous-feature ajoutée');
+}
+
+function delRow(id){
+  const item=IT.find(i=>i.id===id);if(!item)return;
+  const desc=getAllDesc(id);
+  const msg=desc.length>0?`Supprimer cette feature et ses ${desc.length} sous-feature(s) ?`:'Supprimer cette feature ?';
+  if(!confirm(msg))return;
+  const ids=new Set([id,...desc.map(d=>d.id)]);
+  IT=IT.filter(i=>!ids.has(i.id));
+  save();render();
+  toast(ids.size>1?`${ids.size} éléments supprimés`:'Feature supprimée');
+}
+
+function dupRow(id){
+  const item=IT.find(i=>i.id===id);if(!item)return;
+  const desc=getAllDesc(id);
+  const all=[item,...desc];
+  const idMap={};all.forEach((it,idx)=>{idMap[it.id]=newId()});
+  const baseOrd=item.order||0;
+  const clones=all.map((it,idx)=>({
+    ...it,
+    id:idMap[it.id],
+    parentId:it.id===id?it.parentId:idMap[it.parentId]||null,
+    order:baseOrd+(idx+1)*10,
+    feature:it.id===id?`${it.feature} (copie)`:it.feature
+  }));
+  IT.push(...clones);
+  reindexOrders();save();render();
+  setTimeout(()=>{
+    const newTr=document.querySelector(`tr[data-id="${idMap[id]}"]`);
+    if(newTr){newTr.classList.add('row-enter');newTr.scrollIntoView({behavior:'smooth',block:'center'});
+      const cv=newTr.querySelector('.cv[data-field="feature"]');if(cv)enterEdit(cv);}
+  },40);
+  toast(clones.length>1?`${clones.length} lignes dupliquées`:'Feature dupliquée');
+}
+
+/* ═══════════════════════════════════════════════════
+   DRAG & DROP  (rows + phases, single delegation)
+═══════════════════════════════════════════════════ */
+let dragState={type:null,id:null,phId:null};
+let dragListenersOn=false;
+
+function initDrag(){
+  const tbody=document.getElementById('tbody');
+
+  // Enable draggable on mousedown on the right handles
+  tbody.addEventListener('mousedown',e=>{
+    const ph=e.target.closest('.ph-drag-handle');
+    if(ph){const tr=ph.closest('tr.ph-hdr');if(tr)tr.draggable=true;return}
+    const rh=e.target.closest('.drag-handle');
+    if(rh){const tr=rh.closest('tr[data-id]');if(tr)tr.draggable=true}
+  });
+  document.addEventListener('mouseup',()=>{
+    document.querySelectorAll('#tbody [draggable="true"]').forEach(el=>el.removeAttribute('draggable'));
+  });
+
+  tbody.addEventListener('dragstart',e=>{
+    const phTr=e.target.closest('tr.ph-hdr[data-phid]');
+    if(phTr){
+      dragState={type:'phase',id:null,phId:phTr.dataset.phid};
+      phTr.classList.add('is-dragging-ph');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain','phase:'+phTr.dataset.phid);
+      e.stopPropagation();
+      attachActiveDrag(tbody);return;
+    }
+    const rowTr=e.target.closest('tr[data-id]');
+    if(rowTr){
+      dragState={type:'row',id:+rowTr.dataset.id,phId:rowTr.dataset.phid};
+      rowTr.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain','row:'+rowTr.dataset.id);
+      attachActiveDrag(tbody);
+    }
+  });
+}
+
+function attachActiveDrag(tbody){
+  if(dragListenersOn)return;
+  dragListenersOn=true;
+
+  const onOver=e=>{
+    if(dragState.type==='phase'){
+      const tr=e.target.closest('tr.ph-hdr[data-phid]');if(!tr)return;
+      if(tr.dataset.phid===dragState.phId)return;
+      e.preventDefault();e.dataTransfer.dropEffect='move';
+      const above=e.clientY<tr.getBoundingClientRect().top+tr.getBoundingClientRect().height/2;
+      tbody.querySelectorAll('.drop-top,.drop-bot').forEach(el=>el.classList.remove('drop-top','drop-bot'));
+      tr.classList.add(above?'drop-top':'drop-bot');
+    }else{
+      const tr=e.target.closest('tr[data-id]');if(!tr)return;
+      if(+tr.dataset.id===dragState.id)return;
+      if(isFiltered())return;
+      e.preventDefault();e.dataTransfer.dropEffect='move';
+      const rect=tr.getBoundingClientRect();
+      const y=e.clientY-rect.top,h=rect.height;
+      const targetItem=IT.find(i=>i.id===+tr.dataset.id);
+      const draggedItem=IT.find(i=>i.id===dragState.id);
+      const tDepth=getDepth(targetItem);
+      const dSub=getSubtreeDepth(draggedItem);
+      const canN=canNest(dragState.id,+tr.dataset.id)&&(tDepth+1+dSub)<=5;
+      tbody.querySelectorAll('.drop-top,.drop-bot,.drop-nest').forEach(el=>el.classList.remove('drop-top','drop-bot','drop-nest'));
+      if(canN&&y>h*.33&&y<h*.66)tr.classList.add('drop-nest');
+      else if(y<h/2)tr.classList.add('drop-top');
+      else tr.classList.add('drop-bot');
+    }
+  };
+
+  const onLeave=e=>{
+    const tr=e.target.closest('tr');
+    if(tr)tr.classList.remove('drop-top','drop-bot','drop-nest');
+  };
+
+  const onDrop=e=>{
+    e.preventDefault();e.stopPropagation();
+    if(dragState.type==='phase'){
+      const tr=e.target.closest('tr.ph-hdr[data-phid]');if(!tr)return;
+      const above=tr.classList.contains('drop-top');
+      tr.classList.remove('drop-top','drop-bot');
+      reorderPhase(dragState.phId,tr.dataset.phid,above);
+    }else{
+      const tr=e.target.closest('tr[data-id]');if(!tr)return;
+      const wasNest=tr.classList.contains('drop-nest');
+      const above=tr.classList.contains('drop-top');
+      tr.classList.remove('drop-top','drop-bot','drop-nest');
+      if(wasNest)nestUnder(dragState.id,+tr.dataset.id);
+      else reorderRow(dragState.id,+tr.dataset.id,above);
+    }
+  };
+
+  const onEnd=e=>{
+    tbody.querySelectorAll('.is-dragging,.is-dragging-ph,.drop-top,.drop-bot,.drop-nest').forEach(el=>{
+      el.classList.remove('is-dragging','is-dragging-ph','drop-top','drop-bot','drop-nest');
+      el.removeAttribute('draggable');
+    });
+    tbody.removeEventListener('dragover',onOver);
+    tbody.removeEventListener('dragleave',onLeave);
+    tbody.removeEventListener('drop',onDrop);
+    tbody.removeEventListener('dragend',onEnd);
+    dragListenersOn=false;
+    dragState={type:null,id:null,phId:null};
+  };
+
+  tbody.addEventListener('dragover',onOver);
+  tbody.addEventListener('dragleave',onLeave);
+  tbody.addEventListener('drop',onDrop);
+  tbody.addEventListener('dragend',onEnd);
+}
+
+function reorderPhase(dragPhId,targetPhId,above){
+  const di=PH.findIndex(p=>p.id===dragPhId);if(di<0)return;
+  const [dragged]=PH.splice(di,1);
+  const ti=PH.findIndex(p=>p.id===targetPhId);if(ti<0){PH.splice(di,0,dragged);return}
+  PH.splice(above?ti:ti+1,0,dragged);
+  save();render();toast(`Module "${dragged.label}" déplacé`);
+}
+
+function reorderRow(dragId,targetId,above){
+  const dragged=IT.find(i=>i.id===dragId);
+  const target=IT.find(i=>i.id===targetId);
+  if(!dragged||!target)return;
+  if(!canNest(dragId,targetId)&&dragged.parentId!==target.parentId){toast('Déplacement impossible (cycle)');return}
+  const newDepth=getDepth(target);
+  if(newDepth+getSubtreeDepth(dragged)>5){toast('Profondeur max atteinte');return}
+  dragged.parentId=target.parentId;
+  dragged.phaseId=target.phaseId;
+  getAllDesc(dragId).forEach(d=>{d.phaseId=target.phaseId});
+  const desc=getAllDesc(dragId);
+  const block=[dragged,...desc];const blockIds=new Set(block.map(b=>b.id));
+  const others=IT.filter(i=>!blockIds.has(i.id)).sort((a,b)=>(a.order||0)-(b.order||0));
+  const ti=others.findIndex(i=>i.id===targetId);if(ti<0)return;
+  others.splice(above?ti:ti+1,0,...block);
+  others.forEach((it,i)=>{it.order=(i+1)*100});
+  reindexOrders();save();render();toast('Ordre mis à jour');
+}
+
+function nestUnder(dragId,targetId){
+  const dragged=IT.find(i=>i.id===dragId);
+  const target=IT.find(i=>i.id===targetId);
+  if(!dragged||!target)return;
+  if(!canNest(dragId,targetId)){toast('Déplacement impossible (cycle)');return}
+  const tDepth=getDepth(target);
+  if(tDepth+1+getSubtreeDepth(dragged)>5){toast('Profondeur max atteinte');return}
+  dragged.parentId=targetId;
+  dragged.phaseId=target.phaseId;
+  getAllDesc(dragId).forEach(d=>{d.phaseId=target.phaseId});
+  collapsedItems.delete(targetId);
+  const siblings=getChildren(targetId).filter(s=>s.id!==dragId);
+  dragged.order=siblings.length?Math.max(...siblings.map(s=>s.order||0))+50:(target.order||0)+50;
+  reindexOrders();save();render();
+  toast(`Imbriqué sous "${target.feature}"`);
+}
+
+/* ═══════════════════════════════════════════════════
+   FILTERS
+═══════════════════════════════════════════════════ */
+function setFilter(key,val){
+  F[key]=val;
+  document.querySelectorAll(`[data-f="${key}"]`).forEach(el=>el.classList.toggle('on',el.dataset.v===val));
+  renderTable();updateDragInfo();
+}
+
+/* ═══════════════════════════════════════════════════
+   EXPORT / BACKUP
+═══════════════════════════════════════════════════ */
+function exportCSV(){
+  const pLbl=p=>p==='1'?'P1-Critique':p==='2'?'P2-Importante':'P3-NiceToHave';
+  function walk(phId,parentId,depth,rows){
+    IT.filter(i=>i.phaseId===phId&&i.parentId===parentId).sort((a,b)=>(a.order||0)-(b.order||0)).forEach(i=>{
+      const ph=PH.find(p=>p.id===i.phaseId);
+      rows.push([ph?ph.label:'',i.feature,pLbl(i.pri),i.type,i.notes,'  '.repeat(depth)].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(';'));
+      walk(phId,i.id,depth+1,rows);
+    });
+  }
+  const rows=[['Module','Feature','Priorité','Type','Notes','Niveau'].map(v=>`"${v}"`).join(';')];
+  PH.forEach(ph=>walk(ph.id,null,0,rows));
+  const blob=new Blob(['\ufeff'+rows.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cdc-hotelier.csv';a.click();
+  toast('Export CSV téléchargé');
+}
+function backupJSON(){
+  const blob=new Blob([JSON.stringify({PH,IT,NID},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cdc-hotelier-backup.json';a.click();
+  toast('Sauvegarde téléchargée');
+}
+function restoreJSON(file){
+  if(!file)return;
+  new Response(file).json().then(p=>{
+    PH=p.PH&&p.PH.length?p.PH:PH;IT=p.IT&&p.IT.length?p.IT:IT;NID=p.NID||NID;
+    persist();render();toast('Données restaurées');
+  }).catch(()=>toast('Erreur – fichier invalide'));
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+
+  const app=document.getElementById('app');
+  if(localStorage.getItem('hrm-sb')==='1')app.classList.add('sb-off');
+  document.getElementById('btn-sb').addEventListener('click',()=>{
+    app.classList.toggle('sb-off');
+    localStorage.setItem('hrm-sb',app.classList.contains('sb-off')?'1':'0');
+  });
+
+  document.getElementById('btn-add').addEventListener('click',addRow);
+  document.getElementById('btn-csv').addEventListener('click',exportCSV);
+  document.getElementById('btn-backup').addEventListener('click',backupJSON);
+  document.getElementById('btn-restore').addEventListener('click',()=>document.getElementById('fi-restore').click());
+  document.getElementById('fi-restore').addEventListener('change',e=>{restoreJSON(e.target.files[0]);e.target.value=''});
+
+  document.getElementById('btn-reset').addEventListener('click',()=>{
+    if(!confirm('Réinitialiser toutes les données par défaut ?'))return;
+    localStorage.removeItem(SK);cloneDef();render();toast('Données réinitialisées');
+  });
+
+  let allOpen=true;
+  document.getElementById('btn-expand').addEventListener('click',()=>{
+    allOpen=!allOpen;PH.forEach(p=>p.open=allOpen);collapsedItems.clear();
+    document.getElementById('btn-expand').textContent=allOpen?'↕ Tout replier':'↕ Tout déplier';
+    save();renderTable();
+  });
+
+  // Static sidebar filters
+  document.querySelectorAll('[data-f="p"],[data-f="t"],[data-f="m"][data-v="all"]').forEach(el=>{
+    el.addEventListener('click',()=>setFilter(el.dataset.f,el.dataset.v));
+  });
+
+  // Search
+  let _stt;
+  document.getElementById('s-input').addEventListener('input',e=>{
+    clearTimeout(_stt);_stt=setTimeout(()=>{F.s=e.target.value;renderTable();updateDragInfo()},150);
+  });
+
+  window.addEventListener('beforeunload',persist);
+  initDrag();
+  render();
+});
+</script>
+</body>
+</html>
