@@ -1133,6 +1133,104 @@
     box-sizing: border-box;
   }
 
+  /* Cellules feuille avec multiplicateur : montant × qty = total */
+  .amount-leaf {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 11px 10px 11px 6px;
+    font-size: 13px;
+    line-height: 1.45;
+    min-height: 40px;
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+  }
+  .amount-leaf.amount-empty {
+    color: var(--text-subtle);
+  }
+  .amount-unit {
+    cursor: text;
+    padding: 3px 6px;
+    border-radius: 3px;
+    transition: background 80ms;
+    white-space: nowrap;
+  }
+  .amount-unit:hover {
+    background: var(--surface-2);
+  }
+  .amount-unit-solo {
+    flex: 1;
+    text-align: right;
+  }
+  .amount-op, .amount-equals {
+    color: var(--text-subtle);
+    font-size: 11px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .amount-qty {
+    cursor: text;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 12px;
+    min-width: 28px;
+    text-align: center;
+    transition: background 80ms;
+    flex-shrink: 0;
+  }
+  .amount-qty:hover {
+    background: #dbeafe;
+  }
+  .amount-result {
+    font-weight: 700;
+    color: var(--primary);
+    margin-left: 2px;
+    white-space: nowrap;
+  }
+  .amount-qty-toggle {
+    opacity: 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-subtle);
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: opacity 100ms, all 80ms;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  tr:hover .amount-qty-toggle {
+    opacity: 0.6;
+  }
+  .amount-qty-toggle:hover {
+    opacity: 1 !important;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+  /* Éditeur compact pour les multiplicateurs (champ qty) */
+  .qty-editor {
+    width: 50px;
+    border: none;
+    outline: none;
+    background: var(--primary-soft);
+    box-shadow: inset 0 0 0 2px var(--primary);
+    padding: 2px 6px;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+    font-family: inherit;
+    text-align: center;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+
   /* === IMPRESSION / EXPORT PDF === */
   @media print {
     @page {
@@ -1384,6 +1482,29 @@
       background: #eff6ff !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+    }
+    /* Format compact pour cellules feuille : affiche juste le total final */
+    .amount-leaf {
+      padding: 4px 6px !important;
+      font-size: 8.5px !important;
+      min-height: 0 !important;
+      justify-content: flex-end !important;
+      gap: 3px !important;
+    }
+    /* Cas multiplié : on cache les détails et on affiche le résultat */
+    .amount-multiplied .amount-unit,
+    .amount-multiplied .amount-op,
+    .amount-multiplied .amount-qty,
+    .amount-multiplied .amount-equals {
+      display: none !important;
+    }
+    .amount-multiplied .amount-result {
+      display: inline !important;
+      font-weight: 700 !important;
+    }
+    /* Cas one-shot : on affiche le montant unitaire et on cache le bouton ×N */
+    .amount-oneshot .amount-qty-toggle {
+      display: none !important;
     }
     .budget-num {
       font-size: 7.5px !important;
@@ -3355,12 +3476,12 @@ function showToast(message) {
 const BUDGET_STORAGE_KEY = 'hrm-budget-v1';
 
 const DEFAULT_BUDGET = [
-  { id: 1, parentId: null, software: 'Thais',       year1: 0, year2: 0, notes: 'PMS multi-property', order: 100 },
-  { id: 2, parentId: null, software: 'D-edge',      year1: 0, year2: 0, notes: 'Channel manager + PSP', order: 200 },
-  { id: 3, parentId: null, software: 'TriggerFlow', year1: 0, year2: 0, notes: 'Automatisation communication', order: 300 },
-  { id: 4, parentId: null, software: 'KeySuite',    year1: 0, year2: 0, notes: 'Gestion accès / serrures', order: 400 },
-  { id: 5, parentId: null, software: 'Website',     year1: 0, year2: 0, notes: 'Site internet groupe', order: 500 },
-  { id: 6, parentId: null, software: 'Sésame',      year1: 0, year2: 0, notes: 'Serrures connectées', order: 600 },
+  { id: 1, parentId: null, software: 'Thais',       year1: 0, year2: 0, qty1: 1, qty2: 1, notes: 'PMS multi-property', order: 100 },
+  { id: 2, parentId: null, software: 'D-edge',      year1: 0, year2: 0, qty1: 1, qty2: 1, notes: 'Channel manager + PSP', order: 200 },
+  { id: 3, parentId: null, software: 'TriggerFlow', year1: 0, year2: 0, qty1: 1, qty2: 1, notes: 'Automatisation communication', order: 300 },
+  { id: 4, parentId: null, software: 'KeySuite',    year1: 0, year2: 0, qty1: 1, qty2: 1, notes: 'Gestion accès / serrures', order: 400 },
+  { id: 5, parentId: null, software: 'Website',     year1: 0, year2: 0, qty1: 1, qty2: 1, notes: 'Site internet groupe', order: 500 },
+  { id: 6, parentId: null, software: 'Sésame',      year1: 0, year2: 0, qty1: 1, qty2: 1, notes: 'Serrures connectées', order: 600 },
 ];
 
 let budgetState = { data: [] };
@@ -3370,6 +3491,11 @@ function loadBudget() {
     const stored = localStorage.getItem(BUDGET_STORAGE_KEY);
     if (stored) {
       budgetState.data = JSON.parse(stored);
+      // Migration : assure qty1/qty2 = 1 si absents
+      budgetState.data.forEach(i => {
+        if (i.qty1 === undefined) i.qty1 = 1;
+        if (i.qty2 === undefined) i.qty2 = 1;
+      });
       return;
     }
   } catch (e) {}
@@ -3441,12 +3567,16 @@ function getAllBudgetDescendants(id) {
   return result;
 }
 
-/* Calcul des totaux RÉCURSIF : un item parent = somme des descendants directs
-   (qui peuvent eux-mêmes être parents et sommer leurs enfants).
-   Les feuilles utilisent leur propre valeur. */
+/* Calcul des totaux RÉCURSIF :
+   - Feuille : year × qty (multiplicateur, défaut 1)
+   - Parent : somme des descendants (qui peuvent eux-mêmes être parents) */
 function getBudgetYearTotal(item, year) {
   const children = getBudgetChildren(item.id);
-  if (children.length === 0) return item[year] || 0;
+  if (children.length === 0) {
+    const amount = item[year] || 0;
+    const qty = year === 'year1' ? (item.qty1 ?? 1) : (item.qty2 ?? 1);
+    return amount * qty;
+  }
   return children.reduce((sum, c) => sum + getBudgetYearTotal(c, year), 0);
 }
 
@@ -3574,12 +3704,12 @@ function renderBudgetTable() {
         </td>
         <td class="bcol-amount">
           ${editableY1
-            ? `<div class="amount-cell amount-edit ${y1Total ? '' : 'amount-empty'}" data-bfield="year1">${formatMoney(y1Total)}</div>`
+            ? renderAmountLeafCell(item, 'year1')
             : `<div class="amount-cell amount-total">${formatMoney(y1Total)}</div>`}
         </td>
         <td class="bcol-amount">
           ${editableY2
-            ? `<div class="amount-cell amount-edit ${y2Total ? '' : 'amount-empty'}" data-bfield="year2">${formatMoney(y2Total)}</div>`
+            ? renderAmountLeafCell(item, 'year2')
             : `<div class="amount-cell amount-total">${formatMoney(y2Total)}</div>`}
         </td>
         <td class="bcol-amount">
@@ -3638,6 +3768,34 @@ function renderBudgetStats() {
   if (elCount) elCount.textContent = roots.length;
 }
 
+/* Rendu d'une cellule montant pour un item feuille, avec multiplicateur visible.
+   Si qty > 1 : "300 € × 7 = 2 100 €" ; sinon juste le montant. */
+function renderAmountLeafCell(item, year) {
+  const amount = item[year] || 0;
+  const qtyField = year === 'year1' ? 'qty1' : 'qty2';
+  const qty = item[qtyField] ?? 1;
+  const total = amount * qty;
+  const isMultiplied = qty !== 1;
+  const emptyClass = total ? '' : 'amount-empty';
+
+  if (isMultiplied) {
+    return `
+      <div class="amount-leaf amount-multiplied ${emptyClass}">
+        <span class="amount-unit amount-edit" data-bfield="${year}" title="Montant unitaire">${formatMoney(amount)}</span>
+        <span class="amount-op">×</span>
+        <span class="amount-qty amount-edit" data-bfield="${qtyField}" title="Multiplicateur (ex: 12 pour mensualité, 7 pour 7 mois...)">${qty}</span>
+        <span class="amount-equals">=</span>
+        <span class="amount-result">${formatMoney(total)}</span>
+      </div>`;
+  } else {
+    return `
+      <div class="amount-leaf amount-oneshot ${emptyClass}">
+        <span class="amount-unit amount-edit amount-unit-solo" data-bfield="${year}">${formatMoney(amount)}</span>
+        <button class="amount-qty-toggle" data-bfield="${qtyField}" title="Ajouter un multiplicateur (×N)">×N</button>
+      </div>`;
+  }
+}
+
 /* === ÉDITION INLINE BUDGET (calque sur l'édition roadmap) === */
 
 let activeBudgetEditor = null;
@@ -3652,37 +3810,55 @@ function enterBudgetEditMode(cellView) {
   const item = budgetState.data.find(i => i.id === itemId);
   if (!item) return;
 
+  // Trois types de champs :
+  // - montant (year1, year2) → input texte parsé en monnaie
+  // - quantité (qty1, qty2)  → input numérique compact
+  // - texte (software, notes) → textarea auto-resize
   const isAmount = (field === 'year1' || field === 'year2');
-  const currentValue = isAmount ? String(item[field] || 0) : (item[field] || '');
+  const isQty    = (field === 'qty1' || field === 'qty2');
+  const currentValue = (isAmount || isQty)
+    ? String(item[field] ?? (isQty ? 1 : 0))
+    : (item[field] || '');
 
-  const editor = document.createElement(isAmount ? 'input' : 'textarea');
-  editor.className = isAmount ? 'amount-editor' : 'cell-editor';
-  editor.dataset.bfield = field;
+  let editor;
   if (isAmount) {
+    editor = document.createElement('input');
     editor.type = 'text';
-    editor.value = currentValue;
+    editor.className = 'amount-editor';
     editor.inputMode = 'decimal';
+    editor.value = currentValue;
+  } else if (isQty) {
+    editor = document.createElement('input');
+    editor.type = 'number';
+    editor.className = 'qty-editor';
+    editor.inputMode = 'numeric';
+    editor.min = '1';
+    editor.step = '1';
+    editor.value = currentValue;
   } else {
+    editor = document.createElement('textarea');
+    editor.className = 'cell-editor';
     editor.value = currentValue;
   }
-  if (cellView.style.cssText) editor.style.cssText += cellView.style.cssText;
+  editor.dataset.bfield = field;
 
+  // Insertion dans le DOM
   cellView.classList.add('editing');
   cellView.style.display = 'none';
   cellView.parentNode.insertBefore(editor, cellView.nextSibling);
 
-  if (!isAmount) {
+  if (!isAmount && !isQty) {
     editor.style.height = 'auto';
     editor.style.height = Math.max(40, editor.scrollHeight) + 'px';
   }
 
-  activeBudgetEditor = { editor, view: cellView, itemId, field, isAmount };
+  activeBudgetEditor = { editor, view: cellView, itemId, field, isAmount, isQty };
 
   editor.focus();
-  if (isAmount) editor.select();
+  if (isAmount || isQty) editor.select();
   else editor.setSelectionRange(currentValue.length, currentValue.length);
 
-  if (!isAmount) {
+  if (!isAmount && !isQty) {
     editor.addEventListener('input', () => {
       editor.style.height = 'auto';
       editor.style.height = Math.max(40, editor.scrollHeight) + 'px';
@@ -3695,7 +3871,7 @@ function enterBudgetEditMode(cellView) {
       e.preventDefault();
       cancelBudgetEdit(activeBudgetEditor);
     }
-    if (e.key === 'Enter' && isAmount) {
+    if (e.key === 'Enter' && (isAmount || isQty)) {
       e.preventDefault();
       editor.blur();
     }
@@ -3706,11 +3882,15 @@ function commitBudgetEdit(editor) {
   if (!editor || editor !== activeBudgetEditor) return;
   activeBudgetEditor = null;
 
-  const { editor: el, view, itemId, field, isAmount } = editor;
+  const { editor: el, view, itemId, field, isAmount, isQty } = editor;
   const item = budgetState.data.find(i => i.id === itemId);
 
   let newValue;
   if (isAmount) newValue = parseMoney(el.value);
+  else if (isQty) {
+    const n = parseInt(el.value, 10);
+    newValue = isNaN(n) || n < 1 ? 1 : n; // qty minimum = 1
+  }
   else newValue = el.value;
 
   let changed = false;
@@ -3725,8 +3905,9 @@ function commitBudgetEdit(editor) {
   el.remove();
 
   if (changed) {
-    // Re-render complet du budget (recalcul des totaux)
-    if (isAmount) {
+    // Re-render complet du budget si on a touché à un montant ou un multiplicateur
+    // (les totaux remontent à tous les ancêtres + les stats changent)
+    if (isAmount || isQty) {
       renderBudget();
     } else {
       view.textContent = newValue;
@@ -3859,6 +4040,29 @@ function setupBudgetDelegation() {
       e.stopPropagation();
       toggleBudgetCollapsed(parseInt(toggleBtn.dataset.btoggleId));
       renderBudget();
+      return;
+    }
+    // Bouton ×N : ouvre l'édition du multiplicateur avec valeur 12 par défaut (mensualité)
+    const qtyToggle = e.target.closest('.amount-qty-toggle');
+    if (qtyToggle) {
+      const field = qtyToggle.dataset.bfield; // 'qty1' ou 'qty2'
+      const tr = qtyToggle.closest('tr[data-bid]');
+      if (!tr) return;
+      const itemId = parseInt(tr.dataset.bid);
+      const item = budgetState.data.find(i => i.id === itemId);
+      if (!item) return;
+      // Met le qty à 12 par défaut (cas typique mensualité) — l'utilisateur peut éditer
+      item[field] = 12;
+      scheduleBudgetSave();
+      renderBudget();
+      // Focus immédiat sur le champ qty pour ajustement rapide
+      setTimeout(() => {
+        const newRow = document.querySelector(`tr[data-bid="${itemId}"]`);
+        if (newRow) {
+          const qtySpan = newRow.querySelector(`.amount-qty[data-bfield="${field}"]`);
+          if (qtySpan) enterBudgetEditMode(qtySpan);
+        }
+      }, 30);
       return;
     }
     // Cellules éditables
