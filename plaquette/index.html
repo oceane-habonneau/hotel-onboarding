@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plaquette — Toolbox Océane Habonneau</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: #eff6ff;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --text-subtle: #9ca3af;
+    --danger: #dc2626;
+    --success: #16a34a;
+    --gray-soft: #f3f4f6;
+    --transition: 140ms ease;
+
+    /* Premium colors (preview) */
+    --pr-bg: #FAFAFA;
+    --pr-text: #111;
+    --pr-muted: #ABABAB;
+    --pr-border: #EAEAEA;
+    --pr-soft: #CACACA;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--surface-2);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ==========================================================
+     ENTÊTE / HEADER COMMUN (mode éditeur)
+     ========================================================== */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .app-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-title-badge {
+    background: #111;
+    color: #fff;
+    padding: 4px 9px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .app-title-text { font-weight: 600; color: var(--text); }
+  .app-title-text small { color: var(--text-muted); font-weight: 400; margin-left: 8px; font-size: 12px; }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* Mode toggle */
+  .mode-toggle {
+    display: inline-flex;
+    background: var(--gray-soft);
+    border-radius: 7px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .mode-toggle button {
+    background: transparent;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+  }
+  .mode-toggle button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: var(--transition);
+  }
+  .btn:hover { border-color: var(--text-subtle); background: var(--surface-2); }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+  .btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-muted);
+  }
+  .btn-ghost:hover { color: var(--text); background: var(--surface-2); }
+  .btn-danger {
+    color: var(--danger);
+    border-color: var(--border);
+  }
+  .btn-danger:hover { background: #fef2f2; border-color: var(--danger); }
+
+  /* ==========================================================
+     MODE ÉDITEUR
+     ========================================================== */
+  .editor {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  .editor.hidden { display: none; }
+
+  .editor-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .editor-section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-2);
+  }
+  .editor-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .editor-section-title .label {
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+  .editor-section-body {
+    padding: 18px 20px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 12px;
+  }
+  .form-row:last-child { margin-bottom: 0; }
+  .form-row label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding-top: 8px;
+  }
+  .form-input, .form-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 100ms;
+  }
+  .form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+  .form-textarea {
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.5;
+  }
+  .form-row .helper {
+    font-size: 11px;
+    color: var(--text-subtle);
+    margin-top: 4px;
+  }
+
+  /* Cards d'édition des packages */
+  .package-card-edit {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .package-card-edit:last-child { margin-bottom: 0; }
+  .package-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    cursor: pointer;
+  }
+  .package-card-header:hover { background: #f1f5f9; }
+  .package-card-title-zone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .package-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .package-card-summary {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .package-card-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: auto;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .package-card-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+  .icon-btn:hover { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .icon-btn.danger:hover { color: var(--danger); border-color: var(--danger); background: #fef2f2; }
+  .chevron-toggle svg { transition: transform var(--transition); }
+  .package-card-header.collapsed .chevron-toggle svg { transform: rotate(-90deg); }
+
+  .package-card-body {
+    padding: 18px 18px 14px;
+    display: block;
+  }
+  .package-card-header.collapsed + .package-card-body { display: none; }
+
+  /* Catégories de stack à l'intérieur d'un package */
+  .stack-section { margin-top: 14px; }
+  .stack-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stack-category-edit {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .stack-category-edit:last-child { margin-bottom: 0; }
+  .stack-category-row {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .stack-tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .tool-chip-edit {
+    display: inline-flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .tool-chip-edit input.tool-name {
+    border: none;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: inherit;
+    background: transparent;
+    outline: none;
+    width: 130px;
+    color: var(--text);
+  }
+  .tool-chip-edit input.tool-hours {
+    border: none;
+    border-left: 1px solid var(--border);
+    padding: 5px 6px;
+    font-size: 11px;
+    font-family: inherit;
+    background: var(--gray-soft);
+    outline: none;
+    width: 56px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+  .tool-chip-edit input.tool-hours::-webkit-outer-spin-button,
+  .tool-chip-edit input.tool-hours::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .tool-chip-edit .tool-remove {
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border);
+    padding: 0 6px;
+    cursor: pointer;
+    color: var(--text-subtle);
+    font-size: 14px;
+    height: 100%;
+  }
+  .tool-chip-edit .tool-remove:hover { color: var(--danger); background: #fef2f2; }
+  .add-tool-btn {
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: inherit;
+    transition: var(--transition);
+  }
+  .add-tool-btn:hover { border-color: var(--primary); color: var(--primary); border-style: solid; background: var(--primary-soft); }
+
+  .add-row-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: inherit;
+    transition: var(--transition);
+    margin-top: 6px;
+  }
+  .add-row-btn:hover { border-color: var(--primary); color: var(--primary); border-style: solid; background: var(--primary-soft); }
+
+  /* === Édition des niveaux d'accompagnement === */
+  .tiers-section {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tiers-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .tier-edit {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .tier-edit:last-child { margin-bottom: 0; }
+  .tier-edit-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    gap: 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .tier-icon-display { font-size: 18px; line-height: 1; flex-shrink: 0; }
+  .tier-name-display {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tier-stats {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .tier-price-display {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-soft);
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .tier-price-display.is-override {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .badge-auto, .badge-override {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+  }
+  .badge-auto { background: var(--primary-soft); color: var(--primary); }
+  .badge-override { background: #fef3c7; color: #92400e; }
+  .tier-actions {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .tier-edit-body {
+    padding: 12px;
+  }
+  .tier-edit-grid {
+    display: grid;
+    grid-template-columns: 90px 1fr 200px;
+    gap: 10px;
+    align-items: start;
+  }
+  .tier-field { display: flex; flex-direction: column; gap: 4px; }
+  .tier-field label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+  .tier-icon-input {
+    font-size: 18px !important;
+    text-align: center;
+    padding: 6px !important;
+  }
+
+  /* === TABLEUR UNIFIÉ (lignes par package) === */
+  .lines-section {
+    margin-top: 8px;
+  }
+  .lines-section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 10px;
+  }
+  .lines-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+  }
+  .lines-section-help {
+    font-size: 10px;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  .lines-table {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .lines-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.6fr) minmax(120px, 1fr) 70px 70px 90px repeat(var(--tier-cols), 80px) 56px 28px;
+    gap: 6px;
+    align-items: center;
+    min-width: 900px;
+  }
+  .lines-header-row {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+    padding: 2px 4px;
+  }
+  .lines-row input.form-input {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .lines-row .lcol-num input {
+    text-align: right;
+  }
+  .lines-row .lcol-num {
+    text-align: right;
+  }
+  .lcol-total {
+    text-align: right;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-soft);
+    border-radius: 4px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lcol-tier {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .lines-header-row .lcol-tier {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lcol-stack {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .lines-header-row .lcol-stack {
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* Case à cocher tier custom (carrée, colorée selon le package) */
+  .tier-checkbox {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .tier-checkbox input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+  .tier-checkbox-box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 100ms;
+  }
+  .tier-checkbox:hover .tier-checkbox-box {
+    transform: scale(1.06);
+  }
+
+  /* Switch on/off (compact pour le inStack) */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  .switch.switch-sm { width: 30px; height: 16px; }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #cbd5e1;
+    transition: 200ms;
+    border-radius: 18px;
+  }
+  .switch-slider::before {
+    position: absolute;
+    content: "";
+    height: 14px; width: 14px;
+    left: 2px; bottom: 2px;
+    background: white;
+    transition: 200ms;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .switch.switch-sm .switch-slider::before { height: 12px; width: 12px; }
+  .switch input:checked + .switch-slider { background: var(--primary); }
+  .switch input:checked + .switch-slider::before { transform: translateX(14px); }
+  .switch.switch-sm input:checked + .switch-slider::before { transform: translateX(14px); }
+  .switch:hover .switch-slider { filter: brightness(0.95); }
+
+  .breakdown-empty {
+    font-size: 12px;
+    color: var(--text-subtle);
+    text-align: center;
+    padding: 16px 8px;
+    font-style: italic;
+    background: var(--surface-2);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+  }
+
+  /* === IMPRESSION / EXPORT PDF === */
+  .package-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .package-stat {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .package-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+  .package-stat-value { font-size: 14px; font-weight: 700; margin-top: 2px; }
+
+  /* Phases */
+  .phase-row {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 36px 1fr 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .phase-row:last-child { margin-bottom: 0; }
+  .phase-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+  .phase-title-input, .phase-desc-input {
+    border: none;
+    background: transparent;
+    padding: 4px 6px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    border-radius: 4px;
+  }
+  .phase-title-input { font-weight: 600; }
+  .phase-title-input:focus, .phase-desc-input:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--primary-soft); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 200ms;
+    z-index: 1000;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ==========================================================
+     MODE APERÇU (LOOK PREMIUM)
+     ========================================================== */
+  .preview {
+    background: var(--pr-bg);
+    min-height: 100vh;
+    padding: 40px 0 80px;
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    color: var(--pr-text);
+    display: none;
+  }
+  .preview.active { display: block; }
+
+  .preview-page { max-width: 1320px; margin: 0 auto; padding: 24px 40px 40px; }
+
+  .preview-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; padding-bottom: 28px; border-bottom: 1px solid var(--pr-border); }
+  .preview-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 3px; color: var(--pr-muted); text-transform: uppercase; margin-bottom: 8px; }
+  .preview-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(26px, 3.5vw, 38px); font-weight: 500; color: var(--pr-text); letter-spacing: -0.02em; line-height: 1.1; }
+  .preview-header-right { text-align: right; }
+  .preview-header-right .name { font-size: 13px; font-weight: 500; color: #333; letter-spacing: -0.01em; }
+  .preview-header-right .role { font-size: 11px; color: var(--pr-muted); margin-top: 3px; letter-spacing: 0.02em; }
+
+  /* Grid des cartes */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+
+  .pr-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    border: 1px solid var(--pr-border);
+    display: flex;
+    flex-direction: column;
+  }
+  .pr-card-stripe { height: 5px; }
+  .pr-card-body { padding: 28px 28px 24px; flex: 1; display: flex; flex-direction: column; }
+  .pr-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .pr-card-num { font-family: 'Playfair Display', Georgia, serif; font-size: 32px; font-weight: 500; line-height: 1; }
+  .pr-focus-badge { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 100px; border: 1px solid; letter-spacing: 0.4px; text-transform: uppercase; }
+  .pr-card-name { font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 6px; line-height: 1.15; }
+  .pr-card-tagline { font-size: 13px; color: var(--pr-muted); line-height: 1.45; margin-bottom: 20px; }
+  .pr-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .pr-metrics.pr-metrics-single { grid-template-columns: 1fr; }
+  .pr-metric-box { border: 1px solid; border-radius: 8px; padding: 12px 14px; }
+  .pr-metric-label { font-size: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.6px; margin-bottom: 4px; }
+  .pr-metric-value { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; font-weight: 500; line-height: 1; }
+  .pr-divider { border-top: 1px solid var(--pr-border); margin: 4px 0 18px; }
+  .pr-stack-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--pr-soft); margin-bottom: 12px; }
+
+  /* === TIERS D'ACCOMPAGNEMENT EN PREVIEW === */
+  .pr-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .pr-tier {
+    background: #FCFCFC;
+    border: 1px solid var(--pr-border);
+    border-left: 3px solid;
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .pr-tier-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .pr-tier-id {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .pr-tier-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .pr-tier-hours {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 100px;
+    border: 1px solid;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .pr-tier-icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+  .pr-tier-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--pr-text);
+    letter-spacing: -0.01em;
+  }
+  .pr-tier-price {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 17px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pr-tier-punchline {
+    font-size: 12px;
+    font-weight: 500;
+    color: #555;
+    font-style: italic;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .pr-tier-desc {
+    font-size: 11px;
+    color: var(--pr-muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  /* Stack logiciel à l'intérieur de chaque tier */
+  .pr-tier-stack {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--pr-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pr-tier-stack .pr-stack-cat-name {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #777;
+    width: 80px;
+    flex-shrink: 0;
+    padding-top: 3px;
+  }
+  .pr-tier-stack .pr-stack-cat-tools {
+    gap: 4px;
+  }
+  .pr-tier-stack .pr-stack-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  .pr-stack-categories { display: flex; flex-direction: column; gap: 10px; }
+  .pr-stack-cat-row { display: flex; align-items: flex-start; gap: 10px; }
+  .pr-stack-cat-name { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: #555; padding-top: 4px; width: 90px; flex-shrink: 0; }
+  .pr-stack-cat-tools { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+  .pr-stack-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid;
+    line-height: 1.3;
+  }
+  .pr-tag-hours {
+    font-size: 10px;
+    opacity: 0.7;
+    font-weight: 600;
+    margin-left: 2px;
+  }
+
+  /* Bloc process / phases */
+  .pr-process {
+    background: #fff;
+    border: 1px solid var(--pr-border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 36px;
+  }
+  .pr-process-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .pr-process-sub {
+    font-size: 12px;
+    color: var(--pr-muted);
+    margin-bottom: 22px;
+  }
+  .pr-phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px; }
+  .pr-phase { display: flex; gap: 12px; align-items: flex-start; }
+  .pr-phase-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--pr-text);
+    color: #fff;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 14px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .pr-phase-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .pr-phase-desc { font-size: 11px; color: var(--pr-muted); line-height: 1.4; }
+
+  /* Footer consultant */
+  .pr-footer {
+    border-top: 1px solid var(--pr-border);
+    padding-top: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .pr-footer-items { display: flex; align-items: center; flex-wrap: wrap; }
+  .pr-footer-item { display: flex; flex-direction: column; padding: 0 28px; border-right: 1px solid var(--pr-border); }
+  .pr-footer-item:first-child { padding-left: 0; }
+  .pr-footer-item:last-child { border-right: none; }
+  .pr-footer-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--pr-soft); margin-bottom: 4px; }
+  .pr-footer-value { font-size: 13px; font-weight: 500; color: #333; letter-spacing: -0.01em; }
+  .pr-footer-value a { color: inherit; text-decoration: none; border-bottom: 1px solid #ddd; }
+  .pr-footer-value a:hover { border-bottom-color: var(--pr-text); }
+  .pr-footer-note { font-size: 10px; color: var(--pr-soft); letter-spacing: 0.05em; font-style: italic; }
+
+  /* ==========================================================
+     IMPRESSION (PDF de la plaquette)
+     ========================================================== */
+  @media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body { background: white !important; }
+    .app-header, .editor { display: none !important; }
+    .preview { display: block !important; padding: 0 !important; background: white !important; }
+    .preview-page { padding: 0 !important; max-width: none !important; }
+    .pr-card, .pr-process { box-shadow: none !important; page-break-inside: avoid; }
+    .preview-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 12px !important; }
+    .pr-card-body { padding: 16px 18px !important; }
+    .pr-card-name { font-size: 18px !important; }
+    .pr-metric-value { font-size: 16px !important; }
+    .pr-stack-tag { font-size: 10px !important; padding: 2px 7px !important; }
+    .pr-stack-cat-name { width: 70px !important; font-size: 9px !important; }
+    .pr-tier { padding: 8px 10px !important; }
+    .pr-tier-name { font-size: 13px !important; }
+    .pr-tier-price { font-size: 14px !important; }
+    .pr-tier-punchline { font-size: 9.5px !important; margin-bottom: 3px !important; }
+    .pr-tier-desc { font-size: 9px !important; line-height: 1.35 !important; }
+    .pr-tiers { gap: 6px !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER COMMUN ============ -->
+<header class="app-header">
+  <div class="app-title">
+    <span class="app-title-text">Plaquette commerciale <small>Toolbox Océane Habonneau</small></span>
+  </div>
+  <div class="header-actions">
+    <div class="mode-toggle" id="mode-toggle">
+      <button class="active" data-mode="editor">Éditeur</button>
+      <button data-mode="preview">Aperçu</button>
+    </div>
+    <button class="btn" id="btn-save-json" title="Télécharger la plaquette en JSON">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Sauvegarde
+    </button>
+    <button class="btn btn-ghost" id="btn-restore-json" title="Restaurer depuis un fichier JSON">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Restaurer
+    </button>
+    <button class="btn btn-ghost" id="btn-reset" title="Reset au template par défaut">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Reset
+    </button>
+    <button class="btn" id="btn-export-html" title="Exporter en fichier HTML autonome">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      HTML
+    </button>
+    <button class="btn btn-primary" id="btn-export-pdf" title="Imprimer / Exporter en PDF">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      PDF
+    </button>
+  </div>
+</header>
+
+<input type="file" id="file-input-restore" accept=".json" style="display:none">
+
+<!-- ============ MODE ÉDITEUR ============ -->
+<main class="editor" id="editor">
+
+  <!-- En-tête de plaquette -->
+  <section class="editor-section">
+    <div class="editor-section-header">
+      <h2 class="editor-section-title">En-tête <span class="label">titre & sous-titres</span></h2>
+    </div>
+    <div class="editor-section-body">
+      <div class="form-row">
+        <label>Sur-titre</label>
+        <input class="form-input" data-field="header.eyebrow" placeholder="ex: Architecture de Flux">
+      </div>
+      <div class="form-row">
+        <label>Titre principal</label>
+        <input class="form-input" data-field="header.title" placeholder="ex: Trois écosystèmes types">
+      </div>
+      <div class="form-row">
+        <label>Nom (haut droite)</label>
+        <input class="form-input" data-field="header.name" placeholder="ex: Océane Habonneau">
+      </div>
+      <div class="form-row">
+        <label>Rôle (haut droite)</label>
+        <input class="form-input" data-field="header.role" placeholder="ex: Consultante en architecture digitale hôtelière">
+      </div>
+    </div>
+  </section>
+
+  <!-- Packages -->
+  <section class="editor-section">
+    <div class="editor-section-header">
+      <h2 class="editor-section-title">Packages <span class="label" id="packages-count">3</span></h2>
+      <button class="btn btn-primary" id="btn-add-package">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouveau package
+      </button>
+    </div>
+    <div class="editor-section-body" id="packages-container">
+      <!-- généré en JS -->
+    </div>
+  </section>
+
+  <!-- Bloc Process -->
+  <section class="editor-section">
+    <div class="editor-section-header">
+      <h2 class="editor-section-title">Process de mission <span class="label">phases incluses dans chaque package</span></h2>
+    </div>
+    <div class="editor-section-body">
+      <div class="form-row">
+        <label>Titre du bloc</label>
+        <input class="form-input" data-field="process.title" placeholder="ex: Notre approche">
+      </div>
+      <div class="form-row">
+        <label>Sous-titre</label>
+        <input class="form-input" data-field="process.subtitle" placeholder="ex: Chaque package inclut...">
+      </div>
+      <div style="margin-top: 14px;" id="phases-container">
+        <!-- généré en JS -->
+      </div>
+      <button class="add-row-btn" id="btn-add-phase">+ Ajouter une phase</button>
+    </div>
+  </section>
+
+  <!-- Footer consultant -->
+  <section class="editor-section">
+    <div class="editor-section-header">
+      <h2 class="editor-section-title">Footer <span class="label">tes coordonnées</span></h2>
+    </div>
+    <div class="editor-section-body">
+      <div class="form-row">
+        <label>Nom complet</label>
+        <input class="form-input" data-field="footer.name" placeholder="ex: Océane Habonneau">
+      </div>
+      <div class="form-row">
+        <label>Email</label>
+        <input class="form-input" data-field="footer.email" type="email" placeholder="ex: oceane@exemple.fr">
+      </div>
+      <div class="form-row">
+        <label>Téléphone</label>
+        <input class="form-input" data-field="footer.phone" placeholder="ex: +33 6 12 34 56 78">
+      </div>
+      <div class="form-row">
+        <label>Lien d'agenda</label>
+        <input class="form-input" data-field="footer.agenda" placeholder="ex: https://calendly.com/...">
+      </div>
+      <div class="form-row">
+        <label>Note bas de page</label>
+        <input class="form-input" data-field="footer.note" placeholder="ex: Proposition exclusive — ...">
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ MODE APERÇU ============ -->
+<div class="preview" id="preview">
+  <!-- généré dynamiquement -->
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   PLAQUETTE TOOLBOX — Océane Habonneau
+   ============================================================ */
+
+const STORAGE_KEY = 'hrm-plaquette-v1';
+
+/* ============================================================
+   TEMPLATE PAR DÉFAUT (Maison André : Écrin / Resort / Nomad)
+   ============================================================ */
+
+/* Pour chaque package, 3 niveaux d'accompagnement marketables.
+   Les textes sont identiques d'un package à l'autre (positionnement constant),
+   seul le PRIX EST AUTO-CALCULÉ depuis les lignes cochées dans le tableur unifié. */
+function makeDefaultTiers() {
+  return [
+    {
+      id: newIdSync(),
+      icon: '🚀',
+      name: 'Autonome',
+      punchline: 'Vous savez où vous allez. On vous donne les clés.',
+      description: 'Sélection d\'outils déjà décidée de votre côté. Vous remplissez un dossier d\'onboarding guidé, nous configurons l\'écosystème sans phase de conseil. Mise en route accélérée pour les équipes qui ont les idées claires.',
+      price: '' // calculé automatiquement à partir des lignes ; texte libre possible (override)
+    },
+    {
+      id: newIdSync(),
+      icon: '🎯',
+      name: 'Guidée',
+      punchline: 'Vous voulez avancer vite, mais sécurisé.',
+      description: 'Co-construction d\'un cahier des charges léger + 2h d\'atelier d\'onboarding pour cadrer ensemble vos choix. Vous pré-remplissez, on révise, on valide en réunion, on configure. Le bon équilibre entre vitesse et accompagnement.',
+      price: ''
+    },
+    {
+      id: newIdSync(),
+      icon: '💎',
+      name: 'Sur-mesure',
+      punchline: 'Vous voulez transformer votre stack en avantage concurrentiel.',
+      description: 'Cahier des charges complet construit avec vos chefs de service. Onboarding par service (réception, F&B, ménage, direction). Conseil opérationnel qui imprègne les paramétrages. L\'écosystème devient un levier business, pas juste un outil.',
+      price: ''
+    }
+  ];
+}
+
+// ID monotone simple (utilisé uniquement pour les tiers par défaut, qui sont
+// créés avant que newIdSync() ait du temps réel à offrir d'un appel à l'autre).
+let _idCounter = 1000000;
+function newIdSync() { return ++_idCounter; }
+
+/* Helper : crée une ligne du tableur unifié.
+   - tierIds : tableau des IDs de tiers dans lesquels la ligne est incluse (vide = aucun)
+   - inStack : si true, la ligne apparaît comme tag dans le bloc "Stack Logiciel" de la preview
+              (sinon : la ligne compte dans le prix mais reste invisible)
+*/
+function makeLine(label, category, hours, rate, tierIds, inStack) {
+  return {
+    id: newIdSync(),
+    label,
+    category: category || '',
+    hours: hours,
+    rate: rate != null ? rate : 150,
+    tierIds: tierIds || [],
+    inStack: inStack !== false // par défaut visible dans le stack
+  };
+}
+
+const DEFAULT_DATA = (() => {
+  // On construit les 3 packages avec leurs tiers et leurs lignes unifiées.
+  // L'idée : Autonome ne comprend QUE la configuration ; Guidée ajoute le cahier
+  // des charges + atelier ; Sur-mesure ajoute le conseil opérationnel + onboarding
+  // par service.
+
+  // -- Package 1 : Écrin --
+  const ecrinTiers = makeDefaultTiers();
+  const [eA, eG, eS] = ecrinTiers.map(t => t.id);
+  const ecrinLines = [
+    // Logiciels — présents dans tous les tiers
+    makeLine('Mews PMS/POS', 'PMS · POS', 6, 150, [eA, eG, eS], true),
+    makeLine('Stripe', 'PSP', 2, 150, [eA, eG, eS], true),
+    makeLine('SiteMinder', 'CM · BE', 4, 150, [eA, eG, eS], true),
+    makeLine('Mews Booking Engine', 'CM · BE', 2, 150, [eA, eG, eS], true),
+    makeLine('Brevo', 'CRM · Email', 5, 150, [eA, eG, eS], true),
+    makeLine('HotelKit', 'Opérations', 4, 150, [eA, eG, eS], true),
+    makeLine('Asana', 'Opérations', 2, 150, [eA, eG, eS], true),
+    makeLine('Lighthouse', 'Pricing · BI', 3, 150, [eA, eG, eS], true),
+    makeLine('Tableau', 'Pricing · BI', 3, 150, [eA, eG, eS], true),
+    // Phases / conseils — selon le tier (invisibles dans le Stack)
+    makeLine('Cahier des charges (léger)', 'Phase amont', 6, 150, [eG], false),
+    makeLine('Atelier d\'onboarding (2h)', 'Phase amont', 2, 150, [eG], false),
+    makeLine('Cahier des charges (complet, par service)', 'Phase amont', 14, 150, [eS], false),
+    makeLine('Onboarding par service', 'Phase amont', 10, 150, [eS], false),
+    makeLine('Conseil opérationnel', 'Conseil', 8, 150, [eS], false),
+    makeLine('Gestion de projet', 'Phase aval', 6, 150, [eG, eS], false),
+  ];
+
+  // -- Package 2 : Resort --
+  const resortTiers = makeDefaultTiers();
+  const [rA, rG, rS] = resortTiers.map(t => t.id);
+  const resortLines = [
+    makeLine('Opera Cloud', 'PMS · POS', 10, 150, [rA, rG, rS], true),
+    makeLine('Lightspeed K-POS', 'PMS · POS', 6, 150, [rA, rG, rS], true),
+    makeLine('Adyen', 'PSP', 4, 150, [rA, rG, rS], true),
+    makeLine('D-EDGE Channel', 'CM · BE', 6, 150, [rA, rG, rS], true),
+    makeLine('D-EDGE BE', 'CM · BE', 4, 150, [rA, rG, rS], true),
+    makeLine('Salesforce Hospitality', 'CRM · Email', 8, 150, [rA, rG, rS], true),
+    makeLine('Mailjet', 'CRM · Email', 4, 150, [rA, rG, rS], true),
+    makeLine('GuestOnline', 'F&B', 4, 150, [rA, rG, rS], true),
+    makeLine('Resmio', 'F&B', 3, 150, [rA, rG, rS], true),
+    makeLine('Booker', 'Spa · Wellness', 5, 150, [rA, rG, rS], true),
+    makeLine('Cvent', 'MICE', 6, 150, [rA, rG, rS], true),
+    makeLine('HotSOS', 'Opérations', 5, 150, [rA, rG, rS], true),
+    makeLine('Knowcross', 'Opérations', 3, 150, [rA, rG, rS], true),
+    makeLine('IDeaS G3', 'Pricing · BI', 7, 150, [rA, rG, rS], true),
+    makeLine('PowerBI', 'Pricing · BI', 6, 150, [rA, rG, rS], true),
+    // Phases
+    makeLine('Cahier des charges (léger)', 'Phase amont', 8, 150, [rG], false),
+    makeLine('Atelier d\'onboarding (2h)', 'Phase amont', 2, 150, [rG], false),
+    makeLine('Cahier des charges (complet, par service)', 'Phase amont', 20, 150, [rS], false),
+    makeLine('Onboarding par service (F&B, Spa, MICE, Réception)', 'Phase amont', 16, 150, [rS], false),
+    makeLine('Conseil opérationnel', 'Conseil', 12, 150, [rS], false),
+    makeLine('Gestion de projet', 'Phase aval', 10, 150, [rG, rS], false),
+  ];
+
+  // -- Package 3 : Nomad --
+  const nomadTiers = makeDefaultTiers();
+  const [nA, nG, nS] = nomadTiers.map(t => t.id);
+  const nomadLines = [
+    makeLine('Smoobu', 'PMS', 4, 150, [nA, nG, nS], true),
+    makeLine('Hostaway', 'PMS', 2, 150, [nA, nG, nS], true),
+    makeLine('Stripe', 'PSP', 2, 150, [nA, nG, nS], true),
+    makeLine('Smoobu CM', 'CM · BE', 3, 150, [nA, nG, nS], true),
+    makeLine('KeyNest', 'Self check-in', 3, 150, [nA, nG, nS], true),
+    makeLine('Sésame Open', 'Self check-in', 4, 150, [nA, nG, nS], true),
+    makeLine('YourWelcome', 'Communication', 4, 150, [nA, nG, nS], true),
+    makeLine('Turno', 'Ménage', 3, 150, [nA, nG, nS], true),
+    makeLine('Beyond', 'Pricing', 3, 150, [nA, nG, nS], true),
+    makeLine('PriceLabs', 'Pricing', 4, 150, [nA, nG, nS], true),
+    // Phases
+    makeLine('Cahier des charges (léger)', 'Phase amont', 4, 150, [nG], false),
+    makeLine('Atelier d\'onboarding (2h)', 'Phase amont', 2, 150, [nG], false),
+    makeLine('Cahier des charges (complet)', 'Phase amont', 10, 150, [nS], false),
+    makeLine('Onboarding remote', 'Phase amont', 6, 150, [nS], false),
+    makeLine('Conseil opérationnel', 'Conseil', 6, 150, [nS], false),
+    makeLine('Gestion de projet', 'Phase aval', 5, 150, [nG, nS], false),
+  ];
+
+  return {
+    header: {
+      eyebrow: 'Architecture de Flux',
+      title: 'Trois écosystèmes types pour l\'hôtellerie',
+      name: 'Océane Habonneau',
+      role: 'Consultante en architecture digitale hôtelière'
+    },
+    packages: [
+      {
+        id: 1,
+        num: '01',
+        color: '#C9A96E',
+        colorSoft: '#FBF5EB',
+        colorBorder: '#E8D5B0',
+        name: 'L\'Écrin Boutique',
+        focus: 'Expérience & Intimité',
+        tagline: 'Hôtels 4-5★ · 20–50 chambres · Service sur-mesure',
+        tiers: ecrinTiers,
+        lines: ecrinLines
+      },
+      {
+        id: 2,
+        num: '02',
+        color: '#3D6B5C',
+        colorSoft: '#EEF4F1',
+        colorBorder: '#C5D8CF',
+        name: 'Le Resort Connecté',
+        focus: 'Multi-services & F&B',
+        tagline: 'Domaines · Spa · Restaurants · Séminaires',
+        tiers: resortTiers,
+        lines: resortLines
+      },
+      {
+        id: 3,
+        num: '03',
+        color: '#7B5EA7',
+        colorSoft: '#F4F0FA',
+        colorBorder: '#D7C8E8',
+        name: 'L\'Appart-Hôtel & Nomad',
+        focus: 'Digital & Self-Service',
+        tagline: 'Résidences · Apparts · Peu de personnel sur place',
+        tiers: nomadTiers,
+        lines: nomadLines
+      }
+    ],
+    process: {
+      title: 'Notre approche',
+      subtitle: 'Chaque package inclut les 4 phases d\'une mission complète, garantissant un livrable opérationnel quel que soit le périmètre choisi.',
+      phases: [
+        { id: 1, name: 'Audit & cartographie', desc: 'Diagnostic des flux existants et de la maturité digitale.' },
+        { id: 2, name: 'Connectivité', desc: 'APIs, intégrations natives, middleware si besoin.' },
+        { id: 3, name: 'Paramétrage métier', desc: 'Configuration adaptée aux process opérationnels.' },
+        { id: 4, name: 'Gestion de projet', desc: 'Coordination, suivi et formation des équipes.' }
+      ]
+    },
+    footer: {
+      name: 'Océane Habonneau',
+      email: 'oceane.habonneau@icloud.com',
+      phone: '+33 6 95 94 75 49',
+      agenda: 'https://calendar.app.google/V2UbMTUVywNGeWZNA',
+      note: 'Proposition exclusive — Architecture digitale hôtelière'
+    }
+  };
+})();
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let currentMode = 'editor';
+
+/* ============================================================
+   PERSISTANCE
+   ============================================================ */
+function loadState() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      state = JSON.parse(stored);
+      migrateState();
+      return;
+    }
+  } catch (e) {}
+  state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+/* Migration des anciennes sauvegardes vers le nouveau schéma (tableur unifié) */
+function migrateState() {
+  if (!state.packages) return;
+  state.packages.forEach(pkg => {
+    // 1. Tiers : assure existence
+    if (!pkg.tiers || !Array.isArray(pkg.tiers) || pkg.tiers.length === 0) {
+      pkg.tiers = makeDefaultTiers();
+    }
+    pkg.tiers.forEach(t => {
+      if (!t.id) t.id = newIdSync();
+      // Le champ price devient un override texte libre (peut être vide → auto-calculé)
+      if (t.price === undefined) t.price = '';
+      // Nettoyage de l'ancien breakdown par tier (devenu inutile)
+      delete t.breakdown;
+    });
+
+    // 2. Lignes : si pas encore migré, on construit depuis pkg.categories existants
+    if (!pkg.lines || !Array.isArray(pkg.lines)) {
+      pkg.lines = [];
+      const allTierIds = pkg.tiers.map(t => t.id);
+      if (Array.isArray(pkg.categories)) {
+        pkg.categories.forEach(cat => {
+          (cat.tools || []).forEach(tool => {
+            pkg.lines.push(makeLine(
+              tool.name || '',
+              cat.name || '',
+              parseFloat(tool.hours) || 0,
+              150,
+              [...allTierIds], // par défaut : présent dans tous les tiers existants
+              true
+            ));
+          });
+        });
+      }
+    }
+
+    // 3. Nettoyage des anciens champs price/hours/days/categories
+    delete pkg.categories;
+    delete pkg.hours;
+    delete pkg.days;
+    delete pkg.price;
+
+    // 4. Assure que chaque ligne a un format valide
+    pkg.lines.forEach(line => {
+      if (!line.id) line.id = newIdSync();
+      if (!Array.isArray(line.tierIds)) line.tierIds = [];
+      if (line.inStack === undefined) line.inStack = true;
+      if (line.rate == null) line.rate = 150;
+    });
+  });
+
+  // Important : on remet _idCounter au-dessus du max des IDs utilisés
+  // pour éviter toute collision avec des nouveaux IDs créés par newIdSync()
+  let maxId = _idCounter;
+  state.packages.forEach(pkg => {
+    if (pkg.id > maxId) maxId = pkg.id;
+    pkg.tiers.forEach(t => { if (t.id > maxId) maxId = t.id; });
+    pkg.lines.forEach(l => { if (l.id > maxId) maxId = l.id; });
+  });
+  _idCounter = maxId;
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) { console.warn('Erreur sauvegarde', e); }
+    saveTimer = null;
+  }, 300);
+}
+function flushSave() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) {}
+  }
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function escapeAttr(str) { return escapeHtml(str); }
+function getValueByPath(obj, path) {
+  return path.split('.').reduce((o, k) => (o != null ? o[k] : undefined), obj);
+}
+function setValueByPath(obj, path, value) {
+  const keys = path.split('.');
+  const lastKey = keys.pop();
+  const target = keys.reduce((o, k) => { if (o[k] == null) o[k] = {}; return o[k]; }, obj);
+  target[lastKey] = value;
+}
+function newId() { return Date.now() + Math.floor(Math.random() * 1000); }
+
+/* Extrait le prix numérique d'une chaîne (ex: "5 700 € HT" → 5700).
+   Renvoie null si non parsable. */
+function parsePriceNumeric(str) {
+  if (!str) return null;
+  // Retire tout sauf chiffres, virgules, points, espaces
+  const cleaned = String(str).replace(/[^\d.,\s]/g, '').replace(/\s/g, '');
+  if (!cleaned) return null;
+  // Remplace la virgule par un point pour le parsing
+  const n = parseFloat(cleaned.replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+/* Renvoie la chaîne du tier au prix le plus bas, ou null si aucun parsable.
+   Calcule désormais à partir du total auto des lignes pour le tri. */
+function getLowestTierPrice(pkg) {
+  if (!pkg.tiers || !pkg.tiers.length) return null;
+  let lowest = null;
+  let lowestStr = null;
+  pkg.tiers.forEach(t => {
+    const total = getTierTotal(pkg, t.id);
+    const displayed = t.price && t.price.trim() ? t.price : formatTierTotal(total);
+    const n = t.price && t.price.trim() ? parsePriceNumeric(t.price) : total;
+    if (n != null && n > 0 && (lowest == null || n < lowest)) {
+      lowest = n;
+      lowestStr = displayed;
+    }
+  });
+  return lowestStr;
+}
+
+/* Total HT d'un tier (somme des lignes qui le cochent, hours × rate) */
+function getTierTotal(pkg, tierId) {
+  if (!pkg.lines) return 0;
+  return pkg.lines
+    .filter(l => Array.isArray(l.tierIds) && l.tierIds.includes(tierId))
+    .reduce((s, l) => s + (parseFloat(l.hours) || 0) * (parseFloat(l.rate) || 0), 0);
+}
+
+/* Total heures d'un tier */
+function getTierHours(pkg, tierId) {
+  if (!pkg.lines) return 0;
+  return pkg.lines
+    .filter(l => Array.isArray(l.tierIds) && l.tierIds.includes(tierId))
+    .reduce((s, l) => s + (parseFloat(l.hours) || 0), 0);
+}
+
+/* Renvoie le prix à afficher pour un tier (override texte libre si défini, sinon calcul auto) */
+function getTierDisplayPrice(pkg, tier) {
+  if (tier.price && tier.price.trim()) return tier.price;
+  return formatTierTotal(getTierTotal(pkg, tier.id));
+}
+
+/* Renvoie les lignes d'un tier groupées par catégorie, pour le bloc Stack Logiciel.
+   Ne renvoie que les lignes avec inStack=true. */
+function getStackForTier(pkg, tierId) {
+  if (!pkg.lines) return [];
+  const grouped = {};
+  const order = [];
+  pkg.lines.forEach(l => {
+    if (!l.inStack) return;
+    if (!Array.isArray(l.tierIds) || !l.tierIds.includes(tierId)) return;
+    const cat = l.category || 'Divers';
+    if (!grouped[cat]) {
+      grouped[cat] = [];
+      order.push(cat);
+    }
+    grouped[cat].push(l);
+  });
+  return order.map(cat => ({ name: cat, tools: grouped[cat] }));
+}
+
+/* Renvoie le stack global du package (toutes les lignes inStack=true, peu importe les tiers),
+   regroupées par catégorie. Une ligne n'apparaît qu'une seule fois même si elle est dans plusieurs tiers. */
+function getStackForPackage(pkg) {
+  if (!pkg.lines) return [];
+  const grouped = {};
+  const order = [];
+  pkg.lines.forEach(l => {
+    if (!l.inStack) return;
+    const cat = l.category || 'Divers';
+    if (!grouped[cat]) {
+      grouped[cat] = [];
+      order.push(cat);
+    }
+    grouped[cat].push(l);
+  });
+  return order.map(cat => ({ name: cat, tools: grouped[cat] }));
+}
+
+/* Total heures d'une ligne */
+function getLineTotal(line) {
+  return (parseFloat(line.hours) || 0) * (parseFloat(line.rate) || 0);
+}
+
+/* Format monétaire FR : 5700 → "5 700 € HT" */
+function formatTierTotal(n) {
+  if (!n) return '0 € HT';
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(n) + ' € HT';
+}
+
+/* Convertit des heures en jours (base 7h/jour) — format "≃ 5j" ou "≃ 5,5j" */
+function hoursToDays(hours) {
+  if (!hours || hours <= 0) return '';
+  const days = hours / 7;
+  // Arrondi au demi-jour le plus proche pour rester lisible
+  const rounded = Math.round(days * 2) / 2;
+  const formatted = Number.isInteger(rounded) ? rounded.toString() : rounded.toString().replace('.', ',');
+  return `≃ ${formatted}j`;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   RENDU ÉDITEUR
+   ============================================================ */
+function renderEditor() {
+  // Champs simples (header, process, footer)
+  document.querySelectorAll('[data-field]').forEach(el => {
+    const path = el.dataset.field;
+    const val = getValueByPath(state, path);
+    if (val !== undefined && el.value !== val) el.value = val;
+  });
+  renderPackagesEditor();
+  renderPhasesEditor();
+  document.getElementById('packages-count').textContent = state.packages.length;
+}
+
+function renderPackagesEditor() {
+  // Sauvegarde l'état "collapsed" de chaque package avant re-render
+  const collapsedSet = new Set();
+  document.querySelectorAll('.package-card-header.collapsed').forEach(h => {
+    const card = h.closest('[data-pkg-id]');
+    if (card) collapsedSet.add(parseInt(card.dataset.pkgId));
+  });
+
+  const container = document.getElementById('packages-container');
+  container.innerHTML = state.packages.map((pkg, idx) => packageEditorHTML(pkg, idx)).join('');
+
+  // Restaure l'état collapsed
+  document.querySelectorAll('.package-card-edit').forEach(card => {
+    const pkgId = parseInt(card.dataset.pkgId);
+    if (collapsedSet.has(pkgId)) {
+      card.querySelector('.package-card-header').classList.add('collapsed');
+    }
+  });
+}
+
+function packageEditorHTML(pkg, idx) {
+  const totalLines = pkg.lines ? pkg.lines.length : 0;
+  const lowestPrice = getLowestTierPrice(pkg);
+
+  return `
+  <div class="package-card-edit" data-pkg-id="${pkg.id}">
+    <div class="package-card-header" data-toggle-collapse>
+      <div class="package-card-title-zone">
+        <span class="package-color-dot" style="background:${escapeAttr(pkg.color)}"></span>
+        <span class="package-card-summary">${escapeHtml(pkg.num)} — ${escapeHtml(pkg.name)}</span>
+      </div>
+      <span class="package-card-meta">${lowestPrice ? 'dès ' + escapeHtml(lowestPrice) + ' · ' : ''}${totalLines} ligne${totalLines > 1 ? 's' : ''}</span>
+      <div class="package-card-actions">
+        <button class="icon-btn" data-action="duplicate-pkg" title="Dupliquer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="icon-btn" data-action="move-pkg" data-dir="up" title="Monter" ${idx === 0 ? 'disabled' : ''}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="icon-btn" data-action="move-pkg" data-dir="down" title="Descendre" ${idx === state.packages.length - 1 ? 'disabled' : ''}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="icon-btn danger" data-action="delete-pkg" title="Supprimer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+        <button class="icon-btn chevron-toggle" title="Plier/déplier">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="package-card-body">
+
+      <div class="form-row">
+        <label>Numéro</label>
+        <input class="form-input" data-pkg-field="num" value="${escapeAttr(pkg.num)}" style="max-width:80px" placeholder="01">
+      </div>
+      <div class="form-row">
+        <label>Nom</label>
+        <input class="form-input" data-pkg-field="name" value="${escapeAttr(pkg.name)}" placeholder="ex: L'Écrin Boutique">
+      </div>
+      <div class="form-row">
+        <label>Sous-titre / Focus</label>
+        <input class="form-input" data-pkg-field="focus" value="${escapeAttr(pkg.focus)}" placeholder="ex: Expérience & Intimité">
+      </div>
+      <div class="form-row">
+        <label>Tagline</label>
+        <input class="form-input" data-pkg-field="tagline" value="${escapeAttr(pkg.tagline)}" placeholder="ex: Hôtels 4-5★ · 20–50 chambres">
+      </div>
+      <div class="form-row">
+        <label>Couleur</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input class="form-input" data-pkg-field="color" type="color" value="${escapeAttr(pkg.color)}" style="width:50px; height:34px; padding:2px;">
+          <input class="form-input" data-pkg-field="colorSoft" type="color" value="${escapeAttr(pkg.colorSoft)}" style="width:50px; height:34px; padding:2px;" title="Couleur claire">
+          <input class="form-input" data-pkg-field="colorBorder" type="color" value="${escapeAttr(pkg.colorBorder)}" style="width:50px; height:34px; padding:2px;" title="Couleur bordure">
+          <span class="helper">Principale · claire · bordure</span>
+        </div>
+      </div>
+
+      <!-- ====== NIVEAUX D'ACCOMPAGNEMENT ====== -->
+      <div class="tiers-section">
+        <div class="tiers-section-label">
+          <span>Niveaux d'accompagnement · ${pkg.tiers.length} niveau${pkg.tiers.length > 1 ? 'x' : ''}</span>
+          <button class="add-tool-btn" data-action="add-tier">+ Ajouter un niveau</button>
+        </div>
+        ${pkg.tiers.map((tier, ti) => tierEditorHTML(pkg, tier, ti, pkg.tiers.length)).join('')}
+      </div>
+
+      <!-- ====== TABLEUR UNIFIÉ ====== -->
+      <div class="lines-section">
+        <div class="lines-section-header">
+          <span class="lines-section-label">Tableur unifié · ${totalLines} ligne${totalLines > 1 ? 's' : ''} (logiciels + phases + conseils)</span>
+          <span class="lines-section-help">Cochez les niveaux dans lesquels chaque ligne est incluse · "Stack" = afficher dans le bloc preview</span>
+        </div>
+        ${linesTableHTML(pkg)}
+        <button class="add-row-btn" data-action="add-line">+ Ajouter une ligne</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function tierEditorHTML(pkg, tier, idx, total) {
+  const autoTotal = getTierTotal(pkg, tier.id);
+  const autoHours = getTierHours(pkg, tier.id);
+  const displayPrice = getTierDisplayPrice(pkg, tier);
+  const isOverride = tier.price && tier.price.trim();
+
+  return `
+  <div class="tier-edit" data-tier-id="${tier.id}">
+    <div class="tier-edit-header">
+      <span class="tier-icon-display">${escapeHtml(tier.icon || '')}</span>
+      <span class="tier-name-display">${escapeHtml(tier.name)}</span>
+      <span class="tier-stats">${autoHours}h ${hoursToDays(autoHours) ? '· ' + hoursToDays(autoHours) : ''} · ${formatTierTotal(autoTotal)}</span>
+      <span class="tier-price-display ${isOverride ? 'is-override' : ''}" title="${isOverride ? 'Prix forcé (texte libre)' : 'Prix calculé automatiquement'}">${escapeHtml(displayPrice)}</span>
+      <div class="tier-actions">
+        <button class="icon-btn" data-action="move-tier" data-dir="up" title="Monter" ${idx === 0 ? 'disabled' : ''}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="icon-btn" data-action="move-tier" data-dir="down" title="Descendre" ${idx === total - 1 ? 'disabled' : ''}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="icon-btn" data-action="duplicate-tier" title="Dupliquer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="icon-btn danger" data-action="delete-tier" title="Supprimer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="tier-edit-body">
+      <div class="tier-edit-grid">
+        <div class="tier-field">
+          <label>Icône</label>
+          <input class="form-input tier-icon-input" data-tier-field="icon" value="${escapeAttr(tier.icon || '')}" placeholder="🚀" maxlength="4">
+        </div>
+        <div class="tier-field">
+          <label>Nom</label>
+          <input class="form-input" data-tier-field="name" value="${escapeAttr(tier.name)}" placeholder="ex: Autonome">
+        </div>
+        <div class="tier-field">
+          <label>Prix affiché ${isOverride ? '<span class="badge-override">forcé</span>' : '<span class="badge-auto">auto</span>'}</label>
+          <div style="display:flex; gap:6px;">
+            <input class="form-input" data-tier-field="price" value="${escapeAttr(tier.price || '')}" placeholder="${escapeAttr(formatTierTotal(autoTotal))} (auto)">
+            ${isOverride ? `
+              <button class="icon-btn" data-action="clear-tier-price" title="Revenir au calcul automatique">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="tier-field" style="margin-top:10px;">
+        <label>Punchline</label>
+        <input class="form-input" data-tier-field="punchline" value="${escapeAttr(tier.punchline)}" placeholder="Phrase d'accroche">
+      </div>
+      <div class="tier-field" style="margin-top:10px;">
+        <label>Description</label>
+        <textarea class="form-textarea" data-tier-field="description" rows="3" placeholder="Description détaillée">${escapeHtml(tier.description)}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function linesTableHTML(pkg) {
+  if (!pkg.lines || pkg.lines.length === 0) {
+    return '<p class="breakdown-empty">Aucune ligne pour ce package. Ajoutez des outils, phases ou conseils ci-dessous.</p>';
+  }
+  // En-tête : 1 colonne par tier (dynamique)
+  const tierHeaders = pkg.tiers.map(t =>
+    `<div class="lcol-tier" title="${escapeAttr(t.name)}">${escapeHtml(t.icon || '')} ${escapeHtml(t.name)}</div>`
+  ).join('');
+
+  return `
+    <div class="lines-table" style="--tier-cols: ${pkg.tiers.length};">
+      <div class="lines-row lines-header-row">
+        <div class="lcol-label">Libellé</div>
+        <div class="lcol-cat">Catégorie</div>
+        <div class="lcol-num">Heures</div>
+        <div class="lcol-num">€/h</div>
+        <div class="lcol-total">Total HT</div>
+        ${tierHeaders}
+        <div class="lcol-stack" title="Afficher comme tag dans le bloc Stack Logiciel de la preview ?">Stack</div>
+        <div class="lcol-action"></div>
+      </div>
+      ${pkg.lines.map((line, idx) => lineRowHTML(pkg, line, idx)).join('')}
+    </div>
+  `;
+}
+
+function lineRowHTML(pkg, line, idx) {
+  const total = getLineTotal(line);
+  const tierCheckboxes = pkg.tiers.map(t => {
+    const checked = Array.isArray(line.tierIds) && line.tierIds.includes(t.id);
+    return `
+      <div class="lcol-tier">
+        <label class="tier-checkbox" title="Inclure dans ${escapeAttr(t.name)}">
+          <input type="checkbox" data-line-tier-id="${t.id}" ${checked ? 'checked' : ''}>
+          <span class="tier-checkbox-box" style="background:${checked ? escapeAttr(pkg.color) : 'transparent'}; border-color:${escapeAttr(pkg.color)};">
+            ${checked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          </span>
+        </label>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="lines-row" data-line-id="${line.id}">
+      <input class="form-input lcol-label" data-line-field="label" value="${escapeAttr(line.label || '')}" placeholder="ex: Mews PMS/POS">
+      <input class="form-input lcol-cat" data-line-field="category" value="${escapeAttr(line.category || '')}" placeholder="ex: PMS · POS" list="categories-${pkg.id}">
+      <input class="form-input lcol-num" data-line-field="hours" type="number" min="0" step="0.5" value="${line.hours != null ? escapeAttr(line.hours) : ''}" placeholder="h">
+      <input class="form-input lcol-num" data-line-field="rate" type="number" min="0" step="1" value="${line.rate != null ? escapeAttr(line.rate) : ''}" placeholder="€/h">
+      <div class="lcol-total">${formatTierTotal(total).replace(' € HT', ' €')}</div>
+      ${tierCheckboxes}
+      <div class="lcol-stack">
+        <label class="switch switch-sm" title="Afficher comme tag dans le bloc Stack Logiciel ?">
+          <input type="checkbox" data-line-field="inStack" ${line.inStack ? 'checked' : ''}>
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+      <button class="icon-btn danger lcol-action" data-action="delete-line" title="Supprimer la ligne">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>
+  `;
+}
+
+function renderPhasesEditor() {
+  const container = document.getElementById('phases-container');
+  container.innerHTML = state.process.phases.map((phase, idx) => `
+    <div class="phase-row" data-phase-id="${phase.id}">
+      <div class="phase-num">${idx + 1}</div>
+      <input class="phase-title-input" data-phase-field="name" value="${escapeAttr(phase.name)}" placeholder="Nom de la phase">
+      <input class="phase-desc-input" data-phase-field="desc" value="${escapeAttr(phase.desc)}" placeholder="Description courte">
+      <button class="icon-btn danger" data-action="delete-phase" title="Supprimer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   RENDU PREVIEW (look premium)
+   ============================================================ */
+function renderPreview() {
+  const html = `
+    <div class="preview-page">
+      <header class="preview-header">
+        <div>
+          <p class="preview-eyebrow">${escapeHtml(state.header.eyebrow)}</p>
+          <h1 class="preview-title">${escapeHtml(state.header.title)}</h1>
+        </div>
+        <div class="preview-header-right">
+          <div class="name">${escapeHtml(state.header.name)}</div>
+          <div class="role">${escapeHtml(state.header.role)}</div>
+        </div>
+      </header>
+
+      <div class="preview-grid">
+        ${state.packages.map(pkg => previewCardHTML(pkg)).join('')}
+      </div>
+
+      ${state.process.phases.length > 0 ? `
+      <div class="pr-process">
+        <h2 class="pr-process-title">${escapeHtml(state.process.title)}</h2>
+        <p class="pr-process-sub">${escapeHtml(state.process.subtitle)}</p>
+        <div class="pr-phases">
+          ${state.process.phases.map((p, i) => `
+            <div class="pr-phase">
+              <div class="pr-phase-num">${i + 1}</div>
+              <div>
+                <div class="pr-phase-name">${escapeHtml(p.name)}</div>
+                <div class="pr-phase-desc">${escapeHtml(p.desc)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+
+      <footer class="pr-footer">
+        <div class="pr-footer-items">
+          ${state.footer.name ? `<div class="pr-footer-item"><span class="pr-footer-label">Contact</span><span class="pr-footer-value">${escapeHtml(state.footer.name)}</span></div>` : ''}
+          ${state.footer.email ? `<div class="pr-footer-item"><span class="pr-footer-label">Email</span><span class="pr-footer-value"><a href="mailto:${escapeAttr(state.footer.email)}">${escapeHtml(state.footer.email)}</a></span></div>` : ''}
+          ${state.footer.phone ? `<div class="pr-footer-item"><span class="pr-footer-label">Téléphone</span><span class="pr-footer-value">${escapeHtml(state.footer.phone)}</span></div>` : ''}
+          ${state.footer.agenda ? `<div class="pr-footer-item"><span class="pr-footer-label">Rendez-vous</span><span class="pr-footer-value"><a href="${escapeAttr(state.footer.agenda)}" target="_blank" rel="noopener">Réserver un créneau</a></span></div>` : ''}
+        </div>
+        ${state.footer.note ? `<p class="pr-footer-note">${escapeHtml(state.footer.note)}</p>` : ''}
+      </footer>
+    </div>`;
+  document.getElementById('preview').innerHTML = html;
+}
+
+function previewCardHTML(pkg) {
+  const stack = getStackForPackage(pkg);
+  const hasStack = stack.length > 0;
+
+  return `
+  <div class="pr-card">
+    <div class="pr-card-stripe" style="background:${escapeAttr(pkg.color)};"></div>
+    <div class="pr-card-body">
+      <div class="pr-card-top">
+        <span class="pr-card-num" style="color:${escapeAttr(pkg.color)};">${escapeHtml(pkg.num)}</span>
+        <span class="pr-focus-badge" style="color:${escapeAttr(pkg.color)}; background:${escapeAttr(pkg.colorSoft)}; border-color:${escapeAttr(pkg.colorBorder)};">${escapeHtml(pkg.focus)}</span>
+      </div>
+      <h2 class="pr-card-name">${escapeHtml(pkg.name)}</h2>
+      <p class="pr-card-tagline">${escapeHtml(pkg.tagline)}</p>
+
+      ${hasStack ? `
+        <div class="pr-divider" style="margin-top:8px;"></div>
+        <p class="pr-stack-label">Stack Logiciel</p>
+        <div class="pr-stack-categories">
+          ${stack.map(cat => `
+            <div class="pr-stack-cat-row">
+              <span class="pr-stack-cat-name">${escapeHtml(cat.name)}</span>
+              <div class="pr-stack-cat-tools">
+                ${cat.tools.map(tool => `
+                  <span class="pr-stack-tag" style="color:${escapeAttr(pkg.color)};background:${escapeAttr(pkg.colorSoft)};border-color:${escapeAttr(pkg.colorBorder)};">
+                    <svg width="6" height="6" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="${escapeAttr(pkg.color)}"/></svg>
+                    ${escapeHtml(tool.label)}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${pkg.tiers && pkg.tiers.length > 0 ? `
+        <div class="pr-divider" style="margin-top:22px;"></div>
+        <p class="pr-stack-label">Niveaux d'accompagnement</p>
+        <div class="pr-tiers">
+          ${pkg.tiers.map(tier => {
+            const hours = getTierHours(pkg, tier.id);
+            const daysLabel = hoursToDays(hours);
+            const displayPrice = getTierDisplayPrice(pkg, tier);
+            return `
+              <div class="pr-tier" style="border-left-color:${escapeAttr(pkg.color)};">
+                <div class="pr-tier-head">
+                  <div class="pr-tier-id">
+                    ${tier.icon ? `<span class="pr-tier-icon">${escapeHtml(tier.icon)}</span>` : ''}
+                    <span class="pr-tier-name">${escapeHtml(tier.name)}</span>
+                  </div>
+                  <div class="pr-tier-meta">
+                    ${daysLabel ? `<span class="pr-tier-hours" style="background:${escapeAttr(pkg.colorSoft)};color:${escapeAttr(pkg.color)};border-color:${escapeAttr(pkg.colorBorder)};">${daysLabel}</span>` : ''}
+                    <span class="pr-tier-price" style="color:${escapeAttr(pkg.color)};">${escapeHtml(displayPrice)}</span>
+                  </div>
+                </div>
+                ${tier.punchline ? `<p class="pr-tier-punchline">${escapeHtml(tier.punchline)}</p>` : ''}
+                ${tier.description ? `<p class="pr-tier-desc">${escapeHtml(tier.description)}</p>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   ÉVÉNEMENTS - ÉDITEUR
+   ============================================================ */
+function setupEditorEvents() {
+  const editor = document.getElementById('editor');
+
+  // Input sur tous les champs : on save & re-render minimal
+  editor.addEventListener('input', (e) => {
+    handleInput(e.target);
+  });
+  editor.addEventListener('change', (e) => {
+    handleInput(e.target);
+  });
+
+  // Boutons
+  editor.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (btn) {
+      e.stopPropagation();
+      handleAction(btn);
+      return;
+    }
+    const header = e.target.closest('[data-toggle-collapse]');
+    if (header) {
+      header.classList.toggle('collapsed');
+    }
+  });
+
+  document.getElementById('btn-add-package').addEventListener('click', addPackage);
+  document.getElementById('btn-add-phase').addEventListener('click', addPhase);
+}
+
+function handleInput(el) {
+  // 1. Champ "data-field" : global header / process / footer
+  if (el.dataset.field) {
+    setValueByPath(state, el.dataset.field, el.value);
+    scheduleSave();
+    return;
+  }
+
+  // 2. Champ d'un package (num, name, focus, tagline, couleurs)
+  if (el.dataset.pkgField) {
+    const card = el.closest('[data-pkg-id]');
+    if (!card) return;
+    const pkgId = parseInt(card.dataset.pkgId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    pkg[el.dataset.pkgField] = el.value;
+    scheduleSave();
+    updatePackageSummary(card);
+    // Si on change la couleur du package, on doit aussi rafraîchir les cases tier (couleurs)
+    if (['color', 'colorSoft', 'colorBorder'].includes(el.dataset.pkgField)) {
+      refreshTierCheckboxColors(card, pkg);
+    }
+    return;
+  }
+
+  // 3. Champ d'une phase (process global)
+  if (el.dataset.phaseField) {
+    const row = el.closest('[data-phase-id]');
+    if (!row) return;
+    const phaseId = parseInt(row.dataset.phaseId);
+    const phase = state.process.phases.find(p => p.id === phaseId);
+    if (!phase) return;
+    phase[el.dataset.phaseField] = el.value;
+    scheduleSave();
+    return;
+  }
+
+  // 4. Champ d'un tier (icône, nom, prix override, punchline, description)
+  if (el.dataset.tierField) {
+    const tierEl = el.closest('[data-tier-id]');
+    const pkgEl = el.closest('[data-pkg-id]');
+    if (!tierEl || !pkgEl) return;
+    const pkgId = parseInt(pkgEl.dataset.pkgId);
+    const tierId = parseInt(tierEl.dataset.tierId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    const tier = pkg && pkg.tiers.find(t => t.id === tierId);
+    if (!tier) return;
+    tier[el.dataset.tierField] = el.value;
+    scheduleSave();
+    // Maj de l'en-tête de CE tier (icône, nom, prix-display)
+    updateTierDisplay(tierEl, pkg, tier);
+    // Maj du sommaire (dès X €) car le prix peut avoir changé
+    updatePackageSummary(pkgEl);
+    return;
+  }
+
+  // 5. Champ d'une ligne du tableur unifié (label, category, hours, rate, inStack)
+  if (el.dataset.lineField) {
+    const row = el.closest('[data-line-id]');
+    const pkgEl = el.closest('[data-pkg-id]');
+    if (!row || !pkgEl) return;
+    const pkgId = parseInt(pkgEl.dataset.pkgId);
+    const lineId = parseInt(row.dataset.lineId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    const line = pkg.lines.find(l => l.id === lineId);
+    if (!line) return;
+    const field = el.dataset.lineField;
+
+    if (field === 'inStack') {
+      line.inStack = el.checked;
+    } else if (field === 'hours' || field === 'rate') {
+      const v = el.value;
+      line[field] = v === '' ? null : parseFloat(v);
+    } else {
+      line[field] = el.value;
+    }
+    scheduleSave();
+
+    // Recalcul du total LIGNE
+    const totalCell = row.querySelector('.lcol-total');
+    if (totalCell) totalCell.textContent = formatTierTotal(getLineTotal(line)).replace(' € HT', ' €');
+
+    // Maj de TOUS les tiers du package (le total et heures peuvent changer)
+    refreshAllTierStats(pkgEl, pkg);
+    updatePackageSummary(pkgEl);
+    return;
+  }
+
+  // 6. Case à cocher tier sur une ligne (data-line-tier-id)
+  if (el.dataset.lineTierId) {
+    const row = el.closest('[data-line-id]');
+    const pkgEl = el.closest('[data-pkg-id]');
+    if (!row || !pkgEl) return;
+    const pkgId = parseInt(pkgEl.dataset.pkgId);
+    const lineId = parseInt(row.dataset.lineId);
+    const tierId = parseInt(el.dataset.lineTierId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    const line = pkg.lines.find(l => l.id === lineId);
+    if (!line) return;
+    if (!Array.isArray(line.tierIds)) line.tierIds = [];
+
+    if (el.checked) {
+      if (!line.tierIds.includes(tierId)) line.tierIds.push(tierId);
+    } else {
+      line.tierIds = line.tierIds.filter(id => id !== tierId);
+    }
+    scheduleSave();
+
+    // Mise à jour visuelle de la case (fond coloré + checkmark)
+    const box = el.parentElement.querySelector('.tier-checkbox-box');
+    if (box) {
+      box.style.background = el.checked ? pkg.color : 'transparent';
+      box.innerHTML = el.checked
+        ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '';
+    }
+    // Recalcul de TOUS les tiers (heures et totaux changent)
+    refreshAllTierStats(pkgEl, pkg);
+    updatePackageSummary(pkgEl);
+    return;
+  }
+}
+
+/* Rafraîchit les couleurs des cases à cocher tier quand on change la couleur du package */
+function refreshTierCheckboxColors(pkgEl, pkg) {
+  pkgEl.querySelectorAll('.tier-checkbox').forEach(label => {
+    const input = label.querySelector('input[data-line-tier-id]');
+    const box = label.querySelector('.tier-checkbox-box');
+    if (!input || !box) return;
+    box.style.borderColor = pkg.color;
+    if (input.checked) box.style.background = pkg.color;
+  });
+}
+
+/* Recalcul des stats affichées dans l'en-tête de chaque tier (heures et total) */
+function refreshAllTierStats(pkgEl, pkg) {
+  pkg.tiers.forEach(tier => {
+    const tierEl = pkgEl.querySelector(`[data-tier-id="${tier.id}"]`);
+    if (tierEl) updateTierDisplay(tierEl, pkg, tier);
+  });
+}
+
+/* Maj rapide de l'en-tête d'un tier sans re-render complet.
+   Met à jour : icône, nom, stats (heures+total), badge prix-display,
+   placeholder du champ price, badge auto/forcé dans le label,
+   visibilité du bouton clear-tier-price. */
+function updateTierDisplay(tierEl, pkg, tier) {
+  const icon = tierEl.querySelector('.tier-icon-display');
+  const name = tierEl.querySelector('.tier-name-display');
+  const stats = tierEl.querySelector('.tier-stats');
+  const priceEl = tierEl.querySelector('.tier-price-display');
+
+  if (icon) icon.textContent = tier.icon || '';
+  if (name) name.textContent = tier.name;
+
+  const h = getTierHours(pkg, tier.id);
+  const autoTotal = getTierTotal(pkg, tier.id);
+  const isOverride = !!(tier.price && tier.price.trim());
+  const displayed = getTierDisplayPrice(pkg, tier);
+
+  if (stats) {
+    const daysLabel = hoursToDays(h);
+    stats.textContent = `${h}h ${daysLabel ? '· ' + daysLabel : ''} · ${formatTierTotal(autoTotal)}`;
+  }
+  if (priceEl) {
+    priceEl.textContent = displayed;
+    priceEl.classList.toggle('is-override', isOverride);
+    priceEl.title = isOverride ? 'Prix forcé (texte libre)' : 'Prix calculé automatiquement';
+  }
+
+  // Placeholder du champ price : reflète le total auto
+  const priceInput = tierEl.querySelector('input[data-tier-field="price"]');
+  if (priceInput) {
+    priceInput.placeholder = `${formatTierTotal(autoTotal)} (auto)`;
+  }
+
+  // Badge auto/forcé dans le label "Prix affiché"
+  const priceLabel = priceInput ? priceInput.closest('.tier-field').querySelector('label') : null;
+  if (priceLabel) {
+    const badge = isOverride
+      ? '<span class="badge-override">forcé</span>'
+      : '<span class="badge-auto">auto</span>';
+    priceLabel.innerHTML = `Prix affiché ${badge}`;
+  }
+
+  // Bouton "clear" visible uniquement si override actif
+  const priceWrap = priceInput ? priceInput.parentElement : null;
+  if (priceWrap) {
+    let clearBtn = priceWrap.querySelector('[data-action="clear-tier-price"]');
+    if (isOverride && !clearBtn) {
+      clearBtn = document.createElement('button');
+      clearBtn.className = 'icon-btn';
+      clearBtn.dataset.action = 'clear-tier-price';
+      clearBtn.title = 'Revenir au calcul automatique';
+      clearBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+      priceWrap.appendChild(clearBtn);
+    } else if (!isOverride && clearBtn) {
+      clearBtn.remove();
+    }
+  }
+}
+
+/* Mise à jour rapide de la ligne récap du package */
+function updatePackageSummary(card) {
+  const pkgId = parseInt(card.dataset.pkgId);
+  const pkg = state.packages.find(p => p.id === pkgId);
+  if (!pkg) return;
+  const summary = card.querySelector('.package-card-summary');
+  const meta = card.querySelector('.package-card-meta');
+  if (summary) summary.textContent = `${pkg.num} — ${pkg.name}`;
+  if (meta) {
+    const lowest = getLowestTierPrice(pkg);
+    const linesCount = pkg.lines ? pkg.lines.length : 0;
+    meta.textContent = `${lowest ? 'dès ' + lowest + ' · ' : ''}${linesCount} ligne${linesCount > 1 ? 's' : ''}`;
+  }
+}
+
+function handleAction(btn) {
+  const action = btn.dataset.action;
+  const card = btn.closest('[data-pkg-id]');
+  const pkgId = card ? parseInt(card.dataset.pkgId) : null;
+
+  if (action === 'delete-pkg') {
+    if (!confirm('Supprimer ce package ?')) return;
+    state.packages = state.packages.filter(p => p.id !== pkgId);
+    scheduleSave();
+    renderPackagesEditor();
+    document.getElementById('packages-count').textContent = state.packages.length;
+    showToast('Package supprimé');
+    return;
+  }
+
+  if (action === 'duplicate-pkg') {
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    const clone = JSON.parse(JSON.stringify(pkg));
+    clone.id = newIdSync();
+    clone.name = clone.name + ' (copie)';
+    // Remappe les IDs des tiers (les anciens IDs sont référencés par les lines)
+    const tierIdMap = {};
+    clone.tiers.forEach(t => {
+      const oldId = t.id;
+      t.id = newIdSync();
+      tierIdMap[oldId] = t.id;
+    });
+    // Remappe aussi les lines
+    if (Array.isArray(clone.lines)) {
+      clone.lines.forEach(l => {
+        l.id = newIdSync();
+        l.tierIds = (l.tierIds || []).map(tid => tierIdMap[tid] || tid);
+      });
+    }
+    const idx = state.packages.findIndex(p => p.id === pkgId);
+    state.packages.splice(idx + 1, 0, clone);
+    scheduleSave();
+    renderPackagesEditor();
+    document.getElementById('packages-count').textContent = state.packages.length;
+    showToast('Package dupliqué');
+    return;
+  }
+
+  if (action === 'move-pkg') {
+    const idx = state.packages.findIndex(p => p.id === pkgId);
+    const dir = btn.dataset.dir === 'up' ? -1 : 1;
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= state.packages.length) return;
+    const tmp = state.packages[idx];
+    state.packages[idx] = state.packages[newIdx];
+    state.packages[newIdx] = tmp;
+    scheduleSave();
+    renderPackagesEditor();
+    return;
+  }
+
+  // ====== ACTIONS LIGNES DU TABLEUR UNIFIÉ ======
+  if (action === 'add-line') {
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    if (!Array.isArray(pkg.lines)) pkg.lines = [];
+    const allTierIds = pkg.tiers.map(t => t.id);
+    pkg.lines.push(makeLine('', '', null, 150, [...allTierIds], true));
+    scheduleSave();
+    renderPackagesEditor();
+    // Focus sur le libellé de la nouvelle ligne
+    setTimeout(() => {
+      const lastInput = document.querySelector(`[data-pkg-id="${pkgId}"] .lines-table .lines-row:last-of-type .lcol-label`);
+      if (lastInput) lastInput.focus();
+    }, 50);
+    return;
+  }
+
+  if (action === 'delete-line') {
+    const row = btn.closest('[data-line-id]');
+    const lineId = parseInt(row.dataset.lineId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    pkg.lines = pkg.lines.filter(l => l.id !== lineId);
+    scheduleSave();
+    renderPackagesEditor();
+    return;
+  }
+
+  if (action === 'delete-phase') {
+    const row = btn.closest('[data-phase-id]');
+    const phaseId = parseInt(row.dataset.phaseId);
+    state.process.phases = state.process.phases.filter(p => p.id !== phaseId);
+    scheduleSave();
+    renderPhasesEditor();
+    return;
+  }
+
+  // ====== ACTIONS TIERS ======
+  if (action === 'add-tier') {
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    pkg.tiers.push({
+      id: newIdSync(),
+      icon: '✨',
+      name: 'Nouveau niveau',
+      punchline: '',
+      description: '',
+      price: ''
+    });
+    scheduleSave();
+    renderPackagesEditor();
+    showToast('Niveau ajouté');
+    return;
+  }
+
+  if (action === 'delete-tier') {
+    const tierEl = btn.closest('[data-tier-id]');
+    const tierId = parseInt(tierEl.dataset.tierId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    if (!confirm('Supprimer ce niveau d\'accompagnement ?')) return;
+    pkg.tiers = pkg.tiers.filter(t => t.id !== tierId);
+    // Nettoie aussi les références dans les lignes
+    pkg.lines.forEach(l => {
+      l.tierIds = (l.tierIds || []).filter(id => id !== tierId);
+    });
+    scheduleSave();
+    renderPackagesEditor();
+    showToast('Niveau supprimé');
+    return;
+  }
+
+  if (action === 'duplicate-tier') {
+    const tierEl = btn.closest('[data-tier-id]');
+    const tierId = parseInt(tierEl.dataset.tierId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    const tier = pkg.tiers.find(t => t.id === tierId);
+    if (!tier) return;
+    const clone = JSON.parse(JSON.stringify(tier));
+    clone.id = newIdSync();
+    clone.name = clone.name + ' (copie)';
+    const idx = pkg.tiers.findIndex(t => t.id === tierId);
+    pkg.tiers.splice(idx + 1, 0, clone);
+    // Copie aussi les associations : toute ligne qui cochait le tier original coche aussi le clone
+    pkg.lines.forEach(l => {
+      if (Array.isArray(l.tierIds) && l.tierIds.includes(tierId)) {
+        l.tierIds.push(clone.id);
+      }
+    });
+    scheduleSave();
+    renderPackagesEditor();
+    showToast('Niveau dupliqué');
+    return;
+  }
+
+  if (action === 'move-tier') {
+    const tierEl = btn.closest('[data-tier-id]');
+    const tierId = parseInt(tierEl.dataset.tierId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+    const idx = pkg.tiers.findIndex(t => t.id === tierId);
+    const dir = btn.dataset.dir === 'up' ? -1 : 1;
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= pkg.tiers.length) return;
+    const tmp = pkg.tiers[idx];
+    pkg.tiers[idx] = pkg.tiers[newIdx];
+    pkg.tiers[newIdx] = tmp;
+    scheduleSave();
+    renderPackagesEditor();
+    return;
+  }
+
+  if (action === 'clear-tier-price') {
+    const tierEl = btn.closest('[data-tier-id]');
+    const tierId = parseInt(tierEl.dataset.tierId);
+    const pkg = state.packages.find(p => p.id === pkgId);
+    const tier = pkg && pkg.tiers.find(t => t.id === tierId);
+    if (!tier) return;
+    tier.price = '';
+    scheduleSave();
+    renderPackagesEditor();
+    showToast('Prix repassé en calcul automatique');
+    return;
+  }
+}
+
+function addPackage() {
+  const colors = ['#2563eb', '#dc2626', '#16a34a', '#7B5EA7', '#C9A96E', '#3D6B5C', '#db2777', '#0891b2'];
+  const c = colors[state.packages.length % colors.length];
+  const nextNum = String(state.packages.length + 1).padStart(2, '0');
+  state.packages.push({
+    id: newIdSync(),
+    num: nextNum,
+    color: c,
+    colorSoft: hexToSoft(c),
+    colorBorder: hexToBorder(c),
+    name: 'Nouveau package',
+    focus: 'Focus',
+    tagline: 'Description courte du segment cible',
+    tiers: makeDefaultTiers(),
+    lines: []
+  });
+  scheduleSave();
+  renderPackagesEditor();
+  document.getElementById('packages-count').textContent = state.packages.length;
+  showToast('Package ajouté');
+}
+
+function hexToSoft(hex) {
+  // Approximation : éclaircit fortement (90% blanc)
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const mix = (c) => Math.round(c + (255 - c) * 0.92);
+  return '#' + [mix(r), mix(g), mix(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+function hexToBorder(hex) {
+  // Éclaircit moins (60%)
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const mix = (c) => Math.round(c + (255 - c) * 0.65);
+  return '#' + [mix(r), mix(g), mix(b)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function addPhase() {
+  state.process.phases.push({ id: newIdSync(), name: 'Nouvelle phase', desc: '' });
+  scheduleSave();
+  renderPhasesEditor();
+}
+
+/* ============================================================
+   MODE SWITCHING
+   ============================================================ */
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('#mode-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  if (mode === 'editor') {
+    document.getElementById('editor').classList.remove('hidden');
+    document.getElementById('preview').classList.remove('active');
+  } else {
+    document.getElementById('editor').classList.add('hidden');
+    renderPreview();
+    document.getElementById('preview').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+/* ============================================================
+   EXPORT JSON / RESTORE / RESET
+   ============================================================ */
+function saveJSON() {
+  flushSave();
+  const payload = {
+    app: 'hrm-plaquette',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `plaquette-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Sauvegarde téléchargée');
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function restoreJSON(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const data = parsed.data || parsed; // tolère format brut
+      // Validation minimale
+      if (!data.packages || !Array.isArray(data.packages)) {
+        showToast('Format invalide');
+        return;
+      }
+      state = data;
+      // Patch des champs manquants
+      if (!state.header) state.header = JSON.parse(JSON.stringify(DEFAULT_DATA.header));
+      if (!state.process) state.process = JSON.parse(JSON.stringify(DEFAULT_DATA.process));
+      if (!state.footer) state.footer = JSON.parse(JSON.stringify(DEFAULT_DATA.footer));
+      flushSave();
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+      renderEditor();
+      showToast(`Restauré (${state.packages.length} packages)`);
+    } catch (err) {
+      showToast('Erreur de lecture du fichier');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetTemplate() {
+  if (!confirm('Réinitialiser au template par défaut ? Toutes tes modifications seront perdues.')) return;
+  state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  flushSave();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  renderEditor();
+  showToast('Template réinitialisé');
+}
+
+/* ============================================================
+   EXPORT HTML AUTONOME (pour envoi au partenaire)
+   ============================================================ */
+function exportStandaloneHTML() {
+  // On régénère un HTML qui contient UNIQUEMENT le rendu preview + son CSS minimal
+  // Pas d'éditeur, pas de localStorage, pas d'interactivité. Juste la plaquette.
+  renderPreview();
+  const previewContent = document.getElementById('preview').innerHTML;
+
+  // Extrait les CSS qui concernent la preview (préfixés .preview, .pr-)
+  const css = extractPreviewCSS();
+
+  const filename = (state.footer.name ? state.footer.name.replace(/\s+/g, '-').toLowerCase() : 'plaquette') + '-' + todayStr() + '.html';
+  const titlePage = `${state.header.title || 'Plaquette'} — ${state.header.name || ''}`.trim().replace(/—\s*$/, '');
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(titlePage)}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', -apple-system, sans-serif; background: #FAFAFA; color: #111; min-height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+${css}
+  @media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body { background: white !important; }
+    .preview-page { padding: 0 !important; max-width: none !important; }
+    .pr-card, .pr-process { box-shadow: none !important; page-break-inside: avoid; }
+    .preview-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 12px !important; }
+    .pr-card-body { padding: 16px 18px !important; }
+    .pr-card-name { font-size: 18px !important; }
+    .pr-metric-value { font-size: 16px !important; }
+    .pr-stack-tag { font-size: 10px !important; padding: 2px 7px !important; }
+    .pr-stack-cat-name { width: 70px !important; font-size: 9px !important; }
+    .pr-tier { padding: 8px 10px !important; }
+    .pr-tier-name { font-size: 13px !important; }
+    .pr-tier-price { font-size: 14px !important; }
+    .pr-tier-punchline { font-size: 9.5px !important; margin-bottom: 3px !important; }
+    .pr-tier-desc { font-size: 9px !important; line-height: 1.35 !important; }
+    .pr-tiers { gap: 6px !important; }
+  }
+</style>
+</head>
+<body>
+<div class="preview active" style="display:block; padding:40px 0;">
+${previewContent}
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('HTML autonome téléchargé');
+}
+
+function extractPreviewCSS() {
+  // On parcourt les feuilles de style et on récupère les règles dont le sélecteur
+  // commence par .preview, .pr-, ou est :root (variables)
+  const wanted = [];
+  for (const sheet of document.styleSheets) {
+    let rules;
+    try { rules = sheet.cssRules; } catch (e) { continue; } // CORS skip
+    if (!rules) continue;
+    for (const rule of rules) {
+      if (!rule.cssText) continue;
+      const sel = rule.selectorText || '';
+      if (sel.startsWith(':root')) {
+        wanted.push(rule.cssText);
+        continue;
+      }
+      if (sel.includes('.preview') || sel.includes('.pr-')) {
+        wanted.push(rule.cssText);
+      }
+    }
+  }
+  return wanted.join('\n');
+}
+
+/* ============================================================
+   EXPORT PDF (via print)
+   ============================================================ */
+function exportPDF() {
+  flushSave();
+  // S'assure que le mode preview est actif pour l'impression
+  const wasInEditor = currentMode === 'editor';
+  if (wasInEditor) {
+    renderPreview();
+    document.getElementById('preview').classList.add('active');
+    document.getElementById('editor').classList.add('hidden');
+  }
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      if (wasInEditor) switchMode('editor');
+    }, 500);
+  }, 100);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  loadState();
+  renderEditor();
+  setupEditorEvents();
+
+  // Mode toggle
+  document.getElementById('mode-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-mode]');
+    if (btn) switchMode(btn.dataset.mode);
+  });
+
+  // Boutons header
+  document.getElementById('btn-save-json').addEventListener('click', saveJSON);
+  document.getElementById('btn-restore-json').addEventListener('click', () => {
+    document.getElementById('file-input-restore').click();
+  });
+  document.getElementById('file-input-restore').addEventListener('change', (e) => {
+    if (e.target.files[0]) {
+      restoreJSON(e.target.files[0]);
+      e.target.value = ''; // permet de re-uploader le même fichier
+    }
+  });
+  document.getElementById('btn-reset').addEventListener('click', resetTemplate);
+  document.getElementById('btn-export-html').addEventListener('click', exportStandaloneHTML);
+  document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
+
+  window.addEventListener('beforeunload', flushSave);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
