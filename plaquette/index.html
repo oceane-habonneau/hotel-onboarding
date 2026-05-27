@@ -441,7 +441,18 @@
     gap: 10px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 100ms;
   }
+  .tier-edit-header:hover { background: var(--surface-2); }
+  /* En mode replié : pas de border-bottom (car body caché) */
+  .tier-edit.collapsed .tier-edit-header { border-bottom: none; }
+  /* Le chevron pivote selon l'état */
+  .tier-chevron { color: var(--text-muted); flex-shrink: 0; }
+  .tier-chevron svg { transition: transform 160ms ease; }
+  .tier-edit.collapsed .tier-chevron svg { transform: rotate(-90deg); }
+  /* Masquer le body si replié */
+  .tier-edit.collapsed .tier-edit-body { display: none; }
   .tier-icon-display { font-size: 18px; line-height: 1; flex-shrink: 0; }
   .tier-name-display {
     font-size: 13px;
@@ -1612,21 +1623,34 @@ function renderEditor() {
 
 function renderPackagesEditor() {
   // Sauvegarde l'état "collapsed" de chaque package avant re-render
-  const collapsedSet = new Set();
+  const collapsedPkgSet = new Set();
   document.querySelectorAll('.package-card-header.collapsed').forEach(h => {
     const card = h.closest('[data-pkg-id]');
-    if (card) collapsedSet.add(parseInt(card.dataset.pkgId));
+    if (card) collapsedPkgSet.add(parseInt(card.dataset.pkgId));
+  });
+
+  // Sauvegarde aussi l'état "déplié" (open) de chaque tier (l'inverse :
+  // par défaut les tiers sont repliés, on note ceux qui sont OUVERTS)
+  const openTierSet = new Set();
+  document.querySelectorAll('.tier-edit:not(.collapsed)').forEach(t => {
+    if (t.dataset.tierId) openTierSet.add(parseInt(t.dataset.tierId));
   });
 
   const container = document.getElementById('packages-container');
   container.innerHTML = state.packages.map((pkg, idx) => packageEditorHTML(pkg, idx)).join('');
 
-  // Restaure l'état collapsed
+  // Restaure l'état collapsed des packages
   document.querySelectorAll('.package-card-edit').forEach(card => {
     const pkgId = parseInt(card.dataset.pkgId);
-    if (collapsedSet.has(pkgId)) {
+    if (collapsedPkgSet.has(pkgId)) {
       card.querySelector('.package-card-header').classList.add('collapsed');
     }
+  });
+
+  // Restaure les tiers qui étaient ouverts
+  document.querySelectorAll('.tier-edit').forEach(tEl => {
+    const tierId = parseInt(tEl.dataset.tierId);
+    if (openTierSet.has(tierId)) tEl.classList.remove('collapsed');
   });
 }
 
@@ -1717,8 +1741,11 @@ function tierEditorHTML(pkg, tier, idx, total) {
   const isOverride = tier.price && tier.price.trim();
 
   return `
-  <div class="tier-edit" data-tier-id="${tier.id}">
-    <div class="tier-edit-header">
+  <div class="tier-edit collapsed" data-tier-id="${tier.id}">
+    <div class="tier-edit-header" data-action="toggle-tier-collapse" title="Cliquez pour déplier les détails">
+      <button class="icon-btn chevron-toggle tier-chevron" title="Plier/déplier">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       <span class="tier-icon-display">${escapeHtml(tier.icon || '')}</span>
       <span class="tier-name-display">${escapeHtml(tier.name)}</span>
       <span class="tier-stats">${autoHours}h ${hoursToDays(autoHours) ? '· ' + hoursToDays(autoHours) : ''} · ${formatTierTotal(autoTotal)}</span>
@@ -2397,6 +2424,27 @@ function handleAction(btn) {
     scheduleSave();
     renderPackagesEditor();
     showToast('Prix repassé en calcul automatique');
+    return;
+  }
+
+  if (action === 'toggle-tier-collapse') {
+    const tierEl = btn.closest('[data-tier-id]');
+    if (!tierEl) return;
+    // Si on était replié, on déplie (en repliant les autres tiers du même package
+    // pour rester compact). Si on était déplié, on replie.
+    const wasCollapsed = tierEl.classList.contains('collapsed');
+    if (wasCollapsed) {
+      // Replie les autres tiers du même package
+      const pkgEl = tierEl.closest('[data-pkg-id]');
+      if (pkgEl) {
+        pkgEl.querySelectorAll('.tier-edit').forEach(el => {
+          if (el !== tierEl) el.classList.add('collapsed');
+        });
+      }
+      tierEl.classList.remove('collapsed');
+    } else {
+      tierEl.classList.add('collapsed');
+    }
     return;
   }
 }
