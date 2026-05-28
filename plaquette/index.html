@@ -952,6 +952,7 @@
     padding: 3px 8px;
   }
   .pr-stack-categories { display: flex; flex-direction: column; gap: 10px; }
+  .pr-stack-block { display: block; }
   .pr-stack-cat-row { display: flex; align-items: flex-start; gap: 10px; }
   .pr-stack-cat-name { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: #555; padding-top: 4px; width: 90px; flex-shrink: 0; }
   .pr-stack-cat-tools { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
@@ -1988,6 +1989,48 @@ function renderPreview() {
       </footer>
     </div>`;
   document.getElementById('preview').innerHTML = html;
+  // Aligne les blocs entre les cartes (stack + chaque niveau) après le rendu
+  requestAnimationFrame(() => equalizePreviewHeights());
+}
+
+/* Égalise les hauteurs entre les cartes de la preview pour un alignement parfait :
+   1. Le bloc "Stack Logiciel" prend la hauteur du plus grand → "Niveaux" démarre à la même ligne
+   2. Chaque niveau (Autonome, Guidée, Sur-mesure) s'aligne avec son homologue des autres cartes
+   Ne s'applique qu'en vue multi-colonnes (desktop). Réinitialise d'abord pour un recalcul propre. */
+function equalizePreviewHeights() {
+  const grid = document.querySelector('#preview .preview-grid');
+  if (!grid) return;
+  const cards = Array.from(grid.querySelectorAll('.pr-card'));
+  if (cards.length < 2) return;
+
+  // Reset des hauteurs forcées
+  grid.querySelectorAll('.pr-stack-block').forEach(el => { el.style.minHeight = ''; });
+  grid.querySelectorAll('.pr-tier').forEach(el => { el.style.minHeight = ''; });
+
+  // Si les cartes sont empilées (1 colonne, mobile), on n'aligne pas
+  const stacked = cards.length >= 2 && cards[1].offsetTop > cards[0].offsetTop + 10;
+  if (stacked) return;
+
+  // 1. Égalise la hauteur du bloc Stack
+  const stackBlocks = cards.map(c => c.querySelector('.pr-stack-block')).filter(Boolean);
+  if (stackBlocks.length) {
+    let maxStack = 0;
+    stackBlocks.forEach(b => { maxStack = Math.max(maxStack, b.offsetHeight); });
+    stackBlocks.forEach(b => { b.style.minHeight = maxStack + 'px'; });
+  }
+
+  // 2. Égalise chaque niveau avec son homologue (par index)
+  const tierCountPerCard = cards.map(c => c.querySelectorAll('.pr-tier').length);
+  const maxTiers = Math.max(...tierCountPerCard);
+  for (let i = 0; i < maxTiers; i++) {
+    const tiersAtIndex = cards
+      .map(c => c.querySelector(`.pr-tier[data-tier-index="${i}"]`))
+      .filter(Boolean);
+    if (tiersAtIndex.length < 2) continue;
+    let maxH = 0;
+    tiersAtIndex.forEach(t => { maxH = Math.max(maxH, t.offsetHeight); });
+    tiersAtIndex.forEach(t => { t.style.minHeight = maxH + 'px'; });
+  }
 }
 
 function previewCardHTML(pkg) {
@@ -2006,22 +2049,24 @@ function previewCardHTML(pkg) {
       <p class="pr-card-tagline">${escapeHtml(pkg.tagline)}</p>
 
       ${hasStack ? `
-        <div class="pr-divider" style="margin-top:8px;"></div>
-        <p class="pr-stack-label">Stack Logiciel</p>
-        <div class="pr-stack-categories">
-          ${stack.map(cat => `
-            <div class="pr-stack-cat-row">
-              <span class="pr-stack-cat-name">${escapeHtml(cat.name)}</span>
-              <div class="pr-stack-cat-tools">
-                ${cat.tools.map(tool => `
-                  <span class="pr-stack-tag" style="color:${escapeAttr(pkg.color)};background:${escapeAttr(pkg.colorSoft)};border-color:${escapeAttr(pkg.colorBorder)};">
-                    <svg width="6" height="6" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="${escapeAttr(pkg.color)}"/></svg>
-                    ${escapeHtml(tool.label)}
-                  </span>
-                `).join('')}
+        <div class="pr-stack-block">
+          <div class="pr-divider" style="margin-top:8px;"></div>
+          <p class="pr-stack-label">Stack Logiciel</p>
+          <div class="pr-stack-categories">
+            ${stack.map(cat => `
+              <div class="pr-stack-cat-row">
+                <span class="pr-stack-cat-name">${escapeHtml(cat.name)}</span>
+                <div class="pr-stack-cat-tools">
+                  ${cat.tools.map(tool => `
+                    <span class="pr-stack-tag" style="color:${escapeAttr(pkg.color)};background:${escapeAttr(pkg.colorSoft)};border-color:${escapeAttr(pkg.colorBorder)};">
+                      <svg width="6" height="6" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="${escapeAttr(pkg.color)}"/></svg>
+                      ${escapeHtml(tool.label)}
+                    </span>
+                  `).join('')}
+                </div>
               </div>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </div>
       ` : ''}
 
@@ -2029,13 +2074,13 @@ function previewCardHTML(pkg) {
         <div class="pr-divider" style="margin-top:22px;"></div>
         <p class="pr-stack-label">Niveaux d'accompagnement</p>
         <div class="pr-tiers">
-          ${pkg.tiers.map(tier => {
+          ${pkg.tiers.map((tier, tierIdx) => {
             const hours = getTierHours(pkg, tier.id);
             const daysLabel = hoursToDays(hours);
             const displayPrice = getTierDisplayPrice(pkg, tier);
             const prestations = getPrestationsForTier(pkg, tier.id);
             return `
-              <div class="pr-tier" style="border-left-color:${escapeAttr(pkg.color)};">
+              <div class="pr-tier" data-tier-index="${tierIdx}" style="border-left-color:${escapeAttr(pkg.color)};">
                 <div class="pr-tier-head">
                   <div class="pr-tier-id">
                     ${tier.icon ? `<span class="pr-tier-icon">${escapeHtml(tier.icon)}</span>` : ''}
@@ -2721,6 +2766,42 @@ ${css}
 <div class="preview active" style="display:block; padding:40px 0;">
 ${previewContent}
 </div>
+<scr` + `ipt>
+(function () {
+  function equalize() {
+    var grid = document.querySelector('.preview-grid');
+    if (!grid) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.pr-card'));
+    if (cards.length < 2) return;
+    grid.querySelectorAll('.pr-stack-block').forEach(function (el) { el.style.minHeight = ''; });
+    grid.querySelectorAll('.pr-tier').forEach(function (el) { el.style.minHeight = ''; });
+    var stacked = cards[1].offsetTop > cards[0].offsetTop + 10;
+    if (stacked) return;
+    var stackBlocks = cards.map(function (c) { return c.querySelector('.pr-stack-block'); }).filter(Boolean);
+    if (stackBlocks.length) {
+      var maxStack = 0;
+      stackBlocks.forEach(function (b) { maxStack = Math.max(maxStack, b.offsetHeight); });
+      stackBlocks.forEach(function (b) { b.style.minHeight = maxStack + 'px'; });
+    }
+    var maxTiers = Math.max.apply(null, cards.map(function (c) { return c.querySelectorAll('.pr-tier').length; }));
+    for (var i = 0; i < maxTiers; i++) {
+      var tiers = cards.map(function (c) { return c.querySelector('.pr-tier[data-tier-index="' + i + '"]'); }).filter(Boolean);
+      if (tiers.length < 2) continue;
+      var maxH = 0;
+      tiers.forEach(function (t) { maxH = Math.max(maxH, t.offsetHeight); });
+      tiers.forEach(function (t) { t.style.minHeight = maxH + 'px'; });
+    }
+  }
+  var t = null;
+  window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(equalize, 150); });
+  window.addEventListener('beforeprint', equalize);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { requestAnimationFrame(equalize); });
+  }
+  requestAnimationFrame(equalize);
+  setTimeout(equalize, 300);
+})();
+</scr` + `ipt>
 </body>
 </html>`;
 
@@ -2772,11 +2853,12 @@ function exportPDF() {
     document.getElementById('editor').classList.add('hidden');
   }
   setTimeout(() => {
+    equalizePreviewHeights(); // alignement des blocs avant impression
     window.print();
     setTimeout(() => {
       if (wasInEditor) switchMode('editor');
     }, 500);
-  }, 100);
+  }, 120);
 }
 
 /* ============================================================
@@ -2809,6 +2891,14 @@ function init() {
   document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
 
   window.addEventListener('beforeunload', flushSave);
+
+  // Réaligne les hauteurs de la preview au resize (debounce léger)
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (currentMode !== 'preview') return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => equalizePreviewHeights(), 150);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
