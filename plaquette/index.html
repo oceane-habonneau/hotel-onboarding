@@ -903,6 +903,28 @@
     line-height: 1.5;
     margin-bottom: 10px;
   }
+  /* Liste de prestations à puces avec coche (livrables inclus dans le niveau) */
+  .pr-tier-prestations {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 10px 0 0;
+    border-top: 1px dashed var(--pr-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pr-tier-prestations li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--pr-text);
+    line-height: 1.4;
+  }
+  .pr-presta-check {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
   /* Stack logiciel à l'intérieur de chaque tier */
   .pr-tier-stack {
     margin-top: 10px;
@@ -1027,6 +1049,9 @@
     .pr-tier-price { font-size: 14px !important; }
     .pr-tier-punchline { font-size: 9.5px !important; margin-bottom: 3px !important; }
     .pr-tier-desc { font-size: 9px !important; line-height: 1.35 !important; }
+    .pr-tier-prestations { margin-top: 6px !important; padding-top: 6px !important; gap: 3px !important; }
+    .pr-tier-prestations li { font-size: 9px !important; gap: 5px !important; }
+    .pr-presta-check { width: 10px !important; height: 10px !important; }
     .pr-tiers { gap: 6px !important; }
   }
 </style>
@@ -1593,6 +1618,19 @@ function getStackForPackage(pkg) {
   return order.map(cat => ({ name: cat, tools: grouped[cat] }));
 }
 
+/* Renvoie les PRESTATIONS d'un tier : les lignes avec inStack=false (= ce ne sont
+   pas des logiciels) cochées pour ce tier. Servent à afficher la liste de livrables
+   à puces dans chaque niveau d'accompagnement de la preview. */
+function getPrestationsForTier(pkg, tierId) {
+  if (!pkg.lines) return [];
+  return pkg.lines.filter(l =>
+    !l.inStack &&
+    Array.isArray(l.tierIds) &&
+    l.tierIds.includes(tierId) &&
+    (l.label || '').trim() !== ''
+  );
+}
+
 /* Total heures d'une ligne */
 function getLineTotal(line) {
   return (parseFloat(line.hours) || 0) * (parseFloat(line.rate) || 0);
@@ -1741,7 +1779,7 @@ function packageEditorHTML(pkg, idx) {
       <div class="lines-section">
         <div class="lines-section-header">
           <span class="lines-section-label">Tableur unifié · ${totalLines} ligne${totalLines > 1 ? 's' : ''} (logiciels + phases + conseils)</span>
-          <span class="lines-section-help">Cochez les niveaux dans lesquels chaque ligne est incluse · "Stack" = afficher dans le bloc preview</span>
+          <span class="lines-section-help">Cochez les niveaux où chaque ligne est incluse · interrupteur "Logiciel" ON = tag dans le Stack · OFF = prestation listée dans les niveaux</span>
         </div>
         ${linesTableHTML(pkg)}
         <button class="add-row-btn" data-action="add-line">+ Ajouter une ligne</button>
@@ -1833,7 +1871,7 @@ function linesTableHTML(pkg) {
         <div class="lcol-num">€/h</div>
         <div class="lcol-total">Total HT</div>
         ${tierHeaders}
-        <div class="lcol-stack" title="Afficher comme tag dans le bloc Stack Logiciel de la preview ?">Stack</div>
+        <div class="lcol-stack" title="Activé = c'est un logiciel (apparaît dans le bloc Stack Logiciel). Désactivé = c'est une prestation (apparaît dans les niveaux d'accompagnement).">Logiciel</div>
         <div class="lcol-actions"></div>
       </div>
       ${pkg.lines.map((line, idx) => lineRowHTML(pkg, line, idx)).join('')}
@@ -1866,7 +1904,7 @@ function lineRowHTML(pkg, line, idx) {
       <div class="lcol-total">${formatTierTotal(total).replace(' € HT', ' €')}</div>
       ${tierCheckboxes}
       <div class="lcol-stack">
-        <label class="switch switch-sm" title="Afficher comme tag dans le bloc Stack Logiciel ?">
+        <label class="switch switch-sm" title="Logiciel (bloc Stack) ou prestation (dans les niveaux) ?">
           <input type="checkbox" data-line-field="inStack" ${line.inStack ? 'checked' : ''}>
           <span class="switch-slider"></span>
         </label>
@@ -1995,6 +2033,7 @@ function previewCardHTML(pkg) {
             const hours = getTierHours(pkg, tier.id);
             const daysLabel = hoursToDays(hours);
             const displayPrice = getTierDisplayPrice(pkg, tier);
+            const prestations = getPrestationsForTier(pkg, tier.id);
             return `
               <div class="pr-tier" style="border-left-color:${escapeAttr(pkg.color)};">
                 <div class="pr-tier-head">
@@ -2009,6 +2048,16 @@ function previewCardHTML(pkg) {
                 </div>
                 ${tier.punchline ? `<p class="pr-tier-punchline">${escapeHtml(tier.punchline)}</p>` : ''}
                 ${tier.description ? `<p class="pr-tier-desc">${escapeHtml(tier.description)}</p>` : ''}
+                ${prestations.length > 0 ? `
+                  <ul class="pr-tier-prestations">
+                    ${prestations.map(p => `
+                      <li>
+                        <svg class="pr-presta-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${escapeAttr(pkg.color)}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>${escapeHtml(p.label)}</span>
+                      </li>
+                    `).join('')}
+                  </ul>
+                ` : ''}
               </div>
             `;
           }).join('')}
@@ -2661,6 +2710,9 @@ ${css}
     .pr-tier-price { font-size: 14px !important; }
     .pr-tier-punchline { font-size: 9.5px !important; margin-bottom: 3px !important; }
     .pr-tier-desc { font-size: 9px !important; line-height: 1.35 !important; }
+    .pr-tier-prestations { margin-top: 6px !important; padding-top: 6px !important; gap: 3px !important; }
+    .pr-tier-prestations li { font-size: 9px !important; gap: 5px !important; }
+    .pr-presta-check { width: 10px !important; height: 10px !important; }
     .pr-tiers { gap: 6px !important; }
   }
 </style>
