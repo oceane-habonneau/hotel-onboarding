@@ -485,29 +485,98 @@
     align-self:center;
   }
 
-  /* Timeline */
+  /* Timeline en grille (swim lanes) */
   .timeline-wrap{position:relative}
   .timeline{
-    display:flex;gap:14px;
     overflow-x:auto;
     padding:6px 4px 18px;
-    align-items:stretch;
     position:relative;
   }
-  .time-col{
-    min-width:220px;
-    flex:0 0 220px;
+  .lanes-grid{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-width:max-content;
+  }
+  .lanes-row{
+    display:flex;
+    align-items:stretch;
+    gap:14px;
+  }
+  /* Cellule label de la voie (à gauche, sticky horizontalement) */
+  .lane-label-cell{
+    flex:0 0 180px;
+    min-width:180px;
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:var(--radius);
-    display:flex;flex-direction:column;
+    display:flex;
+    align-items:center;
+    padding:10px 12px;
+    position:sticky;
+    left:0;
+    z-index:5;
+  }
+  .lane-label-content{
+    display:flex;align-items:center;gap:8px;
+    width:100%;
+  }
+  .lane-marker{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--c-temps);
+    flex-shrink:0;
+  }
+  .is-default-lane .lane-marker{background:var(--c-lieu)}
+  .lane-label-text{
+    flex:1;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    font-weight:600;
+    color:var(--text);
+    cursor:pointer;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .lane-label-text:hover{color:var(--c-lieu)}
+  .lane-del{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:22px;height:22px;border-radius:4px;
+    font-size:14px;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .lane-del:hover{background:rgba(217,69,85,.12);color:var(--c-canal)}
+
+  /* En-tête : nom des colonnes temps */
+  .lanes-header-row{
+    align-items:flex-end;
+  }
+  .lanes-header-label{
+    background:transparent !important;
+    border:none !important;
+  }
+  .lane-label-head-text{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--text-mute);
+    font-weight:600;
+  }
+  .time-col-head-cell{
+    flex:0 0 220px;
+    min-width:220px;
     position:relative;
   }
   .time-col-head{
     padding:10px 12px;
-    border-bottom:1px solid var(--line);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
     display:flex;align-items:center;justify-content:space-between;
-    background:linear-gradient(180deg, rgba(230,198,106,.08), transparent);
+    background:linear-gradient(180deg, rgba(230,198,106,.08), var(--panel));
   }
   .time-col-title{
     font-family:'JetBrains Mono', monospace;
@@ -515,59 +584,109 @@
     color:var(--c-temps);
     font-weight:600;
   }
-  .time-col-drop{
+  .col-actions{display:flex;gap:2px}
+  .dup-col, .del-col{
+    background:transparent;border:none;color:var(--text-mute);
+    cursor:pointer;width:22px;height:22px;border-radius:4px;
+    font-size:12px;display:flex;align-items:center;justify-content:center;
+  }
+  .dup-col:hover{background:rgba(47,111,224,.12);color:var(--c-lieu)}
+  .del-col:hover{background:rgba(217,69,85,.12);color:var(--c-canal)}
+
+  /* Cellule d'une voie sur une colonne temps */
+  .lane-cell{
+    flex:0 0 220px;
+    min-width:220px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    display:flex;flex-direction:column;
+    position:relative;
+  }
+  .lane-cell-drop{
     flex:1;padding:10px;
     display:flex;flex-direction:column;gap:8px;
-    min-height:180px;
+    min-height:140px;
   }
-  .time-col-drop:empty::before{
-    content:"Glissez contenu + canal";
+  .lane-cell-drop:empty::before{
+    content:"Glissez ici";
     color:var(--text-mute);
     font-size:11.5px;font-style:italic;
     text-align:center;
     margin:auto;
   }
-  .time-col .col-actions{display:flex;gap:2px}
-  .time-col .dup-col,
-  .time-col .del-col{
-    background:transparent;border:none;color:var(--text-mute);
-    cursor:pointer;width:22px;height:22px;border-radius:4px;
-    font-size:12px;display:flex;align-items:center;justify-content:center;
+  .lane-cell.is-merged{
+    background:linear-gradient(135deg, rgba(47,111,224,.04), rgba(123,94,167,.04));
+    border-style:dashed;
+    border-color:var(--line-2);
+    min-height:140px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px;
   }
-  .time-col .dup-col:hover{background:rgba(47,111,224,.12);color:var(--c-lieu)}
-  .time-col .del-col:hover{background:rgba(217,69,85,.12);color:var(--c-canal)}
+  .merged-marker{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    color:var(--c-lieu);
+    font-size:11px;
+    text-align:center;
+    line-height:1.4;
+  }
+  .merged-marker svg{opacity:.65}
+  .merged-marker span{font-family:'JetBrains Mono', monospace;font-weight:600;letter-spacing:.04em}
+  .unmerge-btn{
+    background:transparent;border:1px solid var(--line);
+    color:var(--text-mute);cursor:pointer;
+    padding:3px 8px;border-radius:4px;
+    font-size:10px;
+    margin-top:2px;
+  }
+  .unmerge-btn:hover{background:rgba(217,69,85,.12);color:var(--c-canal);border-color:var(--c-canal)}
 
-  /* Connectors between time columns */
-  .time-connector{
-    position:absolute;
-    top:50%;right:-14px;
-    width:14px;height:2px;
-    background:var(--line-2);
-    z-index:1;
+  /* Bouton "Rejoindre une voie" en bas d'une cellule alternative */
+  .merge-btn{
+    margin:0 10px 10px;
+    background:transparent;
+    border:1px dashed var(--line-2);
+    border-radius:6px;
+    color:var(--text-mute);
+    cursor:pointer;
+    padding:6px 8px;
+    font-size:10.5px;
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.03em;
+    transition:all .15s ease;
   }
-  .time-connector::after{
-    content:"";position:absolute;right:-1px;top:-3px;
-    border-left:6px solid var(--c-temps);
-    border-top:4px solid transparent;border-bottom:4px solid transparent;
-    opacity:.7;
+  .merge-btn:hover{
+    border-color:var(--c-lieu);
+    color:var(--c-lieu);
+    background:rgba(47,111,224,.04);
   }
+
+  /* Connector label entre colonnes (sous l'en-tête de chaque colonne) */
   .time-connector-label{
-    position:absolute;
-    top:calc(50% - 24px);right:-30px;
+    margin-top:6px;
     background:var(--bg);
-    padding:2px 6px;border:1px solid var(--line);
+    padding:3px 8px;border:1px solid var(--line);
     border-radius:4px;
     font-size:10px;color:var(--text-dim);
     font-family:'JetBrains Mono', monospace;
     cursor:pointer;white-space:nowrap;
-    z-index:2;
+    display:inline-block;
   }
   .time-connector-label:hover{border-color:var(--c-temps);color:var(--c-temps)}
   .time-connector-label:empty::before{content:"＋ label";color:var(--text-mute)}
 
-  .add-col-btn{
+  /* Bouton + colonne (à droite de l'en-tête) */
+  .add-col-cell{
     flex:0 0 56px;
-    align-self:stretch;
+    min-width:56px;
+    display:flex;
+    align-items:stretch;
+  }
+  .add-col-cell-empty{visibility:hidden}
+  .add-col-btn{
+    flex:1;
     background:transparent;
     border:1px dashed var(--line-2);
     border-radius:var(--radius);
@@ -575,10 +694,71 @@
     cursor:pointer;
     font-size:22px;font-weight:300;
     transition:all .15s ease;
+    min-height:60px;
   }
   .add-col-btn:hover{
     border-color:var(--c-temps);color:var(--c-temps);
     background:rgba(230,198,106,.04);
+  }
+
+  /* Ligne d'ajout de voie tout en bas */
+  .lanes-add-row{margin-top:4px}
+  .add-lane-btn{
+    margin-left:0;
+    padding:10px 16px;
+    background:transparent;
+    border:1px dashed var(--line-2);
+    border-radius:var(--radius);
+    color:var(--text-mute);
+    cursor:pointer;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    transition:all .15s ease;
+  }
+  .add-lane-btn:hover{
+    border-color:var(--c-lieu);
+    color:var(--c-lieu);
+    background:rgba(47,111,224,.04);
+  }
+
+  /* Bouton "fork" sur les items de type Condition */
+  .item-fork{
+    background:transparent;border:none;
+    color:var(--c-lieu);
+    cursor:pointer;
+    font-size:13px;
+    margin-left:2px;
+    padding:0 2px;
+    line-height:1;
+    opacity:.7;
+  }
+  .item-fork:hover{opacity:1;transform:scale(1.15)}
+
+  /* Modale de merge */
+  .merge-help{
+    font-size:12px;color:var(--text-mute);
+    margin:8px 0 14px;line-height:1.5;
+  }
+  .merge-choices{
+    display:flex;flex-direction:column;gap:6px;
+    margin-bottom:14px;
+  }
+  .merge-choice{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;font-size:13px;
+    color:var(--text);
+    transition:all .12s ease;
+  }
+  .merge-choice:hover{
+    border-color:var(--c-lieu);
+    background:rgba(47,111,224,.04);
   }
 
   /* Dropped items (cards in context band + time cols) */
@@ -749,6 +929,12 @@
   /* Hide elements during PDF export */
   .exporting .item-del,
   .exporting .del-col,
+  .exporting .dup-col,
+  .exporting .lane-del,
+  .exporting .merge-btn,
+  .exporting .unmerge-btn,
+  .exporting .item-fork,
+  .exporting .add-lane-btn,
   .exporting .add-col-btn,
   .exporting .chip-edit{visibility:hidden}
 </style>
@@ -953,11 +1139,53 @@ const STORAGE_KEY = 'wf_app_v2';
 const uid = () => Math.random().toString(36).slice(2,9);
 
 function emptyCanvas(name='Nouveau workflow'){
+  const mainLaneId = uid();
   return {
     id: uid(),
     name,
-    context: [],   // [{id, catId, catName, color, value}]
-    columns: [],   // [{id, time, items:[{...}], connectorLabel}]
+    context: [],          // [{id, catId, catName, color, value}]
+    timeColumns: [],      // [{id, time, connectorLabel}] — moments temporels partagés
+    lanes: [              // [{id, label, isDefault, cells: {[colId]: {items:[...], mergedTo:null}}}]
+      { id: mainLaneId, label: 'Voie principale', isDefault: true, cells: {} }
+    ],
+  };
+}
+
+/* Construit une cellule vide pour une voie */
+function emptyCell(){
+  return { items: [], mergedTo: null }; // mergedTo = id d'une autre lane si la voie rejoint celle-ci à ce temps
+}
+
+/* Migre un canvas du modèle v1 (columns plat) vers v2 (lanes) */
+function migrateCanvas(c){
+  if(c.lanes && c.timeColumns) return c; // déjà v2
+
+  // v1 : columns plat → 1 seule lane "Voie principale"
+  const mainLaneId = uid();
+  const timeColumns = [];
+  const cells = {};
+
+  (c.columns || []).forEach(col => {
+    const newColId = col.id || uid();
+    timeColumns.push({
+      id: newColId,
+      time: col.time,
+      connectorLabel: col.connectorLabel || ''
+    });
+    cells[newColId] = {
+      items: col.items || [],
+      mergedTo: null
+    };
+  });
+
+  return {
+    id: c.id,
+    name: c.name,
+    context: c.context || [],
+    timeColumns,
+    lanes: [
+      { id: mainLaneId, label: 'Voie principale', isDefault: true, cells }
+    ]
   };
 }
 
@@ -974,7 +1202,11 @@ function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       const s = JSON.parse(raw);
-      if(s && s.canvases && s.categories) return s;
+      if(s && s.canvases && s.categories){
+        // Migration v1 → v2 (columns → lanes) sur tous les canevas
+        s.canvases = s.canvases.map(migrateCanvas);
+        return s;
+      }
     }
     // Migration depuis v1 : on récupère les canevas mais on remplace les catégories
     const rawV1 = localStorage.getItem('wf_app_v1');
@@ -983,7 +1215,7 @@ function loadState(){
       if(old && old.canvases){
         return {
           categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
-          canvases: old.canvases,
+          canvases: old.canvases.map(migrateCanvas),
         };
       }
     }
@@ -1239,12 +1471,41 @@ function renderSidebar(){
         const clone = JSON.parse(JSON.stringify(src));
         clone.id = uid();
         clone.name = (src.name||'Sans titre') + ' (copie)';
-        // regénérer les IDs internes
+        // regénérer les IDs internes — adapté au nouveau modèle (lanes)
         clone.context.forEach(it => it.id = uid());
-        clone.columns.forEach(col => {
-          col.id = uid();
-          col.items.forEach(it => it.id = uid());
-        });
+        // Remap des IDs de timeColumns + remap des clés de cells dans chaque lane
+        if(clone.timeColumns && clone.lanes){
+          const colIdMap = {};
+          clone.timeColumns.forEach(tc => {
+            const newId = uid();
+            colIdMap[tc.id] = newId;
+            tc.id = newId;
+          });
+          clone.lanes.forEach(lane => {
+            lane.id = uid();
+            const newCells = {};
+            Object.keys(lane.cells || {}).forEach(oldColId => {
+              const newColId = colIdMap[oldColId];
+              if(!newColId) return;
+              const cell = lane.cells[oldColId];
+              cell.items.forEach(it => it.id = uid());
+              newCells[newColId] = cell;
+            });
+            lane.cells = newCells;
+            // Remap des mergedTo qui pointent vers des lanes anciennes
+            // (on le fait après avoir réassigné les lane.id : ici tous les mergedTo pointent encore vers les anciens lane.id)
+          });
+          // 2e passe : remap mergedTo
+          const laneIdMap = {};
+          src.lanes.forEach((l, i) => { laneIdMap[l.id] = clone.lanes[i].id; });
+          clone.lanes.forEach(lane => {
+            Object.values(lane.cells).forEach(cell => {
+              if(cell.mergedTo && laneIdMap[cell.mergedTo]){
+                cell.mergedTo = laneIdMap[cell.mergedTo];
+              }
+            });
+          });
+        }
         const idx = state.canvases.findIndex(x=>x.id===c.id);
         state.canvases.splice(idx+1, 0, clone);
         currentCanvasId = clone.id;
@@ -1291,79 +1552,351 @@ function renderCanvas(){
   contextDrop.innerHTML = '';
   c.context.forEach(it => contextDrop.appendChild(renderItem(it, 'context')));
 
-  // Timeline
+  // Timeline en mode grille : voies (lanes) × colonnes temps
   timeline.innerHTML = '';
-  c.columns.forEach((col, colIdx) => {
-    const colEl = document.createElement('div');
-    colEl.className = 'time-col';
-    colEl.dataset.colId = col.id;
-    colEl.innerHTML = `
+
+  // Container principal qui structure la grille
+  const grid = document.createElement('div');
+  grid.className = 'lanes-grid';
+  // Ligne d'en-tête : moments temporels
+  const headerRow = document.createElement('div');
+  headerRow.className = 'lanes-row lanes-header-row';
+
+  // Cellule d'en-tête vide (alignée avec la colonne label des voies)
+  const headerLabelCell = document.createElement('div');
+  headerLabelCell.className = 'lane-label-cell lanes-header-label';
+  headerLabelCell.innerHTML = `<span class="lane-label-head-text">Voies</span>`;
+  headerRow.appendChild(headerLabelCell);
+
+  // Pour chaque temps, on crée une cellule d'en-tête
+  c.timeColumns.forEach((tc, colIdx) => {
+    const headCell = document.createElement('div');
+    headCell.className = 'time-col-head-cell';
+    headCell.innerHTML = `
       <div class="time-col-head">
-        <div class="time-col-title">${escapeHtml(col.time)}</div>
+        <div class="time-col-title">${escapeHtml(tc.time)}</div>
         <div class="col-actions">
-          <button class="dup-col" title="Dupliquer la colonne">⧉</button>
-          <button class="del-col" title="Supprimer la colonne">×</button>
+          <button class="dup-col" data-col-id="${tc.id}" title="Dupliquer la colonne">⧉</button>
+          <button class="del-col" data-col-id="${tc.id}" title="Supprimer la colonne">×</button>
         </div>
       </div>
-      <div class="time-col-drop" data-zone="column" data-col="${col.id}"></div>
+      ${colIdx < c.timeColumns.length - 1 ? `
+        <div class="time-connector-label" data-col-id="${tc.id}" title="Cliquer pour modifier le label">${escapeHtml(tc.connectorLabel || '')}</div>
+      ` : ''}
     `;
-    const drop = colEl.querySelector('.time-col-drop');
-    col.items.forEach(it => drop.appendChild(renderItem(it, 'column', col.id)));
-
-    // duplicate column
-    colEl.querySelector('.dup-col').addEventListener('click', ()=>{
-      const cur = getCanvas();
-      const idx = cur.columns.findIndex(x=>x.id===col.id);
-      const clone = JSON.parse(JSON.stringify(col));
-      clone.id = uid();
-      clone.items.forEach(it => it.id = uid());
-      clone.connectorLabel = '';
-      cur.columns.splice(idx+1, 0, clone);
-      saveState(); renderCanvas();
-      toast('Colonne dupliquée');
-    });
-
-    // delete column
-    colEl.querySelector('.del-col').addEventListener('click', ()=>{
-      const cur = getCanvas();
-      cur.columns = cur.columns.filter(x=>x.id!==col.id);
-      saveState(); renderCanvas();
-    });
-
-    // Connector to next column
-    if(colIdx < c.columns.length - 1){
-      const conn = document.createElement('div');
-      conn.className = 'time-connector';
-      colEl.appendChild(conn);
-      const lbl = document.createElement('div');
-      lbl.className = 'time-connector-label';
-      lbl.textContent = col.connectorLabel || '';
-      lbl.title = 'Cliquer pour modifier le label';
-      lbl.addEventListener('click', ()=>{
-        openModal({
-          title:'Label de transition',
-          value: col.connectorLabel || '',
-          placeholder:'Ex: si pas d\'ouverture…',
-          onOk:(val)=>{ col.connectorLabel = val.trim(); saveState(); renderCanvas(); }
-        });
-      });
-      colEl.appendChild(lbl);
-    }
-    timeline.appendChild(colEl);
+    headerRow.appendChild(headCell);
   });
 
-  // + add column button
+  // Bouton + colonne (dernière cellule de l'en-tête)
+  const addColCell = document.createElement('div');
+  addColCell.className = 'add-col-cell';
   const addBtn = document.createElement('button');
   addBtn.className = 'add-col-btn';
   addBtn.textContent = '+';
   addBtn.title = 'Ajouter un moment temporel';
   addBtn.addEventListener('click', ()=> addColumnFlow());
-  timeline.appendChild(addBtn);
+  addColCell.appendChild(addBtn);
+  headerRow.appendChild(addColCell);
 
+  grid.appendChild(headerRow);
+
+  // Pour chaque voie, une ligne avec son label + ses cellules
+  c.lanes.forEach((lane, laneIdx) => {
+    const laneRow = document.createElement('div');
+    laneRow.className = 'lanes-row';
+    laneRow.dataset.laneId = lane.id;
+    if(lane.isDefault) laneRow.classList.add('is-default-lane');
+
+    // Cellule label de la voie (à gauche, sticky)
+    const labelCell = document.createElement('div');
+    labelCell.className = 'lane-label-cell';
+    labelCell.innerHTML = `
+      <div class="lane-label-content">
+        <span class="lane-marker"></span>
+        <span class="lane-label-text" title="Cliquer pour renommer">${escapeHtml(lane.label || '')}</span>
+        ${!lane.isDefault ? `
+          <button class="lane-del" title="Supprimer cette voie">×</button>
+        ` : ''}
+      </div>
+    `;
+    laneRow.appendChild(labelCell);
+
+    // Cellules : une par colonne temps
+    c.timeColumns.forEach(tc => {
+      const cell = lane.cells[tc.id] || emptyCell();
+      // S'assure que la cellule existe dans le modèle (création paresseuse)
+      if(!lane.cells[tc.id]) lane.cells[tc.id] = cell;
+
+      const cellEl = document.createElement('div');
+      cellEl.className = 'lane-cell';
+      cellEl.dataset.colId = tc.id;
+      cellEl.dataset.laneId = lane.id;
+
+      if(cell.mergedTo){
+        // La voie rejoint une autre voie à ce moment-là
+        const targetLane = c.lanes.find(l => l.id === cell.mergedTo);
+        cellEl.classList.add('is-merged');
+        cellEl.innerHTML = `
+          <div class="merged-marker" title="Rejoint la voie : ${escapeAttr(targetLane?.label || 'voie supprimée')}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
+            </svg>
+            <span>Rejoint « ${escapeHtml(targetLane?.label || '?')} »</span>
+            <button class="unmerge-btn" data-col-id="${tc.id}" data-lane-id="${lane.id}" title="Détacher (rendre indépendante)">×</button>
+          </div>
+        `;
+      } else {
+        const dropZone = document.createElement('div');
+        dropZone.className = 'time-col-drop lane-cell-drop';
+        dropZone.dataset.zone = 'column';
+        dropZone.dataset.col = tc.id;
+        dropZone.dataset.laneId = lane.id;
+        cell.items.forEach(it => dropZone.appendChild(renderItem(it, 'column', tc.id, lane.id)));
+        cellEl.appendChild(dropZone);
+
+        // Si la voie n'est pas la voie par défaut, on permet de la merger à ce point
+        if(!lane.isDefault){
+          const mergeBtn = document.createElement('button');
+          mergeBtn.className = 'merge-btn';
+          mergeBtn.textContent = '↗ Rejoindre une voie';
+          mergeBtn.title = 'Faire converger cette voie avec une autre à ce moment';
+          mergeBtn.dataset.colId = tc.id;
+          mergeBtn.dataset.laneId = lane.id;
+          cellEl.appendChild(mergeBtn);
+        }
+      }
+
+      laneRow.appendChild(cellEl);
+    });
+
+    // Cellule vide à droite pour aligner avec le bouton + de l'en-tête
+    const padCell = document.createElement('div');
+    padCell.className = 'add-col-cell add-col-cell-empty';
+    laneRow.appendChild(padCell);
+
+    grid.appendChild(laneRow);
+  });
+
+  // Ligne d'ajout de voie
+  const addLaneRow = document.createElement('div');
+  addLaneRow.className = 'lanes-row lanes-add-row';
+  const addLaneBtn = document.createElement('button');
+  addLaneBtn.className = 'add-lane-btn';
+  addLaneBtn.textContent = '+ Ajouter une voie alternative';
+  addLaneBtn.title = 'Créer une branche alternative (ex: "Si pas de réponse")';
+  addLaneBtn.addEventListener('click', () => addLaneFlow());
+  addLaneRow.appendChild(addLaneBtn);
+  grid.appendChild(addLaneRow);
+
+  timeline.appendChild(grid);
+
+  bindLaneActions();
   bindDropZones();
 }
 
-function renderItem(it, zone, colId){
+/* Wire des actions de l'éditeur de timeline (boutons dup, del, merge, lane label, etc.) */
+function bindLaneActions(){
+  const c = getCanvas();
+  if(!c) return;
+
+  // Boutons dup/del colonne
+  document.querySelectorAll('.dup-col').forEach(btn => {
+    btn.addEventListener('click', () => duplicateColumn(btn.dataset.colId));
+  });
+  document.querySelectorAll('.del-col').forEach(btn => {
+    btn.addEventListener('click', () => deleteColumn(btn.dataset.colId));
+  });
+
+  // Labels de connecteur (transition entre colonnes)
+  document.querySelectorAll('.time-connector-label').forEach(lbl => {
+    lbl.addEventListener('click', () => {
+      const colId = lbl.dataset.colId;
+      const tc = c.timeColumns.find(x => x.id === colId);
+      if(!tc) return;
+      openModal({
+        title: 'Label de transition',
+        value: tc.connectorLabel || '',
+        placeholder: "Ex: si pas d'ouverture…",
+        onOk: (val) => { tc.connectorLabel = val.trim(); saveState(); renderCanvas(); }
+      });
+    });
+  });
+
+  // Label de voie : clic pour renommer
+  document.querySelectorAll('.lane-label-text').forEach(el => {
+    el.addEventListener('click', () => {
+      const laneEl = el.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const lane = c.lanes.find(l => l.id === laneEl.dataset.laneId);
+      if(!lane) return;
+      openModal({
+        title: 'Nom de la voie',
+        value: lane.label || '',
+        placeholder: 'Ex: Si pas de réponse',
+        onOk: (val) => {
+          lane.label = val.trim() || 'Voie sans nom';
+          saveState(); renderCanvas();
+        }
+      });
+    });
+  });
+
+  // Suppression d'une voie alternative
+  document.querySelectorAll('.lane-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const laneEl = btn.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const laneId = laneEl.dataset.laneId;
+      const lane = c.lanes.find(l => l.id === laneId);
+      if(!lane || lane.isDefault) return;
+      if(!confirm(`Supprimer la voie « ${lane.label} » et tout son contenu ?`)) return;
+      c.lanes = c.lanes.filter(l => l.id !== laneId);
+      // Nettoie les mergedTo qui pointaient vers cette voie
+      c.lanes.forEach(l => {
+        Object.values(l.cells || {}).forEach(cell => {
+          if(cell.mergedTo === laneId) cell.mergedTo = null;
+        });
+      });
+      saveState(); renderCanvas();
+    });
+  });
+
+  // Boutons "Rejoindre une voie" (merge)
+  document.querySelectorAll('.merge-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const laneId = btn.dataset.laneId;
+      const colId = btn.dataset.colId;
+      openMergeModal(laneId, colId);
+    });
+  });
+
+  // Boutons "Détacher" (unmerge)
+  document.querySelectorAll('.unmerge-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const laneId = btn.dataset.laneId;
+      const colId = btn.dataset.colId;
+      const lane = c.lanes.find(l => l.id === laneId);
+      if(!lane) return;
+      if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
+      lane.cells[colId].mergedTo = null;
+      saveState(); renderCanvas();
+    });
+  });
+}
+
+/* Modale de sélection de la voie cible pour le merge.
+   Utilise une modale dédiée (#mergeModalBg) séparée de la modale standard
+   pour ne pas casser ses refs DOM globales. */
+function openMergeModal(laneId, colId){
+  const c = getCanvas();
+  const lane = c.lanes.find(l => l.id === laneId);
+  if(!lane) return;
+  const candidates = c.lanes.filter(l => l.id !== laneId);
+  if(candidates.length === 0){
+    toast('Aucune autre voie disponible');
+    return;
+  }
+
+  // Crée la modale dédiée à la volée si elle n'existe pas encore
+  let mm = document.getElementById('mergeModalBg');
+  if(!mm){
+    mm = document.createElement('div');
+    mm.id = 'mergeModalBg';
+    mm.className = 'modal-bg';
+    document.body.appendChild(mm);
+  }
+  mm.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">Faire converger vers une voie</div>
+      <p class="merge-help">Cette voie rejoindra la voie sélectionnée à ce moment-là. Les cellules suivantes de cette voie ne s'afficheront plus.</p>
+      <div class="merge-choices"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" type="button">Annuler</button>
+      </div>
+    </div>
+  `;
+  const choicesEl = mm.querySelector('.merge-choices');
+  candidates.forEach(l => {
+    const b = document.createElement('button');
+    b.className = 'merge-choice';
+    b.type = 'button';
+    b.innerHTML = `<span class="lane-marker"></span> ${escapeHtml(l.label)}`;
+    b.addEventListener('click', () => {
+      if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
+      lane.cells[colId].mergedTo = l.id;
+      lane.cells[colId].items = [];
+      saveState();
+      mm.classList.remove('show');
+      renderCanvas();
+    });
+    choicesEl.appendChild(b);
+  });
+  mm.querySelector('.modal-cancel').addEventListener('click', () => {
+    mm.classList.remove('show');
+  });
+  mm.addEventListener('click', (e) => {
+    if(e.target === mm) mm.classList.remove('show');
+  }, { once: true });
+  mm.classList.add('show');
+}
+
+/* Création d'une nouvelle voie alternative */
+function addLaneFlow(){
+  openModal({
+    title: 'Nouvelle voie alternative',
+    placeholder: 'Ex: Si pas de réponse, Si VIP, Si OTA',
+    onOk: (val) => {
+      const v = val.trim();
+      if(!v) return;
+      const c = getCanvas();
+      const newLane = {
+        id: uid(),
+        label: v,
+        isDefault: false,
+        cells: {}
+      };
+      // Initialise des cellules vides pour chaque colonne temps existante
+      c.timeColumns.forEach(tc => { newLane.cells[tc.id] = emptyCell(); });
+      c.lanes.push(newLane);
+      saveState(); renderCanvas();
+      toast('Voie alternative créée');
+    }
+  });
+}
+
+/* Duplique une colonne temps (toutes voies confondues) */
+function duplicateColumn(colId){
+  const c = getCanvas();
+  const idx = c.timeColumns.findIndex(x => x.id === colId);
+  if(idx < 0) return;
+  const orig = c.timeColumns[idx];
+  const newColId = uid();
+  c.timeColumns.splice(idx + 1, 0, {
+    id: newColId,
+    time: orig.time + ' (copie)',
+    connectorLabel: ''
+  });
+  // Clone les cellules de chaque voie
+  c.lanes.forEach(lane => {
+    const srcCell = lane.cells[colId] || emptyCell();
+    lane.cells[newColId] = {
+      items: srcCell.items.map(it => ({ ...it, id: uid() })),
+      mergedTo: srcCell.mergedTo
+    };
+  });
+  saveState(); renderCanvas();
+  toast('Colonne dupliquée');
+}
+
+/* Supprime une colonne temps (toutes voies confondues) */
+function deleteColumn(colId){
+  const c = getCanvas();
+  c.timeColumns = c.timeColumns.filter(x => x.id !== colId);
+  c.lanes.forEach(lane => { delete lane.cells[colId]; });
+  saveState(); renderCanvas();
+}
+
+function renderItem(it, zone, colId, laneId){
   const el = document.createElement('div');
   el.className = 'item';
   el.style.setProperty('--item-color', it.color || 'var(--c-lieu)');
@@ -1371,9 +1904,15 @@ function renderItem(it, zone, colId){
   el.dataset.itemId = it.id;
   el.dataset.zone = zone;
   if(colId) el.dataset.colId = colId;
+  if(laneId) el.dataset.laneId = laneId;
+
+  // Si c'est une condition, on propose un raccourci "→ Créer voie alternative"
+  const isCondition = it.catId === 'condition';
+
   el.innerHTML = `
     <span class="item-cat">${escapeHtml(it.catName||'')}</span>
     <span class="item-val">${escapeHtml(it.value)}</span>
+    ${isCondition && zone === 'column' ? `<button class="item-fork" title="Créer une voie alternative basée sur cette condition">⤴</button>` : ''}
     <button class="item-del" title="Retirer">×</button>
   `;
   el.querySelector('.item-del').addEventListener('click', ()=>{
@@ -1381,15 +1920,37 @@ function renderItem(it, zone, colId){
     if(zone==='context'){
       c.context = c.context.filter(x=>x.id!==it.id);
     } else {
-      const col = c.columns.find(x=>x.id===colId);
-      if(col) col.items = col.items.filter(x=>x.id!==it.id);
+      const lane = c.lanes.find(l => l.id === laneId);
+      if(lane && lane.cells[colId]){
+        lane.cells[colId].items = lane.cells[colId].items.filter(x => x.id !== it.id);
+      }
     }
     saveState(); renderCanvas();
   });
+
+  // Bouton "fork" sur les conditions : crée une voie alternative
+  const forkBtn = el.querySelector('.item-fork');
+  if(forkBtn){
+    forkBtn.addEventListener('click', () => {
+      const c = getCanvas();
+      const label = it.value || 'Branche alternative';
+      const newLane = {
+        id: uid(),
+        label: label,
+        isDefault: false,
+        cells: {}
+      };
+      c.timeColumns.forEach(tc => { newLane.cells[tc.id] = emptyCell(); });
+      c.lanes.push(newLane);
+      saveState(); renderCanvas();
+      toast(`Voie « ${label} » créée`);
+    });
+  }
+
   // dragging existing items between zones
   el.addEventListener('dragstart', e=>{
     e.dataTransfer.setData('text/plain', JSON.stringify({
-      source:'item', itemId: it.id, fromZone: zone, fromColId: colId
+      source:'item', itemId: it.id, fromZone: zone, fromColId: colId, fromLaneId: laneId
     }));
     e.dataTransfer.effectAllowed = 'move';
   });
@@ -1405,7 +1966,10 @@ function addColumnFlow(){
       const v = val.trim();
       if(!v) return;
       const c = getCanvas();
-      c.columns.push({ id:uid(), time:v, items:[], connectorLabel:'' });
+      const newColId = uid();
+      c.timeColumns.push({ id: newColId, time: v, connectorLabel: '' });
+      // Initialise une cellule vide dans chaque voie
+      c.lanes.forEach(lane => { lane.cells[newColId] = emptyCell(); });
       saveState(); renderCanvas();
     }
   });
@@ -1418,13 +1982,12 @@ function addColumnFlow(){
 function bindDropZones(){
   // contextDrop est persistant dans le DOM : on doit le cloner pour effacer ses anciens listeners,
   // sinon chaque renderCanvas() ajoute un listener supplémentaire et chaque drop est multiplié.
-  const freshContext = contextDrop.cloneNode(false); // false = sans les enfants (DOM only structure)
-  // ré-insérer les enfants dans le nouveau noeud
+  const freshContext = contextDrop.cloneNode(false);
   while(contextDrop.firstChild) freshContext.appendChild(contextDrop.firstChild);
   contextDrop.parentNode.replaceChild(freshContext, contextDrop);
   contextDrop = freshContext;
 
-  const zones = [contextDrop, ...document.querySelectorAll('.time-col-drop')];
+  const zones = [contextDrop, ...document.querySelectorAll('.lane-cell-drop')];
   zones.forEach(zone=>{
     zone.addEventListener('dragover', e=>{
       e.preventDefault();
@@ -1439,8 +2002,24 @@ function bindDropZones(){
       try{ data = JSON.parse(e.dataTransfer.getData('text/plain')); }catch{ return; }
       const c = getCanvas();
 
-      if(data.source==='palette'){
-        const cat = categories.find(x=>x.id===data.catId);
+      // Helpers de mutation
+      const pushToZone = (item) => {
+        if(zone === contextDrop){
+          c.context.push(item);
+        } else {
+          const colId = zone.dataset.col;
+          const laneId = zone.dataset.laneId;
+          const lane = c.lanes.find(l => l.id === laneId);
+          if(!lane) return;
+          if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
+          // Pas de drop dans une cellule mergée (théoriquement la zone n'existe pas mais sécurité)
+          if(lane.cells[colId].mergedTo) return;
+          lane.cells[colId].items.push(item);
+        }
+      };
+
+      if(data.source === 'palette'){
+        const cat = categories.find(x => x.id === data.catId);
         if(!cat) return;
         const newItem = {
           id: uid(),
@@ -1449,34 +2028,24 @@ function bindDropZones(){
           color: cat.color,
           value: data.value,
         };
-        if(zone===contextDrop){
-          c.context.push(newItem);
-        } else {
-          const colId = zone.dataset.col;
-          const col = c.columns.find(x=>x.id===colId);
-          if(col) col.items.push(newItem);
-        }
+        pushToZone(newItem);
         saveState(); renderCanvas();
-      } else if(data.source==='item'){
+      } else if(data.source === 'item'){
         // move existing item between zones
         let moving;
-        if(data.fromZone==='context'){
-          const idx = c.context.findIndex(x=>x.id===data.itemId);
-          if(idx>=0){ moving = c.context.splice(idx,1)[0]; }
+        if(data.fromZone === 'context'){
+          const idx = c.context.findIndex(x => x.id === data.itemId);
+          if(idx >= 0){ moving = c.context.splice(idx, 1)[0]; }
         } else {
-          const fromCol = c.columns.find(x=>x.id===data.fromColId);
-          if(fromCol){
-            const idx = fromCol.items.findIndex(x=>x.id===data.itemId);
-            if(idx>=0){ moving = fromCol.items.splice(idx,1)[0]; }
+          const fromLane = c.lanes.find(l => l.id === data.fromLaneId);
+          if(fromLane && fromLane.cells[data.fromColId]){
+            const arr = fromLane.cells[data.fromColId].items;
+            const idx = arr.findIndex(x => x.id === data.itemId);
+            if(idx >= 0){ moving = arr.splice(idx, 1)[0]; }
           }
         }
         if(!moving) return;
-        if(zone===contextDrop){ c.context.push(moving); }
-        else{
-          const colId = zone.dataset.col;
-          const col = c.columns.find(x=>x.id===colId);
-          if(col) col.items.push(moving);
-        }
+        pushToZone(moving);
         saveState(); renderCanvas();
       }
     });
@@ -1553,8 +2122,11 @@ resetMenu.addEventListener('click', e=>{
 
   if(act==='reset-canvas'){
     const c = getCanvas(); if(!c) return;
-    if(confirm(`Vider le canevas « ${c.name} » ? (contexte et colonnes seront effacés)`)){
-      c.context = []; c.columns = [];
+    if(confirm(`Vider le canevas « ${c.name} » ? (contexte, voies et colonnes seront effacés)`)){
+      const mainLaneId = uid();
+      c.context = [];
+      c.timeColumns = [];
+      c.lanes = [{ id: mainLaneId, label: 'Voie principale', isDefault: true, cells: {} }];
       saveState(); renderCanvas();
       toast('Canevas vidé');
     }
@@ -1645,8 +2217,10 @@ document.getElementById('fileInput').addEventListener('change', e=>{
       const data = JSON.parse(reader.result);
       if(data.canvas){
         data.canvas.id = uid();
-        state.canvases.push(data.canvas);
-        currentCanvasId = data.canvas.id;
+        // Migration auto si v1 (columns plat) → v2 (lanes)
+        const migrated = migrateCanvas(data.canvas);
+        state.canvases.push(migrated);
+        currentCanvasId = migrated.id;
         // merge categories (no duplicates by id)
         if(Array.isArray(data.categories)){
           data.categories.forEach(cat=>{
@@ -1739,17 +2313,35 @@ function exportSpec(){
 
   // ===== Séquence temporelle =====
   md += `## Séquence de communication\n\n`;
-  if(!c.columns.length){
+  if(!c.timeColumns.length){
     md += `_Aucun moment temporel défini._\n\n`;
+  } else if(!c.lanes.length){
+    md += `_Aucune voie définie._\n\n`;
   } else {
-    c.columns.forEach((col, idx) => {
-      md += `### ${idx+1}. ${col.time}\n\n`;
-      if(!col.items.length){
-        md += `_Aucune action définie._\n\n`;
-      } else {
-        const grouped = groupItems(col.items);
+    // On parcourt voie par voie
+    c.lanes.forEach((lane, laneIdx) => {
+      md += `### Voie ${laneIdx + 1} : ${lane.label}${lane.isDefault ? ' *(par défaut)*' : ''}\n\n`;
+      let hasContent = false;
 
-        // Déclencheur (événement + condition)
+      c.timeColumns.forEach((tc, idx) => {
+        const cell = lane.cells[tc.id];
+        if(!cell) return;
+
+        // Si la voie est mergée à ce moment
+        if(cell.mergedTo){
+          const target = c.lanes.find(l => l.id === cell.mergedTo);
+          md += `#### ${idx+1}. ${tc.time}\n\n`;
+          md += `> ↗ **Cette voie rejoint « ${target?.label || '?'} » à partir de ce moment.**\n\n`;
+          hasContent = true;
+          return;
+        }
+
+        if(!cell.items.length) return;
+        hasContent = true;
+        md += `#### ${idx+1}. ${tc.time}\n\n`;
+
+        const grouped = groupItems(cell.items);
+
         if(grouped['Déclencheur']){
           md += `**Déclencheur :**\n`;
           Object.keys(grouped['Déclencheur']).forEach(catName => {
@@ -1757,8 +2349,6 @@ function exportSpec(){
           });
           md += `\n`;
         }
-
-        // Action (contenu, canal, action auto, destinataire, priorité)
         if(grouped['Action']){
           md += `**Action :**\n`;
           Object.keys(grouped['Action']).forEach(catName => {
@@ -1766,8 +2356,6 @@ function exportSpec(){
           });
           md += `\n`;
         }
-
-        // Contexte additionnel sur la colonne (rare mais possible)
         if(grouped['Contexte client']){
           md += `**Contexte spécifique à ce moment :**\n`;
           Object.keys(grouped['Contexte client']).forEach(catName => {
@@ -1775,8 +2363,6 @@ function exportSpec(){
           });
           md += `\n`;
         }
-
-        // Autres groupes
         Object.keys(grouped).forEach(groupName => {
           if(!['Déclencheur','Action','Contexte client'].includes(groupName)){
             md += `**${groupName} :**\n`;
@@ -1786,17 +2372,27 @@ function exportSpec(){
             md += `\n`;
           }
         });
+
+        if(tc.connectorLabel && idx < c.timeColumns.length - 1){
+          md += `> Transition vers le moment suivant : *${tc.connectorLabel}*\n\n`;
+        }
+      });
+
+      if(!hasContent){
+        md += `_Aucune action définie sur cette voie._\n\n`;
       }
-      if(col.connectorLabel){
-        md += `> Transition vers le moment suivant : *${col.connectorLabel}*\n\n`;
-      }
+      md += `\n`;
     });
   }
 
   md += `---\n\n`;
   md += `## Récapitulatif\n\n`;
-  md += `- Moments temporels : **${c.columns.length}**\n`;
-  md += `- Actions totales : **${c.columns.reduce((s,col)=>s+col.items.length,0)}**\n`;
+  const totalActions = c.lanes.reduce((s, lane) => {
+    return s + Object.values(lane.cells || {}).reduce((ss, cell) => ss + (cell.items?.length || 0), 0);
+  }, 0);
+  md += `- Voies : **${c.lanes.length}**\n`;
+  md += `- Moments temporels : **${c.timeColumns.length}**\n`;
+  md += `- Actions totales : **${totalActions}**\n`;
   md += `- Variables de contexte : **${c.context.length}**\n`;
 
   const blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
@@ -2102,12 +2698,14 @@ function openTemplatesModal(){
     `;
     card.addEventListener('click', ()=>{
       const built = tpl.build();
-      const newCanvas = {
+      // Le template renvoie l'ancien format (columns plat) ; on le passe dans migrateCanvas
+      const rawCanvas = {
         id: uid(),
         name: built.name,
         context: built.context,
         columns: built.columns,
       };
+      const newCanvas = migrateCanvas(rawCanvas);
       state.canvases.push(newCanvas);
       currentCanvasId = newCanvas.id;
       saveState(); renderAll();
