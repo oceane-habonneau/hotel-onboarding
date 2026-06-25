@@ -119,6 +119,253 @@
   .canvas-name:focus{border-color:var(--c-lieu)}
 
   .topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* === Mode présentation === */
+  .present-bar{
+    display:none;
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:200;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid #d0d3dc;
+    padding:12px 22px;
+    align-items:center;
+    gap:18px;
+    box-shadow:0 2px 12px rgba(0,0,0,.06);
+  }
+  .present-bar .btn{
+    background:#1a1d27;
+    color:#fff;
+    border-color:#1a1d27;
+  }
+  .present-bar .btn:hover{
+    background:#000;
+  }
+  body.is-presenting .present-bar{display:flex}
+  body.is-presenting .topbar,
+  body.is-presenting .sidebar,
+  body.is-presenting .palette,
+  body.is-presenting .toggle-tab{display:none !important}
+  body.is-presenting .app{
+    display:block !important;
+    grid-template-areas:none !important;
+    grid-template-columns:none !important;
+    grid-template-rows:none !important;
+    height:auto;
+    min-height:100vh;
+  }
+  body.is-presenting .canvas-wrap{
+    display:block !important;
+    padding:80px 30px 40px;
+    overflow:auto;
+    background:#fafafa;
+    color:#1a1d27;
+    min-height:100vh;
+    height:auto;
+    box-sizing:border-box;
+    position:static;
+  }
+  body.is-presenting .canvas-wrap::before{display:none}
+  /* Thème clair en présentation */
+  body.is-presenting{
+    --bg:#fafafa;
+    --bg-2:#fff;
+    --panel:#fff;
+    --line:#e4e6ed;
+    --line-2:#d0d3dc;
+    --text:#1a1d27;
+    --text-dim:#3d4256;
+    --text-mute:#6a7080;
+  }
+  body.is-presenting .canvas-inner{max-width:none}
+  body.is-presenting .context-band{
+    background:linear-gradient(180deg, rgba(47,111,224,.04), transparent);
+    padding:18px 22px;
+  }
+  body.is-presenting .band-label{
+    font-size:11.5px;
+    color:#2f6fe0;
+  }
+  /* Plus grand en présentation */
+  body.is-presenting .item{font-size:13px;padding:8px 12px 8px 14px}
+  body.is-presenting .item-cat{font-size:9.5px}
+  body.is-presenting .time-col-title{font-size:12.5px;letter-spacing:.14em}
+  body.is-presenting .lane-label-text{font-size:12.5px}
+  body.is-presenting .lane-cell{min-width:240px;flex-basis:240px}
+  body.is-presenting .time-col-head-cell{min-width:240px;flex-basis:240px}
+  body.is-presenting .lane-label-cell{flex-basis:200px;min-width:200px}
+  body.is-presenting .canvas-title{font-size:14px;letter-spacing:.18em}
+  /* Masque les boutons d'édition en présentation */
+  body.is-presenting .item-del,
+  body.is-presenting .item-fork,
+  body.is-presenting .lane-chevron,
+  body.is-presenting .lane-dup,
+  body.is-presenting .lane-del,
+  body.is-presenting .dup-col,
+  body.is-presenting .del-col,
+  body.is-presenting .add-col-btn,
+  body.is-presenting .add-lane-btn,
+  body.is-presenting .merge-btn,
+  body.is-presenting .unmerge-btn,
+  body.is-presenting .cell-note-btn,
+  body.is-presenting .panel-toggle,
+  body.is-presenting .col-actions{display:none !important}
+  body.is-presenting .add-col-cell{display:none}
+
+  .present-bar-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#1a1d27;
+    font-weight:700;
+  }
+  .present-bar-hint{
+    flex:1;
+    font-size:11px;
+    color:#6a7080;
+    font-style:italic;
+    text-align:center;
+  }
+
+  /* === Badge "Vérifier" === */
+  .validate-badge{
+    display:inline-flex;
+    align-items:center;justify-content:center;
+    min-width:18px;height:18px;
+    padding:0 5px;
+    background:var(--c-canal);
+    color:#fff;
+    border-radius:9px;
+    font-size:10px;
+    font-weight:700;
+    margin-left:4px;
+  }
+  .validate-badge.ok{background:#3a9d6e}
+  .validate-badge.warning{background:#e0a82e;color:#1a1d27}
+
+  /* === Modale Validation === */
+  .modal-sub{
+    font-size:12px;
+    color:var(--text-mute);
+    margin:8px 0 14px;
+    line-height:1.5;
+  }
+  .validate-list{
+    display:flex;flex-direction:column;gap:8px;
+    max-height:420px;overflow-y:auto;
+    margin-bottom:14px;
+    padding-right:4px;
+  }
+  .validate-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:10px 12px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    border-left-width:3px;
+  }
+  .validate-item.validate-error{border-left-color:var(--c-canal);background:rgba(217,69,85,.04)}
+  .validate-item.validate-warning{border-left-color:#e0a82e;background:rgba(224,168,46,.04)}
+  .validate-item.validate-info{border-left-color:#5a8ed9;background:rgba(90,142,217,.04)}
+  .validate-icon{font-size:16px;line-height:1.2;flex-shrink:0}
+  .validate-content{flex:1;min-width:0}
+  .validate-msg{font-size:13px;color:var(--text);line-height:1.4}
+  .validate-where{
+    font-size:10.5px;
+    color:var(--text-mute);
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.04em;
+    margin-top:3px;
+  }
+  .validate-legend{
+    font-size:10.5px;
+    color:var(--text-mute);
+    text-align:center;
+    margin:8px 0 0;
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.04em;
+  }
+  .validate-ok{
+    text-align:center;
+    padding:30px 20px;
+  }
+  .validate-ok-emoji{
+    font-size:48px;
+    color:#3a9d6e;
+    margin-bottom:8px;
+    line-height:1;
+  }
+  .validate-ok-text{
+    font-size:13px;
+    color:var(--text-dim);
+  }
+
+  /* === Modale Snapshots === */
+  .snapshot-take-row{
+    display:flex;gap:8px;
+    margin-bottom:18px;
+    padding-bottom:18px;
+    border-bottom:1px solid var(--line);
+  }
+  .snapshot-take-row .modal-input{flex:1;margin:0}
+  .snapshot-list{
+    display:flex;flex-direction:column;gap:8px;
+    max-height:380px;overflow-y:auto;
+    margin-bottom:14px;
+    padding-right:4px;
+  }
+  .snapshot-empty{
+    padding:24px;
+    text-align:center;
+    color:var(--text-mute);
+    font-style:italic;
+    font-size:12.5px;
+  }
+  .snapshot-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 12px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    transition:border-color .12s;
+  }
+  .snapshot-item:hover{border-color:var(--c-temps)}
+  .snapshot-info{flex:1;min-width:0}
+  .snapshot-label{
+    font-size:13px;
+    color:var(--text);
+    font-weight:500;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .snapshot-meta{
+    font-size:10.5px;
+    color:var(--text-mute);
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.04em;
+    margin-top:3px;
+  }
+  .snapshot-actions{display:flex;gap:4px}
+  .snap-restore{
+    padding:5px 10px;
+    font-size:11.5px;
+  }
+  .snap-delete{
+    padding:5px 9px;
+    font-size:14px;
+    color:var(--text-mute);
+    background:transparent;
+  }
+  .snap-delete:hover{
+    color:var(--c-canal);
+    background:rgba(217,69,85,.08);
+  }
   .btn{
     appearance:none;border:1px solid var(--line);
     background:var(--panel);color:var(--text);
@@ -150,6 +397,7 @@
     z-index:20;
   }
   .menu.show{display:block}
+  .menu-right{left:auto;right:0}
   .menu button{
     display:block;width:100%;text-align:left;
     background:transparent;border:none;
@@ -190,6 +438,7 @@
     font-size:16px;line-height:1;
   }
   .sidebar-add:hover{background:var(--c-lieu);color:#ffffff;border-color:transparent}
+  .sidebar-add-tight{margin-right:4px}
 
   .canvas-list{
     flex:1;overflow-y:auto;
@@ -247,6 +496,52 @@
     display:flex;align-items:center;justify-content:space-between;
   }
   .palette-head .sidebar-title{flex:1}
+  .palette-search-wrap{
+    position:relative;
+    padding:0 16px 8px;
+  }
+  .palette-search{
+    width:100%;
+    padding:7px 28px 7px 10px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:12px;
+    outline:none;
+    transition:border-color .12s;
+  }
+  .palette-search:focus{border-color:var(--c-lieu)}
+  .palette-search::placeholder{color:var(--text-mute);font-style:italic}
+  .palette-search-clear{
+    position:absolute;
+    right:22px;top:50%;transform:translateY(-50%);
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:18px;height:18px;border-radius:50%;
+    font-size:14px;line-height:1;
+    display:none;
+    align-items:center;justify-content:center;
+  }
+  .palette-search-clear.visible{display:flex}
+  .palette-search-clear:hover{background:rgba(217,69,85,.12);color:var(--c-canal)}
+  /* Filtre live : masque les éléments qui ne matchent pas */
+  .chip.is-hidden,
+  .cat.is-hidden,
+  .group-header.is-hidden{display:none}
+  /* Surligne le match */
+  .chip.is-match{
+    box-shadow:0 0 0 2px rgba(47,111,224,.35);
+  }
+  /* Indicateur "aucun résultat" */
+  .palette-empty{
+    padding:24px 16px;
+    text-align:center;
+    color:var(--text-mute);
+    font-size:12px;
+    font-style:italic;
+  }
   .palette-hint{
     padding:0 16px 10px;
     font-size:11px;color:var(--text-mute);
@@ -429,6 +724,7 @@
     color:var(--text-mute);
     margin:0 0 4px;
   }
+  .canvas-title-spaced{margin-bottom:10px}
   .canvas-subtitle{
     font-size:13px;color:var(--text-dim);
     margin:0 0 22px;
@@ -464,14 +760,60 @@
     margin-bottom:24px;
     position:relative;
   }
-  .band-label{
-    position:absolute;top:-9px;left:14px;
-    background:var(--bg);
-    padding:2px 8px;
+  .context-band-head{
+    display:flex;align-items:center;gap:8px;
+    margin-bottom:8px;
+  }
+  .context-toggle{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:20px;height:20px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    padding:0;
+  }
+  .context-toggle svg{transition:transform .15s ease}
+  .context-band.is-collapsed .context-toggle svg{transform:rotate(-90deg)}
+  .context-toggle:hover{background:rgba(47,111,224,.12);color:var(--c-lieu)}
+  .context-count{
+    font-size:10.5px;
+    color:var(--text-mute);
     font-family:'JetBrains Mono', monospace;
-    font-size:10px;letter-spacing:.18em;
+    letter-spacing:.04em;
+  }
+  /* Récap compact (visible uniquement quand replié) */
+  .context-summary{
+    display:none;
+    font-size:12px;
+    color:var(--text-dim);
+    font-style:italic;
+    line-height:1.5;
+    padding:4px 0 0 28px;
+  }
+  .context-band.is-collapsed .context-summary{display:block}
+  .context-band.is-collapsed .context-drop{display:none}
+  .context-summary-item{
+    display:inline-block;
+    padding:2px 8px;
+    margin:0 4px 4px 0;
+    background:rgba(47,111,224,.08);
+    border-radius:10px;
+    font-style:normal;
+    font-size:11px;
+    color:var(--text);
+  }
+  .context-summary-empty{
+    color:var(--text-mute);
+  }
+  .band-label{
+    /* Ancien style: badge flottant — désormais inline dans la head */
+    background:transparent;
+    padding:0;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;letter-spacing:.16em;
     text-transform:uppercase;
     color:var(--c-lieu);
+    font-weight:600;
+    flex:1;
   }
   .context-drop{
     min-height:54px;
@@ -500,7 +842,7 @@
   }
   .lanes-row{
     display:flex;
-    align-items:stretch;
+    align-items:flex-start;
     gap:14px;
   }
   /* Cellule label de la voie (à gauche, sticky horizontalement) */
@@ -516,6 +858,7 @@
     position:sticky;
     left:0;
     z-index:5;
+    align-self:stretch;
   }
   .lane-label-content{
     display:flex;align-items:center;gap:8px;
@@ -548,6 +891,57 @@
     flex-shrink:0;
   }
   .lane-del:hover{background:rgba(217,69,85,.12);color:var(--c-canal)}
+
+  /* Chevron de pliage de voie */
+  .lane-chevron{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:20px;height:20px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    padding:0;
+  }
+  .lane-chevron svg{transition:transform .15s ease}
+  .is-collapsed .lane-chevron svg{transform:rotate(-90deg)}
+  .lane-chevron:hover{background:rgba(47,111,224,.12);color:var(--c-lieu)}
+
+  /* Bouton dupliquer une voie */
+  .lane-dup{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:22px;height:22px;border-radius:4px;
+    font-size:12px;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .lane-dup:hover{background:rgba(47,111,224,.12);color:var(--c-lieu)}
+
+  /* Mode replié : récap compact à droite du label */
+  .lane-collapsed-summary{
+    flex:1;
+    min-height:42px;
+    display:flex;
+    align-items:center;
+    padding:8px 16px;
+    background:linear-gradient(90deg, rgba(47,111,224,.03), transparent);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    cursor:pointer;
+    transition:all .12s ease;
+  }
+  .lane-collapsed-summary:hover{
+    border-color:var(--c-lieu);
+    background:linear-gradient(90deg, rgba(47,111,224,.06), transparent);
+  }
+  .collapsed-summary-text{
+    font-size:12px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.02em;
+  }
+  .collapsed-summary-text strong{
+    color:var(--text);
+    font-weight:700;
+  }
 
   /* En-tête : nom des colonnes temps */
   .lanes-header-row{
@@ -614,6 +1008,104 @@
     font-size:11.5px;font-style:italic;
     text-align:center;
     margin:auto;
+  }
+  /* Cellule "inactive" : voie alternative pas encore démarrée à ce moment */
+  .lane-cell.is-inactive{
+    background:repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,.02),
+      rgba(255,255,255,.02) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+    border-style:dashed;
+    opacity:.5;
+  }
+  .lane-cell.is-inactive .lane-cell-drop:empty::before{
+    content:"— inactive —";
+    font-style:italic;
+    color:var(--text-mute);
+  }
+  .lane-cell.is-inactive .merge-btn{display:none}
+  /* Marqueur "Démarre ici" sur la première cellule active d'une voie alternative */
+  .lane-cell.is-fork-point{
+    box-shadow:inset 3px 0 0 var(--c-lieu);
+  }
+  .fork-marker{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 10px;
+    margin:6px 6px 0;
+    background:rgba(47,111,224,.08);
+    border:1px solid rgba(47,111,224,.18);
+    border-radius:4px;
+    font-size:10px;
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.04em;
+    color:var(--c-lieu);
+    font-weight:600;
+    text-transform:uppercase;
+  }
+  .fork-marker-arrow{font-size:12px;line-height:1}
+  .fork-marker-text{flex:1}
+
+  /* === Notes par cellule === */
+  .cell-note-btn{
+    position:absolute;
+    top:6px;right:6px;
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:22px;height:22px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    padding:0;
+    opacity:.45;
+    transition:all .12s ease;
+    z-index:2;
+  }
+  .cell-note-btn:hover{
+    opacity:1;
+    background:rgba(230,198,106,.18);
+    color:var(--c-temps);
+  }
+  .cell-note-btn.has-note{
+    opacity:.85;
+    color:var(--c-temps);
+  }
+  .cell-note-btn.has-note:hover{opacity:1}
+
+  .cell-note-preview{
+    display:flex;
+    align-items:flex-start;
+    gap:6px;
+    margin:0 10px 10px;
+    padding:6px 8px;
+    background:rgba(230,198,106,.08);
+    border-left:2px solid var(--c-temps);
+    border-radius:0 4px 4px 0;
+    font-size:11px;
+    line-height:1.4;
+    color:var(--text-dim);
+    cursor:pointer;
+    transition:all .12s ease;
+  }
+  .cell-note-preview:hover{
+    background:rgba(230,198,106,.14);
+    color:var(--text);
+  }
+  .cell-note-preview svg{
+    flex-shrink:0;
+    color:var(--c-temps);
+    margin-top:2px;
+  }
+  .cell-note-preview span{
+    flex:1;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    line-clamp:3;
+    -webkit-box-orient:vertical;
+    word-break:break-word;
   }
   .lane-cell.is-merged{
     background:linear-gradient(135deg, rgba(47,111,224,.04), rgba(123,94,167,.04));
@@ -931,11 +1423,14 @@
   .exporting .del-col,
   .exporting .dup-col,
   .exporting .lane-del,
+  .exporting .lane-dup,
+  .exporting .lane-chevron,
   .exporting .merge-btn,
   .exporting .unmerge-btn,
   .exporting .item-fork,
   .exporting .add-lane-btn,
   .exporting .add-col-btn,
+  .exporting .cell-note-btn,
   .exporting .chip-edit{visibility:hidden}
 </style>
 </head>
@@ -953,6 +1448,19 @@
       <button class="btn" id="btnTemplates" title="Partir d'un template">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Templates
+      </button>
+      <button class="btn" id="btnValidate" title="Vérifier le workflow (incohérences)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.4 0 4.59.94 6.21 2.46"/></svg>
+        Vérifier
+        <span class="validate-badge" id="validateBadge" style="display:none">0</span>
+      </button>
+      <button class="btn" id="btnSnapshots" title="Snapshots et historique">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Snapshots
+      </button>
+      <button class="btn" id="btnPresent" title="Mode présentation (plein écran)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Présenter
       </button>
       <div class="menu-wrap">
         <button class="btn danger" id="btnResetMenu" title="Réinitialiser">
@@ -979,13 +1487,23 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export
         </button>
-        <div class="menu" id="exportMenu" style="right:0;left:auto">
+        <div class="menu menu-right" id="exportMenu">
           <button data-act="export-pdf">PDF du canevas (paysage A4)</button>
           <button data-act="export-spec">Spec TriggerFlow (.md)</button>
         </div>
       </div>
     </div>
   </header>
+
+<!-- Bandeau du mode présentation (visible uniquement en mode présentation) -->
+<div class="present-bar" id="presentBar">
+  <span class="present-bar-title" id="presentBarTitle">Workflow</span>
+  <span class="present-bar-hint">Mode présentation · Esc pour quitter</span>
+  <button class="btn" id="btnPresentExit">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    Quitter
+  </button>
+</div>
 
   <!-- SIDEBAR (canvases list) -->
   <aside class="sidebar">
@@ -1013,14 +1531,21 @@
       </div>
 
       <!-- Context band -->
-      <section class="context-band">
-        <div class="band-label">Contexte client</div>
+      <section class="context-band" id="contextBand">
+        <div class="context-band-head">
+          <button class="context-toggle" id="contextToggle" title="Replier / déplier le contexte">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="band-label">Contexte client</div>
+          <span class="context-count" id="contextCount"></span>
+        </div>
         <div class="context-drop" id="contextDrop" data-zone="context"></div>
+        <div class="context-summary" id="contextSummary"></div>
       </section>
 
       <!-- Timeline -->
       <div class="timeline-wrap">
-        <div class="canvas-title" style="margin-bottom:10px">Séquence dans le temps</div>
+        <div class="canvas-title canvas-title-spaced">Séquence dans le temps</div>
         <div class="timeline" id="timeline"></div>
       </div>
     </div>
@@ -1030,8 +1555,12 @@
   <aside class="palette">
     <div class="palette-head">
       <div class="sidebar-title">Variables</div>
-      <button class="sidebar-add" id="btnToggleAll" title="Tout replier / tout déplier" style="margin-right:4px">⇕</button>
+      <button class="sidebar-add sidebar-add-tight" id="btnToggleAll" title="Tout replier / tout déplier">⇕</button>
       <button class="sidebar-add" id="btnAddCat" title="Nouvelle catégorie">+</button>
+    </div>
+    <div class="palette-search-wrap">
+      <input type="text" id="paletteSearch" class="palette-search" placeholder="Rechercher une variable…" />
+      <button class="palette-search-clear" id="paletteSearchClear" title="Effacer">×</button>
     </div>
     <div class="palette-hint">Glissez les variables vers le contexte ou vers une colonne temporelle. Cliquez sur ＋ Texte libre pour personnaliser.</div>
     <div class="palette-body" id="paletteBody"></div>
@@ -1067,24 +1596,18 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// === Global error handler — affiche les erreurs en haut de page ===
-window.addEventListener('error', e => {
-  let bar = document.getElementById('err-bar');
-  if(!bar){
-    bar = document.createElement('div');
-    bar.id = 'err-bar';
-    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#d94555;color:#fff;padding:10px 16px;font-family:monospace;font-size:12px;z-index:9999;white-space:pre-wrap;max-height:200px;overflow:auto;box-shadow:0 2px 12px rgba(0,0,0,.2);';
-    document.body.appendChild(bar);
-  }
-  bar.textContent = `⚠️ ${e.message}\n${e.filename}:${e.lineno}:${e.colno}`;
-});
-window.addEventListener('unhandledrejection', e => {
-  console.error('Promise rejection:', e.reason);
-});
-
 /* =========================================================
    DATA MODEL
    ========================================================= */
+
+/* Toutes les clés localStorage utilisées par l'app, en un endroit unique. */
+const STORAGE = {
+  state:            'wf_app_v2',                // état global (canevas + catégories)
+  collapsedCats:    'wf_collapsed_cats_v1',     // set des catégories repliées dans la palette
+  contextCollapsed: 'wf_context_collapsed_v1',  // pliage de la bande contexte (bool global)
+  snapshots:        'wf_snapshots_v1',          // historique par canvas
+  panels:           'wf_panels_v1',             // état des volets sidebar / palette
+};
 
 const GROUPS = [
   { id:'contexte',    name:'Contexte client',  color:'var(--g-contexte)' },
@@ -1134,8 +1657,6 @@ const DEFAULT_CATEGORIES = [
 
 const TIME_PRESETS = ['À la réservation','J-15','J-7','J-2','H-24h','J - arrivée','H-2h','H+1h','J-départ','J+1','J+2','J+30','J+90'];
 
-const STORAGE_KEY = 'wf_app_v2';
-
 const uid = () => Math.random().toString(36).slice(2,9);
 
 function emptyCanvas(name='Nouveau workflow'){
@@ -1143,28 +1664,27 @@ function emptyCanvas(name='Nouveau workflow'){
   return {
     id: uid(),
     name,
-    context: [],          // [{id, catId, catName, color, value}]
-    timeColumns: [],      // [{id, time, connectorLabel}] — moments temporels partagés
-    lanes: [              // [{id, label, isDefault, cells: {[colId]: {items:[...], mergedTo:null}}}]
-      { id: mainLaneId, label: 'Voie principale', isDefault: true, cells: {} }
+    context: [],
+    timeColumns: [],
+    lanes: [
+      { id: mainLaneId, label: 'Voie principale', isDefault: true, collapsed: false, cells: {} }
     ],
   };
 }
 
 /* Construit une cellule vide pour une voie */
 function emptyCell(){
-  return { items: [], mergedTo: null }; // mergedTo = id d'une autre lane si la voie rejoint celle-ci à ce temps
+  return { items: [], mergedTo: null, note: '' };
 }
 
 /* Migre un canvas du modèle v1 (columns plat) vers v2 (lanes) */
-function migrateCanvas(c){
-  if(c.lanes && c.timeColumns) return c; // déjà v2
-
-  // v1 : columns plat → 1 seule lane "Voie principale"
+/* Convertit un canvas v1 (format `columns` plat) en v2 (`lanes` + `timeColumns`).
+   Rare : ne s'exécute que pour les anciens canevas ou pour les templates qui
+   exposent encore l'ancien format pour rester simples. */
+function migrateV1ToV2(c){
   const mainLaneId = uid();
   const timeColumns = [];
   const cells = {};
-
   (c.columns || []).forEach(col => {
     const newColId = col.id || uid();
     timeColumns.push({
@@ -1172,21 +1692,48 @@ function migrateCanvas(c){
       time: col.time,
       connectorLabel: col.connectorLabel || ''
     });
-    cells[newColId] = {
-      items: col.items || [],
-      mergedTo: null
-    };
+    cells[newColId] = { items: col.items || [], mergedTo: null, note: '' };
   });
-
   return {
     id: c.id,
     name: c.name,
     context: c.context || [],
     timeColumns,
-    lanes: [
-      { id: mainLaneId, label: 'Voie principale', isDefault: true, cells }
-    ]
+    lanes: [{ id: mainLaneId, label: 'Voie principale', isDefault: true, collapsed: false, cells }],
   };
+}
+
+/* Auto-réparation défensive d'un canvas v2 : garantit que tous les champs
+   attendus sont présents et bien typés. Appelée à chaque chargement et
+   après chaque opération potentiellement destructrice (import, restore).
+   Mute le canvas en place ET le retourne pour usage en chaîne. */
+function ensureCanvasIntegrity(c){
+  if(!Array.isArray(c.timeColumns)) c.timeColumns = [];
+  if(!Array.isArray(c.lanes) || c.lanes.length === 0){
+    c.lanes = [{ id: uid(), label: 'Voie principale', isDefault: true, collapsed: false, cells: {} }];
+  }
+  c.lanes.forEach(lane => {
+    if(!lane.id) lane.id = uid();
+    if(typeof lane.cells !== 'object' || lane.cells === null || Array.isArray(lane.cells)){
+      lane.cells = {};
+    }
+    c.timeColumns.forEach(tc => {
+      if(!lane.cells[tc.id]) lane.cells[tc.id] = { items: [], mergedTo: null, note: '' };
+      if(!Array.isArray(lane.cells[tc.id].items)) lane.cells[tc.id].items = [];
+      if(typeof lane.cells[tc.id].note !== 'string') lane.cells[tc.id].note = '';
+    });
+    if(typeof lane.collapsed !== 'boolean') lane.collapsed = false;
+  });
+  if(!c.lanes.some(l => l.isDefault)) c.lanes[0].isDefault = true;
+  return c;
+}
+
+/* Point d'entrée unique : prend un canvas dans n'importe quel format
+   (v1 ou v2, potentiellement abîmé) et retourne un canvas v2 sain. */
+function migrateCanvas(c){
+  if(!c) return null;
+  const v2 = (c.lanes && c.timeColumns) ? c : migrateV1ToV2(c);
+  return ensureCanvasIntegrity(v2);
 }
 
 let state = loadState();
@@ -1199,24 +1746,13 @@ let categories = state.categories;
 
 function loadState(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE.state);
     if(raw){
       const s = JSON.parse(raw);
       if(s && s.canvases && s.categories){
-        // Migration v1 → v2 (columns → lanes) sur tous les canevas
+        // Pass de migration / réparation sur chaque canvas
         s.canvases = s.canvases.map(migrateCanvas);
         return s;
-      }
-    }
-    // Migration depuis v1 : on récupère les canevas mais on remplace les catégories
-    const rawV1 = localStorage.getItem('wf_app_v1');
-    if(rawV1){
-      const old = JSON.parse(rawV1);
-      if(old && old.canvases){
-        return {
-          categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
-          canvases: old.canvases.map(migrateCanvas),
-        };
       }
     }
   }catch(e){}
@@ -1227,7 +1763,9 @@ function loadState(){
 }
 function saveState(){
   state.categories = categories;
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  try{ localStorage.setItem(STORAGE.state, JSON.stringify(state)); }catch(e){}
+  // Met à jour le badge de validation si le bouton existe (init terminée)
+  if(document.getElementById('validateBadge')) refreshValidateBadge();
 }
 
 function getCanvas(){ return state.canvases.find(c=>c.id===currentCanvasId); }
@@ -1239,16 +1777,15 @@ function getCanvas(){ return state.canvases.find(c=>c.id===currentCanvasId); }
 const paletteBody = document.getElementById('paletteBody');
 
 // État de pliage par catégorie, persistant en localStorage
-const COLLAPSE_KEY = 'wf_collapsed_cats_v1';
 function loadCollapsed(){
-  try{ return new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '[]')); }
+  try{ return new Set(JSON.parse(localStorage.getItem(STORAGE.collapsedCats) || '[]')); }
   catch{ return new Set(); }
 }
 let _collapsedCats = loadCollapsed();
 function isCollapsed(catId){ return _collapsedCats.has(catId); }
 function setCollapsed(catId, val){
   if(val) _collapsedCats.add(catId); else _collapsedCats.delete(catId);
-  localStorage.setItem(COLLAPSE_KEY, JSON.stringify([..._collapsedCats]));
+  localStorage.setItem(STORAGE.collapsedCats, JSON.stringify([..._collapsedCats]));
 }
 
 function renderPalette(){
@@ -1281,6 +1818,9 @@ function renderPalette(){
   });
 
   bindChipDrag();
+  // Si une recherche est active, on ré-applique le filtre
+  const search = document.getElementById('paletteSearch');
+  if(search && search.value) applyPaletteFilter(search.value);
 }
 
 function renderCategoryCard(cat){
@@ -1533,7 +2073,49 @@ function renderSidebar(){
    RENDER CANVAS (context + timeline)
    ========================================================= */
 
-let contextDrop = document.getElementById('contextDrop');
+const contextDrop = document.getElementById('contextDrop');
+
+/* === Pliage de la bande contexte === */
+function isContextCollapsed(){
+  try{ return localStorage.getItem(STORAGE.contextCollapsed) === '1'; }catch{ return false; }
+}
+function setContextCollapsed(val){
+  try{ localStorage.setItem(STORAGE.contextCollapsed, val ? '1' : '0'); }catch{}
+  const band = document.getElementById('contextBand');
+  if(band) band.classList.toggle('is-collapsed', val);
+}
+
+/* Met à jour le récap compact (visible quand la bande est repliée) + le compteur */
+function updateContextSummary(c){
+  const sum = document.getElementById('contextSummary');
+  const count = document.getElementById('contextCount');
+  if(!sum || !count || !c) return;
+  count.textContent = c.context.length ? `(${c.context.length})` : '';
+  if(!c.context.length){
+    sum.innerHTML = '<span class="context-summary-empty">Aucune variable de contexte.</span>';
+    return;
+  }
+  // Group by category for a cleaner summary
+  const byCat = {};
+  c.context.forEach(it => {
+    if(!byCat[it.catName]) byCat[it.catName] = [];
+    byCat[it.catName].push(it.value);
+  });
+  sum.innerHTML = Object.keys(byCat).map(cat => {
+    const values = byCat[cat].join(', ');
+    return `<span class="context-summary-item" title="${escapeAttr(cat)}">${escapeHtml(values)}</span>`;
+  }).join('');
+}
+
+/* Init de l'état au chargement */
+const ctxToggleBtn = document.getElementById('contextToggle');
+if(ctxToggleBtn){
+  // Restaure l'état persisté
+  setContextCollapsed(isContextCollapsed());
+  ctxToggleBtn.addEventListener('click', () => {
+    setContextCollapsed(!isContextCollapsed());
+  });
+}
 const timeline = document.getElementById('timeline');
 const canvasNameInput = document.getElementById('canvasName');
 const canvasTitleLabel = document.getElementById('canvasTitleLabel');
@@ -1551,6 +2133,9 @@ function renderCanvas(){
   // Context band
   contextDrop.innerHTML = '';
   c.context.forEach(it => contextDrop.appendChild(renderItem(it, 'context')));
+
+  // Récap compact (visible si replié)
+  updateContextSummary(c);
 
   // Timeline en mode grille : voies (lanes) × colonnes temps
   timeline.innerHTML = '';
@@ -1606,37 +2191,86 @@ function renderCanvas(){
     laneRow.className = 'lanes-row';
     laneRow.dataset.laneId = lane.id;
     if(lane.isDefault) laneRow.classList.add('is-default-lane');
+    if(lane.collapsed) laneRow.classList.add('is-collapsed');
+
+    // Comptage actions / merges pour le récap en mode replié
+    let actionCount = 0;
+    let mergeCount = 0;
+    Object.values(lane.cells || {}).forEach(cell => {
+      if(cell.mergedTo) mergeCount++;
+      else actionCount += (cell.items?.length || 0);
+    });
+
+    // Pour les voies alternatives : trouve l'index de la première cellule "active"
+    // (= ayant des items OU un merge). Les cellules antérieures seront grisées
+    // pour signaler que la voie ne démarre qu'à partir de ce point.
+    let firstActiveColIdx = -1;
+    if(!lane.isDefault){
+      for(let i = 0; i < c.timeColumns.length; i++){
+        const tc = c.timeColumns[i];
+        const cell = lane.cells[tc.id];
+        if(cell && (cell.mergedTo || (cell.items && cell.items.length > 0))){
+          firstActiveColIdx = i;
+          break;
+        }
+      }
+    }
 
     // Cellule label de la voie (à gauche, sticky)
     const labelCell = document.createElement('div');
     labelCell.className = 'lane-label-cell';
     labelCell.innerHTML = `
       <div class="lane-label-content">
+        <button class="lane-chevron" title="${lane.collapsed ? 'Déplier' : 'Replier'} cette voie">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
         <span class="lane-marker"></span>
         <span class="lane-label-text" title="Cliquer pour renommer">${escapeHtml(lane.label || '')}</span>
         ${!lane.isDefault ? `
+          <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
           <button class="lane-del" title="Supprimer cette voie">×</button>
-        ` : ''}
+        ` : `
+          <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
+        `}
       </div>
     `;
     laneRow.appendChild(labelCell);
 
-    // Cellules : une par colonne temps
-    c.timeColumns.forEach(tc => {
-      const cell = lane.cells[tc.id] || emptyCell();
-      // S'assure que la cellule existe dans le modèle (création paresseuse)
-      if(!lane.cells[tc.id]) lane.cells[tc.id] = cell;
+    if(lane.collapsed){
+      // Mode replié : une seule cellule de récap qui prend toute la largeur restante
+      const summaryCell = document.createElement('div');
+      summaryCell.className = 'lane-collapsed-summary';
+      const parts = [];
+      if(actionCount) parts.push(`<strong>${actionCount}</strong> action${actionCount > 1 ? 's' : ''}`);
+      if(mergeCount) parts.push(`<strong>${mergeCount}</strong> convergence${mergeCount > 1 ? 's' : ''}`);
+      if(!parts.length) parts.push('<em>vide</em>');
+      summaryCell.innerHTML = `<span class="collapsed-summary-text">${parts.join(' · ')}</span>`;
+      laneRow.appendChild(summaryCell);
+    } else {
+      // Cellules : une par colonne temps
+      c.timeColumns.forEach((tc, colIdx) => {
+        const cell = lane.cells[tc.id] || emptyCell();
+        if(!lane.cells[tc.id]) lane.cells[tc.id] = cell;
 
-      const cellEl = document.createElement('div');
-      cellEl.className = 'lane-cell';
-      cellEl.dataset.colId = tc.id;
-      cellEl.dataset.laneId = lane.id;
+        const cellEl = document.createElement('div');
+        cellEl.className = 'lane-cell';
+        cellEl.dataset.colId = tc.id;
+        cellEl.dataset.laneId = lane.id;
+
+        // États visuels pour les voies alternatives :
+        // - Cellules avant la première cellule active = "inactives" (grisées)
+        // - Première cellule active = marquée comme point de bifurcation
+        const isInactive = !lane.isDefault && firstActiveColIdx >= 0 && colIdx < firstActiveColIdx;
+        const isFork = !lane.isDefault && colIdx === firstActiveColIdx;
+        if(isInactive) cellEl.classList.add('is-inactive');
+        if(isFork) cellEl.classList.add('is-fork-point');
 
       if(cell.mergedTo){
         // La voie rejoint une autre voie à ce moment-là
         const targetLane = c.lanes.find(l => l.id === cell.mergedTo);
         cellEl.classList.add('is-merged');
         cellEl.innerHTML = `
+          ${isFork ? `<div class="fork-marker" title="Cette voie alternative démarre ici"><span class="fork-marker-arrow">↳</span><span class="fork-marker-text">Démarre ici</span></div>` : ''}
           <div class="merged-marker" title="Rejoint la voie : ${escapeAttr(targetLane?.label || 'voie supprimée')}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
@@ -1646,6 +2280,29 @@ function renderCanvas(){
           </div>
         `;
       } else {
+        // Marqueur "Démarre ici" en haut de la cellule si point de bifurcation
+        if(isFork){
+          const fork = document.createElement('div');
+          fork.className = 'fork-marker';
+          fork.title = 'Cette voie alternative démarre ici';
+          fork.innerHTML = `<span class="fork-marker-arrow">↳</span><span class="fork-marker-text">Démarre ici</span>`;
+          cellEl.appendChild(fork);
+        }
+
+        // Bouton "Note" en haut à droite (ouvre une modale pour éditer)
+        const hasNote = !!(cell.note && cell.note.trim());
+        const noteBtn = document.createElement('button');
+        noteBtn.className = 'cell-note-btn' + (hasNote ? ' has-note' : '');
+        noteBtn.title = hasNote ? 'Note présente — cliquer pour éditer' : 'Ajouter une note interne pour cette cellule';
+        noteBtn.dataset.colId = tc.id;
+        noteBtn.dataset.laneId = lane.id;
+        noteBtn.innerHTML = `
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="${hasNote ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        `;
+        cellEl.appendChild(noteBtn);
+
         const dropZone = document.createElement('div');
         dropZone.className = 'time-col-drop lane-cell-drop';
         dropZone.dataset.zone = 'column';
@@ -1653,6 +2310,20 @@ function renderCanvas(){
         dropZone.dataset.laneId = lane.id;
         cell.items.forEach(it => dropZone.appendChild(renderItem(it, 'column', tc.id, lane.id)));
         cellEl.appendChild(dropZone);
+
+        // Aperçu de la note (si elle existe) en bas de la cellule
+        if(hasNote){
+          const notePreview = document.createElement('div');
+          notePreview.className = 'cell-note-preview';
+          notePreview.dataset.colId = tc.id;
+          notePreview.dataset.laneId = lane.id;
+          notePreview.title = 'Cliquer pour éditer la note';
+          notePreview.innerHTML = `
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>${escapeHtml(cell.note)}</span>
+          `;
+          cellEl.appendChild(notePreview);
+        }
 
         // Si la voie n'est pas la voie par défaut, on permet de la merger à ce point
         if(!lane.isDefault){
@@ -1669,10 +2340,11 @@ function renderCanvas(){
       laneRow.appendChild(cellEl);
     });
 
-    // Cellule vide à droite pour aligner avec le bouton + de l'en-tête
-    const padCell = document.createElement('div');
-    padCell.className = 'add-col-cell add-col-cell-empty';
-    laneRow.appendChild(padCell);
+      // Cellule vide à droite pour aligner avec le bouton + de l'en-tête
+      const padCell = document.createElement('div');
+      padCell.className = 'add-col-cell add-col-cell-empty';
+      laneRow.appendChild(padCell);
+    }
 
     grid.appendChild(laneRow);
   });
@@ -1691,7 +2363,7 @@ function renderCanvas(){
   timeline.appendChild(grid);
 
   bindLaneActions();
-  bindDropZones();
+  bindLaneDropZones();
 }
 
 /* Wire des actions de l'éditeur de timeline (boutons dup, del, merge, lane label, etc.) */
@@ -1761,6 +2433,42 @@ function bindLaneActions(){
     });
   });
 
+  // Chevron : plier/déplier une voie
+  document.querySelectorAll('.lane-chevron').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const laneEl = btn.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const lane = c.lanes.find(l => l.id === laneEl.dataset.laneId);
+      if(!lane) return;
+      lane.collapsed = !lane.collapsed;
+      saveState(); renderCanvas();
+    });
+  });
+
+  // Clic sur le résumé d'une voie repliée → la déplie
+  document.querySelectorAll('.lane-collapsed-summary').forEach(el => {
+    el.addEventListener('click', () => {
+      const laneEl = el.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const lane = c.lanes.find(l => l.id === laneEl.dataset.laneId);
+      if(!lane) return;
+      lane.collapsed = false;
+      saveState(); renderCanvas();
+    });
+  });
+
+  // Duplication d'une voie
+  document.querySelectorAll('.lane-dup').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const laneEl = btn.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const laneId = laneEl.dataset.laneId;
+      duplicateLane(laneId);
+    });
+  });
+
   // Boutons "Rejoindre une voie" (merge)
   document.querySelectorAll('.merge-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1782,11 +2490,40 @@ function bindLaneActions(){
       saveState(); renderCanvas();
     });
   });
+
+  // Bouton "Note" : ouvre la modale d'édition de note
+  const openNoteEdit = (laneId, colId) => {
+    const lane = c.lanes.find(l => l.id === laneId);
+    if(!lane) return;
+    if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
+    const cell = lane.cells[colId];
+    const tc = c.timeColumns.find(x => x.id === colId);
+    openModal({
+      title: `Note interne — ${tc?.time || 'cellule'} (${lane.label})`,
+      value: cell.note || '',
+      placeholder: 'Ex: À configurer côté CRM Brevo, segment X...',
+      onOk: (val) => {
+        cell.note = val;
+        saveState(); renderCanvas();
+      }
+    });
+  };
+  document.querySelectorAll('.cell-note-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openNoteEdit(btn.dataset.laneId, btn.dataset.colId);
+    });
+  });
+  document.querySelectorAll('.cell-note-preview').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openNoteEdit(el.dataset.laneId, el.dataset.colId);
+    });
+  });
 }
 
-/* Modale de sélection de la voie cible pour le merge.
-   Utilise une modale dédiée (#mergeModalBg) séparée de la modale standard
-   pour ne pas casser ses refs DOM globales. */
+/* Modale de sélection de la voie cible pour le merge. Séparée de la modale
+   standard pour ne pas casser ses refs DOM globales. */
 function openMergeModal(laneId, colId){
   const c = getCanvas();
   const lane = c.lanes.find(l => l.id === laneId);
@@ -1797,47 +2534,36 @@ function openMergeModal(laneId, colId){
     return;
   }
 
-  // Crée la modale dédiée à la volée si elle n'existe pas encore
-  let mm = document.getElementById('mergeModalBg');
-  if(!mm){
-    mm = document.createElement('div');
-    mm.id = 'mergeModalBg';
-    mm.className = 'modal-bg';
-    document.body.appendChild(mm);
-  }
-  mm.innerHTML = `
-    <div class="modal">
-      <div class="modal-title">Faire converger vers une voie</div>
-      <p class="merge-help">Cette voie rejoindra la voie sélectionnée à ce moment-là. Les cellules suivantes de cette voie ne s'afficheront plus.</p>
-      <div class="merge-choices"></div>
-      <div class="modal-actions">
-        <button class="modal-cancel" type="button">Annuler</button>
-      </div>
-    </div>
-  `;
-  const choicesEl = mm.querySelector('.merge-choices');
-  candidates.forEach(l => {
-    const b = document.createElement('button');
-    b.className = 'merge-choice';
-    b.type = 'button';
-    b.innerHTML = `<span class="lane-marker"></span> ${escapeHtml(l.label)}`;
-    b.addEventListener('click', () => {
-      if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
-      lane.cells[colId].mergedTo = l.id;
-      lane.cells[colId].items = [];
-      saveState();
-      mm.classList.remove('show');
-      renderCanvas();
-    });
-    choicesEl.appendChild(b);
+  openCustomModal({
+    id: 'mergeModalBg',
+    content: `
+      <div class="modal">
+        <div class="modal-title">Faire converger vers une voie</div>
+        <p class="merge-help">Cette voie rejoindra la voie sélectionnée à ce moment-là. Les cellules suivantes de cette voie ne s'afficheront plus.</p>
+        <div class="merge-choices"></div>
+        <div class="modal-actions">
+          <button class="modal-close" type="button">Annuler</button>
+        </div>
+      </div>`,
+    onMount: (overlay, close) => {
+      const choicesEl = overlay.querySelector('.merge-choices');
+      candidates.forEach(l => {
+        const b = document.createElement('button');
+        b.className = 'merge-choice';
+        b.type = 'button';
+        b.innerHTML = `<span class="lane-marker"></span> ${escapeHtml(l.label)}`;
+        b.addEventListener('click', () => {
+          if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
+          lane.cells[colId].mergedTo = l.id;
+          lane.cells[colId].items = [];
+          saveState();
+          close();
+          renderCanvas();
+        });
+        choicesEl.appendChild(b);
+      });
+    }
   });
-  mm.querySelector('.modal-cancel').addEventListener('click', () => {
-    mm.classList.remove('show');
-  });
-  mm.addEventListener('click', (e) => {
-    if(e.target === mm) mm.classList.remove('show');
-  }, { once: true });
-  mm.classList.add('show');
 }
 
 /* Création d'une nouvelle voie alternative */
@@ -1853,15 +2579,38 @@ function addLaneFlow(){
         id: uid(),
         label: v,
         isDefault: false,
+        collapsed: false,
         cells: {}
       };
-      // Initialise des cellules vides pour chaque colonne temps existante
       c.timeColumns.forEach(tc => { newLane.cells[tc.id] = emptyCell(); });
       c.lanes.push(newLane);
       saveState(); renderCanvas();
       toast('Voie alternative créée');
     }
   });
+}
+
+/* Duplique une voie (avec toutes ses cellules et items) */
+function duplicateLane(laneId){
+  const c = getCanvas();
+  const src = c.lanes.find(l => l.id === laneId);
+  if(!src) return;
+  const clone = JSON.parse(JSON.stringify(src));
+  clone.id = uid();
+  clone.label = src.label + ' (copie)';
+  clone.isDefault = false; // une copie n'est jamais la voie par défaut
+  clone.collapsed = false;
+  // Réassigne les IDs des items dans toutes les cellules
+  Object.values(clone.cells).forEach(cell => {
+    if(Array.isArray(cell.items)){
+      cell.items.forEach(it => it.id = uid());
+    }
+  });
+  // Insère juste après la voie source
+  const idx = c.lanes.findIndex(l => l.id === laneId);
+  c.lanes.splice(idx + 1, 0, clone);
+  saveState(); renderCanvas();
+  toast('Voie dupliquée');
 }
 
 /* Duplique une colonne temps (toutes voies confondues) */
@@ -1938,6 +2687,7 @@ function renderItem(it, zone, colId, laneId){
         id: uid(),
         label: label,
         isDefault: false,
+        collapsed: false,
         cells: {}
       };
       c.timeColumns.forEach(tc => { newLane.cells[tc.id] = emptyCell(); });
@@ -1979,75 +2729,84 @@ function addColumnFlow(){
    DROP LOGIC
    ========================================================= */
 
-function bindDropZones(){
-  // contextDrop est persistant dans le DOM : on doit le cloner pour effacer ses anciens listeners,
-  // sinon chaque renderCanvas() ajoute un listener supplémentaire et chaque drop est multiplié.
-  const freshContext = contextDrop.cloneNode(false);
-  while(contextDrop.firstChild) freshContext.appendChild(contextDrop.firstChild);
-  contextDrop.parentNode.replaceChild(freshContext, contextDrop);
-  contextDrop = freshContext;
+/* Traite un événement drop sur une zone (context ou cellule de voie).
+   `target` décrit la destination : { kind: 'context' } ou { kind: 'cell', colId, laneId }.
+   Réutilisé à la fois par la zone Contexte (listener permanent) et par les
+   cellules de voies (listeners re-bindés à chaque render). */
+function handleDrop(e, target){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-active');
+  let data;
+  try{ data = JSON.parse(e.dataTransfer.getData('text/plain')); }catch{ return; }
+  const c = getCanvas();
+  if(!c) return;
 
-  const zones = [contextDrop, ...document.querySelectorAll('.lane-cell-drop')];
-  zones.forEach(zone=>{
-    zone.addEventListener('dragover', e=>{
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
-      zone.classList.add('drop-active');
+  // Insère un item dans la destination choisie
+  const pushToTarget = (item) => {
+    if(target.kind === 'context'){
+      c.context.push(item);
+    } else {
+      const lane = c.lanes.find(l => l.id === target.laneId);
+      if(!lane) return;
+      if(!lane.cells[target.colId]) lane.cells[target.colId] = emptyCell();
+      if(lane.cells[target.colId].mergedTo) return; // pas de drop dans une cellule mergée
+      lane.cells[target.colId].items.push(item);
+    }
+  };
+
+  if(data.source === 'palette'){
+    const cat = categories.find(x => x.id === data.catId);
+    if(!cat) return;
+    pushToTarget({
+      id: uid(), catId: cat.id, catName: cat.name, color: cat.color, value: data.value,
     });
-    zone.addEventListener('dragleave', ()=> zone.classList.remove('drop-active'));
-    zone.addEventListener('drop', e=>{
-      e.preventDefault();
-      zone.classList.remove('drop-active');
-      let data;
-      try{ data = JSON.parse(e.dataTransfer.getData('text/plain')); }catch{ return; }
-      const c = getCanvas();
-
-      // Helpers de mutation
-      const pushToZone = (item) => {
-        if(zone === contextDrop){
-          c.context.push(item);
-        } else {
-          const colId = zone.dataset.col;
-          const laneId = zone.dataset.laneId;
-          const lane = c.lanes.find(l => l.id === laneId);
-          if(!lane) return;
-          if(!lane.cells[colId]) lane.cells[colId] = emptyCell();
-          // Pas de drop dans une cellule mergée (théoriquement la zone n'existe pas mais sécurité)
-          if(lane.cells[colId].mergedTo) return;
-          lane.cells[colId].items.push(item);
-        }
-      };
-
-      if(data.source === 'palette'){
-        const cat = categories.find(x => x.id === data.catId);
-        if(!cat) return;
-        const newItem = {
-          id: uid(),
-          catId: cat.id,
-          catName: cat.name,
-          color: cat.color,
-          value: data.value,
-        };
-        pushToZone(newItem);
-        saveState(); renderCanvas();
-      } else if(data.source === 'item'){
-        // move existing item between zones
-        let moving;
-        if(data.fromZone === 'context'){
-          const idx = c.context.findIndex(x => x.id === data.itemId);
-          if(idx >= 0){ moving = c.context.splice(idx, 1)[0]; }
-        } else {
-          const fromLane = c.lanes.find(l => l.id === data.fromLaneId);
-          if(fromLane && fromLane.cells[data.fromColId]){
-            const arr = fromLane.cells[data.fromColId].items;
-            const idx = arr.findIndex(x => x.id === data.itemId);
-            if(idx >= 0){ moving = arr.splice(idx, 1)[0]; }
-          }
-        }
-        if(!moving) return;
-        pushToZone(moving);
-        saveState(); renderCanvas();
+    saveState(); renderCanvas();
+    return;
+  }
+  if(data.source === 'item'){
+    // Déplacement d'un item existant entre zones
+    let moving;
+    if(data.fromZone === 'context'){
+      const idx = c.context.findIndex(x => x.id === data.itemId);
+      if(idx >= 0) moving = c.context.splice(idx, 1)[0];
+    } else {
+      const fromLane = c.lanes.find(l => l.id === data.fromLaneId);
+      if(fromLane && fromLane.cells[data.fromColId]){
+        const arr = fromLane.cells[data.fromColId].items;
+        const idx = arr.findIndex(x => x.id === data.itemId);
+        if(idx >= 0) moving = arr.splice(idx, 1)[0];
       }
+    }
+    if(!moving) return;
+    pushToTarget(moving);
+    saveState(); renderCanvas();
+  }
+}
+
+/* Attache les listeners drag/drop standards à une zone (visuels + drop). */
+function attachDropListeners(zone, target){
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    zone.classList.add('drop-active');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drop-active'));
+  zone.addEventListener('drop', e => handleDrop(e, target));
+}
+
+/* Setup unique du #contextDrop, appelé une fois au démarrage. */
+function setupContextDropZone(){
+  attachDropListeners(contextDrop, { kind: 'context' });
+}
+
+/* (Re-)bind les listeners sur toutes les cellules de voies.
+   Appelé à chaque renderCanvas() puisque ces nœuds sont recréés. */
+function bindLaneDropZones(){
+  document.querySelectorAll('.lane-cell-drop').forEach(zone => {
+    attachDropListeners(zone, {
+      kind: 'cell',
+      colId: zone.dataset.col,
+      laneId: zone.dataset.laneId,
     });
   });
 }
@@ -2096,6 +2855,33 @@ modalInput.addEventListener('keydown', e=>{
   if(e.key==='Escape'){ closeModal(); }
 });
 
+/* Helper pour les modales custom (merge, validate, snapshots).
+   Crée — ou réutilise — un overlay `#${id}` dans le body, le remplit avec
+   `content`, l'affiche et gère la fermeture (clic en dehors, bouton .modal-close).
+   `onMount(modalEl, close)` est appelé après affichage pour brancher les listeners
+   spécifiques de chaque modale. Retourne une fonction `close` qu'on peut appeler
+   manuellement (ex: après restauration d'un snapshot). */
+function openCustomModal({ id, content, onMount }){
+  let overlay = document.getElementById(id);
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = id;
+    overlay.className = 'modal-bg';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = content;
+
+  const close = () => overlay.classList.remove('show');
+  // Clic en dehors de la modale = fermeture
+  overlay.onclick = (e) => { if(e.target === overlay) close(); };
+  // Bouton "Fermer" standard (si présent dans le content)
+  overlay.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', close));
+
+  overlay.classList.add('show');
+  if(typeof onMount === 'function') onMount(overlay, close);
+  return close;
+}
+
 /* =========================================================
    TOPBAR ACTIONS
    ========================================================= */
@@ -2139,8 +2925,7 @@ resetMenu.addEventListener('click', e=>{
     }
   } else if(act==='reset-all'){
     if(confirm('⚠️ Tout effacer ?\n\nTous les canevas et toutes les variables seront supprimés. Cette action est irréversible.\n\nPensez à exporter vos workflows en JSON avant.')){
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem('wf_app_v1');
+      localStorage.removeItem(STORAGE.state);
       categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       state = {
         categories,
@@ -2181,9 +2966,107 @@ document.getElementById('btnToggleAll').addEventListener('click', ()=>{
   } else {
     _collapsedCats.clear();
   }
-  localStorage.setItem(COLLAPSE_KEY, JSON.stringify([..._collapsedCats]));
+  localStorage.setItem(STORAGE.collapsedCats, JSON.stringify([..._collapsedCats]));
   renderPalette();
 });
+
+/* === Recherche dans la palette === */
+const paletteSearchInput = document.getElementById('paletteSearch');
+const paletteSearchClear = document.getElementById('paletteSearchClear');
+
+function applyPaletteFilter(query){
+  const q = (query || '').trim().toLowerCase();
+  const body = document.getElementById('paletteBody');
+  if(!body) return;
+
+  // Retire les éventuels message "aucun résultat" précédents
+  body.querySelectorAll('.palette-empty').forEach(el => el.remove());
+
+  if(!q){
+    // Reset complet
+    body.querySelectorAll('.chip.is-hidden, .cat.is-hidden, .group-header.is-hidden')
+       .forEach(el => el.classList.remove('is-hidden'));
+    body.querySelectorAll('.chip.is-match').forEach(el => el.classList.remove('is-match'));
+    body.querySelectorAll('.cat[data-was-collapsed]').forEach(el => {
+      el.classList.add('collapsed');
+      el.removeAttribute('data-was-collapsed');
+    });
+    if(paletteSearchClear) paletteSearchClear.classList.remove('visible');
+    return;
+  }
+  if(paletteSearchClear) paletteSearchClear.classList.add('visible');
+
+  let anyMatch = false;
+  body.querySelectorAll('.cat').forEach(catEl => {
+    const titleEl = catEl.querySelector('.cat-title');
+    const catName = titleEl ? titleEl.textContent.toLowerCase() : '';
+    const catMatches = catName.includes(q);
+
+    let chipMatches = 0;
+    catEl.querySelectorAll('.chip').forEach(chip => {
+      const text = (chip.textContent || '').toLowerCase();
+      const matches = catMatches || text.includes(q);
+      if(matches){
+        chip.classList.remove('is-hidden');
+        chip.classList.toggle('is-match', !catMatches && text.includes(q));
+        chipMatches++;
+      } else {
+        chip.classList.add('is-hidden');
+        chip.classList.remove('is-match');
+      }
+    });
+
+    if(chipMatches > 0 || catMatches){
+      catEl.classList.remove('is-hidden');
+      if(catEl.classList.contains('collapsed')){
+        catEl.setAttribute('data-was-collapsed', '1');
+        catEl.classList.remove('collapsed');
+      }
+      anyMatch = true;
+    } else {
+      catEl.classList.add('is-hidden');
+    }
+  });
+
+  body.querySelectorAll('.group-header').forEach(headEl => {
+    let n = headEl.nextElementSibling;
+    let groupHasVisible = false;
+    while(n && !n.classList.contains('group-header')){
+      if(n.classList.contains('cat') && !n.classList.contains('is-hidden')){
+        groupHasVisible = true; break;
+      }
+      n = n.nextElementSibling;
+    }
+    headEl.classList.toggle('is-hidden', !groupHasVisible);
+  });
+
+  if(!anyMatch){
+    const empty = document.createElement('div');
+    empty.className = 'palette-empty';
+    empty.textContent = `Aucun résultat pour « ${query} »`;
+    body.appendChild(empty);
+  }
+}
+
+if(paletteSearchInput){
+  paletteSearchInput.addEventListener('input', () => applyPaletteFilter(paletteSearchInput.value));
+  paletteSearchInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      paletteSearchInput.value = '';
+      applyPaletteFilter('');
+      paletteSearchInput.blur();
+    }
+  });
+}
+if(paletteSearchClear){
+  paletteSearchClear.addEventListener('click', () => {
+    if(paletteSearchInput){
+      paletteSearchInput.value = '';
+      applyPaletteFilter('');
+      paletteSearchInput.focus();
+    }
+  });
+}
 
 canvasNameInput.addEventListener('input', ()=>{
   const c = getCanvas();
@@ -2332,46 +3215,57 @@ function exportSpec(){
           const target = c.lanes.find(l => l.id === cell.mergedTo);
           md += `#### ${idx+1}. ${tc.time}\n\n`;
           md += `> ↗ **Cette voie rejoint « ${target?.label || '?'} » à partir de ce moment.**\n\n`;
+          if(cell.note && cell.note.trim()){
+            md += `> 📝 *Note interne : ${cell.note.trim()}*\n\n`;
+          }
           hasContent = true;
           return;
         }
 
-        if(!cell.items.length) return;
+        const hasItems = cell.items.length > 0;
+        const hasNote = !!(cell.note && cell.note.trim());
+        if(!hasItems && !hasNote) return;
         hasContent = true;
         md += `#### ${idx+1}. ${tc.time}\n\n`;
 
-        const grouped = groupItems(cell.items);
+        if(hasItems){
+          const grouped = groupItems(cell.items);
 
-        if(grouped['Déclencheur']){
-          md += `**Déclencheur :**\n`;
-          Object.keys(grouped['Déclencheur']).forEach(catName => {
-            md += `- ${catName} : ${grouped['Déclencheur'][catName].join(', ')}\n`;
-          });
-          md += `\n`;
-        }
-        if(grouped['Action']){
-          md += `**Action :**\n`;
-          Object.keys(grouped['Action']).forEach(catName => {
-            md += `- ${catName} : ${grouped['Action'][catName].join(', ')}\n`;
-          });
-          md += `\n`;
-        }
-        if(grouped['Contexte client']){
-          md += `**Contexte spécifique à ce moment :**\n`;
-          Object.keys(grouped['Contexte client']).forEach(catName => {
-            md += `- ${catName} : ${grouped['Contexte client'][catName].join(', ')}\n`;
-          });
-          md += `\n`;
-        }
-        Object.keys(grouped).forEach(groupName => {
-          if(!['Déclencheur','Action','Contexte client'].includes(groupName)){
-            md += `**${groupName} :**\n`;
-            Object.keys(grouped[groupName]).forEach(catName => {
-              md += `- ${catName} : ${grouped[groupName][catName].join(', ')}\n`;
+          if(grouped['Déclencheur']){
+            md += `**Déclencheur :**\n`;
+            Object.keys(grouped['Déclencheur']).forEach(catName => {
+              md += `- ${catName} : ${grouped['Déclencheur'][catName].join(', ')}\n`;
             });
             md += `\n`;
           }
-        });
+          if(grouped['Action']){
+            md += `**Action :**\n`;
+            Object.keys(grouped['Action']).forEach(catName => {
+              md += `- ${catName} : ${grouped['Action'][catName].join(', ')}\n`;
+            });
+            md += `\n`;
+          }
+          if(grouped['Contexte client']){
+            md += `**Contexte spécifique à ce moment :**\n`;
+            Object.keys(grouped['Contexte client']).forEach(catName => {
+              md += `- ${catName} : ${grouped['Contexte client'][catName].join(', ')}\n`;
+            });
+            md += `\n`;
+          }
+          Object.keys(grouped).forEach(groupName => {
+            if(!['Déclencheur','Action','Contexte client'].includes(groupName)){
+              md += `**${groupName} :**\n`;
+              Object.keys(grouped[groupName]).forEach(catName => {
+                md += `- ${catName} : ${grouped[groupName][catName].join(', ')}\n`;
+              });
+              md += `\n`;
+            }
+          });
+        }
+
+        if(hasNote){
+          md += `> 📝 **Note interne :** ${cell.note.trim()}\n\n`;
+        }
 
         if(tc.connectorLabel && idx < c.timeColumns.length - 1){
           md += `> Transition vers le moment suivant : *${tc.connectorLabel}*\n\n`;
@@ -2429,6 +3323,8 @@ function escapeHtml(s){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 }
+// Alias pour les valeurs d'attributs HTML (mêmes règles que escapeHtml)
+function escapeAttr(s){ return escapeHtml(s); }
 
 let _toastTimer;
 function toast(msg){
@@ -2723,24 +3619,407 @@ templatesModalBg.addEventListener('click', e=>{
   if(e.target === templatesModalBg) templatesModalBg.classList.remove('show');
 });
 
+/* =========================================================
+   VALIDATION VISUELLE
+   ========================================================= */
+/* Renvoie un tableau d'objets { severity, message, where } décrivant
+   les incohérences détectées dans le canvas courant. */
+function validateCanvas(c){
+  const issues = [];
+  if(!c) return issues;
+
+  // 1. Voie sans aucune cellule remplie (et sans merge)
+  c.lanes.forEach(lane => {
+    const filled = Object.values(lane.cells || {}).some(cell =>
+      (cell.items && cell.items.length > 0) || cell.mergedTo
+    );
+    if(!filled){
+      issues.push({
+        severity: 'warning',
+        message: `Voie « ${lane.label} » vide (aucune action ni convergence)`,
+        where: lane.label
+      });
+    }
+  });
+
+  // 2. Cellules contenant une Condition mais sans voie alternative correspondante.
+  // On ne signale que si l'utilisateur a peu de voies alt (sinon il maîtrise déjà
+  // sa logique de branchement, inutile de le harceler).
+  const altLanes = c.lanes.filter(l => !l.isDefault);
+  if(altLanes.length < 3){
+    // Normalise une chaîne pour comparaison floue (lowercase, sans accents, sans "si ")
+    const normalize = (s) => (s || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/^si\s+/, '')
+      .replace(/[^a-z0-9 ]/g, '')
+      .trim();
+
+    c.lanes.forEach(lane => {
+      c.timeColumns.forEach(tc => {
+        const cell = lane.cells[tc.id];
+        if(!cell || !cell.items) return;
+        cell.items.forEach(it => {
+          if(it.catId !== 'condition') return;
+          const cond = normalize(it.value);
+          if(!cond) return;
+          // Match si le label d'une voie alt partage les 3 premiers mots clés de la condition
+          const condKey = cond.split(' ').slice(0, 3).join(' ');
+          const hasAlt = altLanes.some(l => {
+            const label = normalize(l.label);
+            return label.includes(condKey) || condKey.includes(label);
+          });
+          if(!hasAlt){
+            issues.push({
+              severity: 'info',
+              message: `Condition « ${it.value} » à ${tc.time} (${lane.label}) sans voie alternative créée`,
+              where: `${lane.label} · ${tc.time}`
+            });
+          }
+        });
+      });
+    });
+  }
+
+  // 3. Workflow sans aucun déclencheur (catégorie Événement)
+  let hasEvent = false;
+  c.lanes.forEach(lane => {
+    Object.values(lane.cells || {}).forEach(cell => {
+      (cell.items || []).forEach(it => {
+        if(it.catId === 'event') hasEvent = true;
+      });
+    });
+  });
+  if(!hasEvent && c.timeColumns.length > 0){
+    issues.push({
+      severity: 'warning',
+      message: 'Aucun déclencheur (Événement) dans le workflow',
+      where: 'Workflow'
+    });
+  }
+
+  // 4. Action sans canal : cellule avec un contenu (Type de contenu) mais pas de canal (catId=canal)
+  c.lanes.forEach(lane => {
+    c.timeColumns.forEach(tc => {
+      const cell = lane.cells[tc.id];
+      if(!cell || !cell.items) return;
+      const hasContent = cell.items.some(it => it.catId === 'contenu');
+      const hasCanal = cell.items.some(it => it.catId === 'canal');
+      if(hasContent && !hasCanal){
+        issues.push({
+          severity: 'info',
+          message: `Contenu sans canal à ${tc.time} (${lane.label})`,
+          where: `${lane.label} · ${tc.time}`
+        });
+      }
+    });
+  });
+
+  // 5. Merge orphelin (pointant vers une voie supprimée)
+  c.lanes.forEach(lane => {
+    Object.entries(lane.cells || {}).forEach(([colId, cell]) => {
+      if(cell.mergedTo){
+        const exists = c.lanes.some(l => l.id === cell.mergedTo);
+        if(!exists){
+          const tc = c.timeColumns.find(x => x.id === colId);
+          issues.push({
+            severity: 'error',
+            message: `Convergence orpheline à ${tc?.time || '?'} (${lane.label}) — voie cible supprimée`,
+            where: `${lane.label} · ${tc?.time || '?'}`
+          });
+        }
+      }
+    });
+  });
+
+  return issues;
+}
+
+/* Met à jour le badge "Vérifier" du topbar (nombre + couleur) */
+function refreshValidateBadge(){
+  const c = getCanvas();
+  if(!c) return;
+  const issues = validateCanvas(c);
+  const badge = document.getElementById('validateBadge');
+  if(!badge) return;
+  if(issues.length === 0){
+    badge.style.display = 'inline-flex';
+    badge.textContent = '✓';
+    badge.classList.remove('warning');
+    badge.classList.add('ok');
+  } else {
+    badge.style.display = 'inline-flex';
+    badge.textContent = String(issues.length);
+    badge.classList.remove('ok');
+    const hasError = issues.some(i => i.severity === 'error');
+    badge.classList.toggle('warning', !hasError);
+  }
+}
+
+/* Ouvre une modale listant toutes les incohérences */
+function openValidateModal(){
+  const c = getCanvas();
+  const issues = validateCanvas(c);
+
+  const iconFor  = (s) => s === 'error' ? '⛔' : s === 'warning' ? '⚠️' : 'ℹ️';
+  const colorFor = (s) => s === 'error' ? 'var(--c-canal)' : s === 'warning' ? '#e0a82e' : '#5a8ed9';
+
+  const body = issues.length === 0
+    ? `<div class="validate-ok">
+         <div class="validate-ok-emoji">✓</div>
+         <div class="validate-ok-text">Aucune incohérence détectée. Le workflow est cohérent.</div>
+       </div>`
+    : `<p class="modal-sub">${issues.length} point${issues.length > 1 ? 's' : ''} à vérifier — par ordre d'importance.</p>
+       <div class="validate-list">
+         ${issues.map(i => `
+           <div class="validate-item validate-${i.severity}">
+             <span class="validate-icon" style="color:${colorFor(i.severity)}">${iconFor(i.severity)}</span>
+             <div class="validate-content">
+               <div class="validate-msg">${escapeHtml(i.message)}</div>
+               <div class="validate-where">${escapeHtml(i.where || '')}</div>
+             </div>
+           </div>`).join('')}
+       </div>
+       <p class="validate-legend">
+         <span style="color:var(--c-canal)">⛔ Erreur</span> · 
+         <span style="color:#e0a82e">⚠️ Avertissement</span> · 
+         <span style="color:#5a8ed9">ℹ️ Suggestion</span>
+       </p>`;
+
+  openCustomModal({
+    id: 'validateModalBg',
+    content: `
+      <div class="modal modal-lg">
+        <h3>Vérifications du workflow</h3>
+        ${body}
+        <div class="modal-actions">
+          <button class="btn primary modal-close">Fermer</button>
+        </div>
+      </div>`
+  });
+}
+
+document.getElementById('btnValidate').addEventListener('click', openValidateModal);
+
+/* =========================================================
+   SNAPSHOTS / HISTORIQUE
+   ========================================================= */
+const SNAPSHOT_MAX = 20; // garde les 20 plus récents par canevas
+
+function loadSnapshots(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE.snapshots) || '{}'); }
+  catch{ return {}; }
+}
+function saveSnapshots(snaps){
+  try{ localStorage.setItem(STORAGE.snapshots, JSON.stringify(snaps)); }catch{}
+}
+
+/* Prend un snapshot du canvas courant */
+function takeSnapshot(label){
+  const c = getCanvas();
+  if(!c) return;
+  const snaps = loadSnapshots();
+  if(!snaps[c.id]) snaps[c.id] = [];
+  const now = new Date();
+  snaps[c.id].unshift({
+    id: uid(),
+    timestamp: now.toISOString(),
+    label: label || `Snapshot ${now.toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}`,
+    canvas: JSON.parse(JSON.stringify(c))
+  });
+  // Trim
+  if(snaps[c.id].length > SNAPSHOT_MAX){
+    snaps[c.id] = snaps[c.id].slice(0, SNAPSHOT_MAX);
+  }
+  saveSnapshots(snaps);
+  toast(`📸 Snapshot pris : ${label || 'sans label'}`);
+}
+
+/* Restaure un snapshot dans le canvas courant */
+function restoreSnapshot(snapId){
+  const c = getCanvas();
+  if(!c) return;
+  const snaps = loadSnapshots();
+  const list = snaps[c.id] || [];
+  const snap = list.find(s => s.id === snapId);
+  if(!snap) return;
+  if(!confirm(`Restaurer le snapshot « ${snap.label} » ?\n\nL'état actuel sera remplacé. Si tu veux le garder en parallèle, prends un snapshot d'abord.`)) return;
+
+  // Remplace toutes les propriétés du canvas courant par celles du snapshot
+  // (on garde le même c.id pour ne pas casser les références)
+  const restored = JSON.parse(JSON.stringify(snap.canvas));
+  c.name = restored.name;
+  c.context = restored.context;
+  c.timeColumns = restored.timeColumns;
+  c.lanes = restored.lanes;
+  // Migration défensive (au cas où le snapshot est ancien)
+  Object.assign(c, migrateCanvas({ ...c, id: c.id }));
+
+  saveState(); renderAll();
+  toast(`Snapshot restauré`);
+}
+
+/* Supprime un snapshot */
+function deleteSnapshot(snapId){
+  const c = getCanvas();
+  if(!c) return;
+  const snaps = loadSnapshots();
+  if(!snaps[c.id]) return;
+  snaps[c.id] = snaps[c.id].filter(s => s.id !== snapId);
+  saveSnapshots(snaps);
+}
+
+/* Ouvre la modale Snapshots */
+function openSnapshotsModal(){
+  const c = getCanvas();
+  if(!c) return;
+  const snaps = loadSnapshots();
+  const list = snaps[c.id] || [];
+
+  const renderItem = (s) => {
+    const d = new Date(s.timestamp);
+    const dateStr = d.toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const lanes = s.canvas.lanes?.length || 0;
+    const cols = s.canvas.timeColumns?.length || 0;
+    const actions = (s.canvas.lanes || []).reduce((sum, l) =>
+      sum + Object.values(l.cells || {}).reduce((ss, cell) => ss + (cell.items?.length || 0), 0), 0);
+    return `
+      <div class="snapshot-item" data-snap-id="${s.id}">
+        <div class="snapshot-info">
+          <div class="snapshot-label">${escapeHtml(s.label)}</div>
+          <div class="snapshot-meta">${dateStr} · ${lanes} voie${lanes > 1 ? 's' : ''} · ${cols} colonne${cols > 1 ? 's' : ''} · ${actions} action${actions > 1 ? 's' : ''}</div>
+        </div>
+        <div class="snapshot-actions">
+          <button class="btn snap-restore" data-snap-id="${s.id}" title="Restaurer ce snapshot dans le canevas courant">↺ Restaurer</button>
+          <button class="btn snap-delete" data-snap-id="${s.id}" title="Supprimer ce snapshot">×</button>
+        </div>
+      </div>`;
+  };
+
+  const listHtml = list.length === 0
+    ? `<p class="snapshot-empty">Aucun snapshot pour ce canevas pour l'instant.</p>`
+    : list.map(renderItem).join('');
+
+  openCustomModal({
+    id: 'snapshotsModalBg',
+    content: `
+      <div class="modal modal-lg">
+        <h3>Snapshots de « ${escapeHtml(c.name || 'Sans titre')} »</h3>
+        <p class="modal-sub">Garde des copies horodatées de ton workflow pour pouvoir revenir en arrière. Stockés localement dans le navigateur.</p>
+        <div class="snapshot-take-row">
+          <input type="text" id="snapshotLabel" class="modal-input" placeholder="Étiquette (ex: avant simplification, version client...)" />
+          <button class="btn primary" id="snapshotTakeBtn">📸 Prendre un snapshot maintenant</button>
+        </div>
+        <div class="snapshot-list">${listHtml}</div>
+        <div class="modal-actions">
+          <button class="btn modal-close">Fermer</button>
+        </div>
+      </div>`,
+    onMount: (overlay, close) => {
+      overlay.querySelector('#snapshotTakeBtn').addEventListener('click', () => {
+        const lbl = overlay.querySelector('#snapshotLabel').value.trim();
+        takeSnapshot(lbl);
+        openSnapshotsModal(); // refresh
+      });
+      overlay.querySelectorAll('.snap-restore').forEach(btn => {
+        btn.addEventListener('click', () => {
+          restoreSnapshot(btn.dataset.snapId);
+          close();
+        });
+      });
+      overlay.querySelectorAll('.snap-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if(!confirm('Supprimer ce snapshot ?')) return;
+          deleteSnapshot(btn.dataset.snapId);
+          openSnapshotsModal(); // refresh
+        });
+      });
+    }
+  });
+}
+
+document.getElementById('btnSnapshots').addEventListener('click', openSnapshotsModal);
+
+/* =========================================================
+   MODE PRÉSENTATION
+   ========================================================= */
+
+/* Sauvegarde locale (hors du modèle persisté) de l'état des voies repliées
+   avant l'entrée en mode présentation, pour pouvoir le restaurer en sortant.
+   On évite ainsi de polluer le canvas (et son JSON exporté) avec un champ
+   technique `_wasCollapsed`. */
+const _presentBackup = { laneCollapsed: null /* Map<laneId, boolean> */ };
+
+function enterPresentMode(){
+  const c = getCanvas();
+  document.body.classList.add('is-presenting');
+  const title = document.getElementById('presentBarTitle');
+  if(title) title.textContent = c?.name || 'Workflow';
+  // Force toutes les voies à être dépliées pour que le client voie tout
+  if(c){
+    _presentBackup.laneCollapsed = new Map();
+    c.lanes.forEach(l => {
+      _presentBackup.laneCollapsed.set(l.id, !!l.collapsed);
+      l.collapsed = false;
+    });
+    renderCanvas();
+  }
+  // Tente le fullscreen natif (l'utilisateur peut refuser, ça n'empêche pas le mode)
+  if(document.documentElement.requestFullscreen){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+}
+
+function exitPresentMode(){
+  document.body.classList.remove('is-presenting');
+  const c = getCanvas();
+  if(c && _presentBackup.laneCollapsed){
+    c.lanes.forEach(l => {
+      const prev = _presentBackup.laneCollapsed.get(l.id);
+      if(prev !== undefined) l.collapsed = prev;
+    });
+    _presentBackup.laneCollapsed = null;
+    renderCanvas();
+  }
+  if(document.fullscreenElement && document.exitFullscreen){
+    document.exitFullscreen().catch(()=>{});
+  }
+}
+
+document.getElementById('btnPresent').addEventListener('click', enterPresentMode);
+document.getElementById('btnPresentExit').addEventListener('click', exitPresentMode);
+// Esc pour sortir
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.body.classList.contains('is-presenting')){
+    exitPresentMode();
+  }
+});
+// Si l'utilisateur quitte le fullscreen via le navigateur, on sort aussi du mode
+document.addEventListener('fullscreenchange', () => {
+  if(!document.fullscreenElement && document.body.classList.contains('is-presenting')){
+    exitPresentMode();
+  }
+});
+
 // init
+setupContextDropZone();
 renderAll();
+refreshValidateBadge();
 
 /* =========================================================
    PANEL TOGGLES (sidebar / palette)
    ========================================================= */
 const appEl = document.querySelector('.app');
-const PANEL_KEY = 'wf_panels_v1';
 
 function loadPanelState(){
   try{
-    const s = JSON.parse(localStorage.getItem(PANEL_KEY) || '{}');
+    const s = JSON.parse(localStorage.getItem(STORAGE.panels) || '{}');
     if(s.sidebar) appEl.classList.add('sidebar-collapsed');
     if(s.palette) appEl.classList.add('palette-collapsed');
   }catch(e){}
 }
 function savePanelState(){
-  localStorage.setItem(PANEL_KEY, JSON.stringify({
+  localStorage.setItem(STORAGE.panels, JSON.stringify({
     sidebar: appEl.classList.contains('sidebar-collapsed'),
     palette: appEl.classList.contains('palette-collapsed'),
   }));
