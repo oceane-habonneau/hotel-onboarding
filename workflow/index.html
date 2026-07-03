@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
@@ -4945,196 +4944,298 @@ function openSnapshotsModal(){
 document.getElementById('btnSnapshots').addEventListener('click', openSnapshotsModal);
 
 /* =========================================================
-   VUE SCHÉMA (diagramme de flux Mermaid)
+   VUE SCHÉMA (SVG natif — Option B)
    =========================================================
-   Génère un rendu graphique du canvas courant en utilisant Mermaid.
-   Chaque voie = subgraph vertical, chaque cellule non-vide = nœud,
-   chaînés par des flèches temps. Les cellules mergées deviennent
-   des flèches horizontales vers la voie cible. */
+   Rendu synthétique du canvas sur 3 zones :
+   - Voie principale (bleu) : chronologie horizontale, une boîte par colonne
+     temps non-vide, avec le nombre d'actions.
+   - Dérivées conditionnelles (jaune) : voies qui rejoignent la principale.
+     Chacune montre son point de départ et son point de convergence via un
+     trait pointillé + flèche.
+   - Flows autonomes (rouge/coral) : voies qui ne convergent jamais dans la
+     principale (Annulation, No-Show, Groupe...).
 
-let _mermaidInitialized = false;
-function ensureMermaidInit(){
-  if(_mermaidInitialized || typeof mermaid === 'undefined') return;
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: 'base',
-    themeVariables: {
-      primaryColor: '#f5f7fb',
-      primaryTextColor: '#1a1d27',
-      primaryBorderColor: '#4a6ba8',
-      lineColor: '#6a7080',
-      fontSize: '13px',
-      fontFamily: 'Inter, sans-serif',
-    },
-    flowchart: {
-      htmlLabels: true,
-      curve: 'basis',
-      nodeSpacing: 40,
-      rankSpacing: 50,
-      padding: 12,
-    },
-    securityLevel: 'loose',
-  });
-  _mermaidInitialized = true;
-}
+   Objectif : vue globale en 3 secondes, pas de spaghetti. Le détail reste
+   dans le canvas éditable et l'export PDF. */
 
-/* Construit un ID unique et safe pour Mermaid depuis un id de lane/col.
-   Mermaid n'accepte pas tous les caractères dans les IDs. */
-function mermaidId(prefix, id){
-  return `${prefix}_${String(id).replace(/[^a-zA-Z0-9]/g, '')}`;
-}
+/* Palette dérivée du design system pour être cohérent avec l'outil. */
+const _DIAG_COLORS = {
+  main:      { fill: '#E6F1FB', stroke: '#185FA5', text: '#0C447C' }, // c-blue 50/600/800
+  derived:   { fill: '#FAEEDA', stroke: '#BA7517', text: '#854F0B' }, // c-amber 50/600/800
+  autonomous:{ fill: '#FAECE7', stroke: '#993C1D', text: '#712B13' }, // c-coral 50/600/800
+  arrow:     '#5F5E5A',                                                // c-gray 800
+  arrowAlt:  '#BA7517',                                                // c-amber 600 (convergences)
+  text:      '#1a1d27',
+  textMute:  '#6a7080',
+};
 
-/* Échappe le texte pour Mermaid (les guillemets, les crochets, etc.
-   posent problème dans les labels de nœuds). */
-function mermaidEscape(s){
-  return String(s || '')
-    .replace(/"/g, '#quot;')
-    .replace(/[\[\]]/g, '')
-    .replace(/[|]/g, '/')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n/g, ' ');
-}
+/* Analyse le canvas et classe chaque voie en 3 catégories :
+   - main : la voie par défaut (voie principale)
+   - derived : voies qui contiennent au moins une cellule mergedTo pointant
+     vers la voie principale
+   - autonomous : voies qui ne convergent jamais dans la principale */
+function analyzeCanvasForDiagram(canvas){
+  const mainLane = canvas.lanes.find(l => l.isDefault) || canvas.lanes[0];
+  if(!mainLane) return { mainLane: null, derived: [], autonomous: [] };
 
-/* Produit un résumé compact des items d'une cellule pour l'affichage.
-   Priorise Contenu, Canal, Action auto — le déclencheur est déjà dans le label. */
-function summarizeCell(cell){
-  if(!cell || !cell.items) return '';
-  const grouped = { contenu: [], canal: [], actionauto: [], condition: [] };
-  cell.items.forEach(it => {
-    if(grouped[it.catId] !== undefined) grouped[it.catId].push(it.value);
-  });
-  const parts = [];
-  if(grouped.condition.length) parts.push('🔀 ' + grouped.condition.join(' / '));
-  if(grouped.contenu.length) parts.push('📄 ' + grouped.contenu.slice(0, 2).join(' + ')
-    + (grouped.contenu.length > 2 ? ` (+${grouped.contenu.length - 2})` : ''));
-  if(grouped.canal.length) parts.push('📮 ' + grouped.canal.join('/'));
-  if(grouped.actionauto.length) parts.push('⚙ ' + grouped.actionauto.slice(0, 2).join(' + ')
-    + (grouped.actionauto.length > 2 ? ` (+${grouped.actionauto.length - 2})` : ''));
-  return parts.join('<br/>');
-}
-
-/* Construit la source Mermaid depuis le canvas courant. */
-function buildMermaidDiagram(canvas){
-  if(!canvas) return 'flowchart TB\n  empty[Aucun canvas]';
-
-  const lines = ['flowchart TB'];
-  // Classes CSS pour distinguer voie par défaut vs alternatives
-  lines.push('classDef defaultLane fill:#e8effc,stroke:#2f6fe0,stroke-width:2px,color:#1a1d27');
-  lines.push('classDef altLane fill:#f7f2e6,stroke:#c99a3a,stroke-width:1.5px,color:#1a1d27');
-  lines.push('classDef merged fill:#eeeaf5,stroke:#7b5ea7,stroke-dasharray:4 3,color:#1a1d27');
-  lines.push('classDef startNode fill:#1a1d27,stroke:#1a1d27,color:#fff,stroke-width:2px');
-
-  // Nœud de démarrage
-  const startId = 'start';
-  lines.push(`${startId}(("${mermaidEscape(canvas.name || 'Workflow')}"))`);
-  lines.push(`class ${startId} startNode`);
-
-  // Pour chaque voie, on crée une subgraph avec ses cellules non-vides chaînées
-  const cellNodeIds = {}; // {laneId_colId: nodeId}
+  const derived = [];
+  const autonomous = [];
 
   canvas.lanes.forEach(lane => {
-    const laneNodeId = mermaidId('lane', lane.id);
-    lines.push(`subgraph ${laneNodeId} ["${mermaidEscape(lane.label)}"]`);
-    lines.push(`  direction TB`);
-
-    let prevNodeId = null;
-    let hasContent = false;
-
+    if(lane.id === mainLane.id) return;
+    // Cherche la première convergence dans la voie principale
+    let convergePoint = null;
     canvas.timeColumns.forEach(tc => {
+      if(convergePoint) return; // premier match seulement
       const cell = lane.cells[tc.id];
-      if(!cell) return;
-      const items = cell.items || [];
-      const note = cell.note || '';
-      const merged = cell.mergedTo;
-
-      // Cellule mergée : nœud spécial avec info de convergence
-      if(merged){
-        const targetLane = canvas.lanes.find(l => l.id === merged);
-        const nodeId = mermaidId('cell', lane.id + '_' + tc.id);
-        cellNodeIds[`${lane.id}_${tc.id}`] = nodeId;
-        const label = `<b>${mermaidEscape(tc.time)}</b><br/>↗ rejoint « ${mermaidEscape(targetLane?.label || '?')} »`;
-        lines.push(`  ${nodeId}["${label}"]:::merged`);
-        if(prevNodeId) lines.push(`  ${prevNodeId} --> ${nodeId}`);
-        prevNodeId = nodeId;
-        hasContent = true;
-        return;
+      if(cell && cell.mergedTo === mainLane.id) convergePoint = tc;
+    });
+    // Cherche le premier temps où la voie a du contenu
+    let startPoint = null;
+    canvas.timeColumns.forEach(tc => {
+      if(startPoint) return;
+      const cell = lane.cells[tc.id];
+      if(cell && !cell.mergedTo && ((cell.items || []).length > 0 || cell.note)){
+        startPoint = tc;
       }
-
-      // Cellule normale non vide
-      if(items.length === 0 && !note) return;
-
-      const nodeId = mermaidId('cell', lane.id + '_' + tc.id);
-      cellNodeIds[`${lane.id}_${tc.id}`] = nodeId;
-      const summary = summarizeCell(cell);
-      let label = `<b>${mermaidEscape(tc.time)}</b>`;
-      if(summary) label += `<br/>${summary}`;
-      if(note) label += `<br/><i>📝 ${mermaidEscape(note.slice(0, 60))}${note.length > 60 ? '…' : ''}</i>`;
-
-      const nodeClass = lane.isDefault ? 'defaultLane' : 'altLane';
-      lines.push(`  ${nodeId}["${label}"]:::${nodeClass}`);
-
-      if(prevNodeId) lines.push(`  ${prevNodeId} --> ${nodeId}`);
-      prevNodeId = nodeId;
-      hasContent = true;
     });
 
-    // Si la voie est vide, on ajoute un placeholder discret
-    if(!hasContent){
-      const emptyId = mermaidId('empty', lane.id);
-      lines.push(`  ${emptyId}[["<i>voie vide</i>"]]`);
-    }
-    lines.push('end');
+    const info = {
+      lane,
+      startPoint,
+      convergePoint,
+      // Compte total d'actions (items) dans la voie
+      actionCount: canvas.timeColumns.reduce((sum, tc) => {
+        const cell = lane.cells[tc.id];
+        return sum + (cell && !cell.mergedTo ? (cell.items || []).length : 0);
+      }, 0),
+    };
+    if(convergePoint) derived.push(info);
+    else autonomous.push(info);
   });
 
-  // Le nœud Start pointe vers la première cellule de la voie par défaut
-  const defaultLane = canvas.lanes.find(l => l.isDefault);
-  if(defaultLane){
-    const firstColWithContent = canvas.timeColumns.find(tc => {
-      const cell = defaultLane.cells[tc.id];
-      return cell && ((cell.items || []).length > 0 || cell.mergedTo || cell.note);
-    });
-    if(firstColWithContent){
-      const firstNodeId = cellNodeIds[`${defaultLane.id}_${firstColWithContent.id}`];
-      if(firstNodeId) lines.push(`${startId} --> ${firstNodeId}`);
+  return { mainLane, derived, autonomous };
+}
+
+/* Pour la voie principale : liste ordonnée des colonnes temps avec contenu,
+   chacune avec le nombre d'actions. */
+function extractMainLaneSteps(canvas, mainLane){
+  const steps = [];
+  canvas.timeColumns.forEach(tc => {
+    const cell = mainLane.cells[tc.id];
+    if(!cell) return;
+    const actionCount = (cell.items || []).length;
+    const hasNote = !!(cell.note && cell.note.trim());
+    if(actionCount > 0 || hasNote){
+      steps.push({ time: tc.time, actionCount, hasNote, colId: tc.id });
     }
+  });
+  return steps;
+}
+
+/* Construit une chaîne SVG pour un rectangle avec texte centré (2 lignes max). */
+function svgBox(x, y, w, h, title, subtitle, colors){
+  const rxTitle = x + w/2;
+  const titleY = subtitle ? y + h/2 - 6 : y + h/2 + 2;
+  const subY = y + h/2 + 10;
+  return `
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6"
+          fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="0.5"/>
+    <text x="${rxTitle}" y="${titleY}" text-anchor="middle" dominant-baseline="central"
+          font-family="Inter, sans-serif" font-size="12" font-weight="600"
+          fill="${colors.text}">${escapeHtml(title)}</text>
+    ${subtitle ? `<text x="${rxTitle}" y="${subY}" text-anchor="middle" dominant-baseline="central"
+          font-family="Inter, sans-serif" font-size="10.5"
+          fill="${colors.text}" opacity="0.75">${escapeHtml(subtitle)}</text>` : ''}
+  `;
+}
+
+/* Construit le SVG complet à partir du canvas.
+   Le SVG est dimensionné dynamiquement en fonction du nombre d'étapes et
+   de dérivées, avec une largeur cible d'environ 900px pour l'affichage
+   confortable dans la modale. */
+function buildFlowSvg(canvas){
+  const { mainLane, derived, autonomous } = analyzeCanvasForDiagram(canvas);
+  if(!mainLane){
+    return `<svg width="600" height="200" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+      <text x="300" y="100" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" fill="#6a7080">
+        Aucune voie à afficher
+      </text>
+    </svg>`;
   }
 
-  // Flèches horizontales pour matérialiser les convergences (merges)
-  canvas.lanes.forEach(lane => {
-    canvas.timeColumns.forEach(tc => {
-      const cell = lane.cells[tc.id];
-      if(!cell || !cell.mergedTo) return;
-      const srcId = cellNodeIds[`${lane.id}_${tc.id}`];
-      // Trouve la cellule cible : première cellule non-mergée de la voie cible
-      // à partir de la même colonne temps
-      const targetLane = canvas.lanes.find(l => l.id === cell.mergedTo);
-      if(!targetLane) return;
-      const startIdx = canvas.timeColumns.findIndex(x => x.id === tc.id);
-      let tgtCol = null;
-      for(let i = startIdx; i < canvas.timeColumns.length; i++){
-        const tCell = targetLane.cells[canvas.timeColumns[i].id];
-        if(tCell && !tCell.mergedTo && ((tCell.items || []).length > 0 || tCell.note)){
-          tgtCol = canvas.timeColumns[i]; break;
-        }
-      }
-      if(tgtCol && srcId){
-        const dstId = cellNodeIds[`${targetLane.id}_${tgtCol.id}`];
-        if(dstId) lines.push(`${srcId} -.->|converge| ${dstId}`);
-      }
-    });
+  const mainSteps = extractMainLaneSteps(canvas, mainLane);
+
+  // Dimensions cibles
+  const BOX_W = 100;
+  const BOX_H = 46;
+  const BOX_H_TALL = 52;
+  const STEP_GAP = 22;
+  const PADDING_LEFT = 30;
+  const PADDING_RIGHT = 30;
+
+  // Calcul largeur du SVG basée sur le nombre max d'éléments par ligne
+  const mainRowWidth = mainSteps.length * BOX_W + Math.max(0, mainSteps.length - 1) * STEP_GAP;
+  const autonomousRowWidth = autonomous.length * (BOX_W + 18) - 18;
+  const derivedRowWidth = derived.length * (BOX_W + 22) - 22;
+  const contentWidth = Math.max(mainRowWidth, autonomousRowWidth, derivedRowWidth, 620);
+  const svgWidth = contentWidth + PADDING_LEFT + PADDING_RIGHT;
+
+  // Zones verticales
+  const MAIN_LABEL_Y = 30;
+  const MAIN_Y = 70;
+  const DERIVED_LABEL_Y = MAIN_Y + BOX_H + 60;
+  const DERIVED_Y = DERIVED_LABEL_Y + 30;
+  const AUTONOMOUS_LABEL_Y = DERIVED_Y + BOX_H + 90;
+  const AUTONOMOUS_Y = AUTONOMOUS_LABEL_Y + 30;
+  const LEGEND_Y = AUTONOMOUS_Y + BOX_H_TALL + 45;
+  const svgHeight = LEGEND_Y + 70;
+
+  // Mapping du centre X de chaque étape principale (pour placer les convergences)
+  const stepXCenters = {};
+  mainSteps.forEach((step, i) => {
+    stepXCenters[step.time] = PADDING_LEFT + i * (BOX_W + STEP_GAP) + BOX_W / 2;
   });
 
-  return lines.join('\n');
+  // --- Header ---
+  let svg = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}"
+    xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+    <defs>
+      <marker id="diag-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <rect width="${svgWidth}" height="${svgHeight}" fill="#ffffff"/>
+  `;
+
+  // --- Voie principale ---
+  svg += `
+    <text x="${PADDING_LEFT}" y="${MAIN_LABEL_Y - 8}" font-size="12" font-weight="600" fill="${_DIAG_COLORS.text}">
+      Voie principale
+    </text>
+    <text x="${PADDING_LEFT}" y="${MAIN_LABEL_Y + 10}" font-size="11" fill="${_DIAG_COLORS.textMute}">
+      ${escapeHtml(mainLane.label || '')}
+    </text>
+  `;
+  if(mainSteps.length === 0){
+    svg += `<text x="${PADDING_LEFT}" y="${MAIN_Y + 30}" font-size="11"
+            fill="${_DIAG_COLORS.textMute}" font-style="italic">
+      (aucune étape configurée dans la voie principale)
+    </text>`;
+  }
+  mainSteps.forEach((step, i) => {
+    const x = PADDING_LEFT + i * (BOX_W + STEP_GAP);
+    svg += svgBox(x, MAIN_Y, BOX_W, BOX_H,
+      step.time,
+      `${step.actionCount} action${step.actionCount > 1 ? 's' : ''}`,
+      _DIAG_COLORS.main
+    );
+    // Flèche vers l'étape suivante
+    if(i < mainSteps.length - 1){
+      const arrowStart = x + BOX_W;
+      const arrowEnd = x + BOX_W + STEP_GAP - 2;
+      const arrowY = MAIN_Y + BOX_H / 2;
+      svg += `<line x1="${arrowStart}" y1="${arrowY}" x2="${arrowEnd}" y2="${arrowY}"
+        stroke="${_DIAG_COLORS.arrow}" stroke-width="1.2"
+        marker-end="url(#diag-arrow)"/>`;
+    }
+  });
+
+  // --- Dérivées ---
+  if(derived.length > 0){
+    svg += `<text x="${PADDING_LEFT}" y="${DERIVED_LABEL_Y}" font-size="12" font-weight="600" fill="${_DIAG_COLORS.text}">
+      Dérivées conditionnelles
+    </text>
+    <text x="${PADDING_LEFT}" y="${DERIVED_LABEL_Y + 16}" font-size="10.5" fill="${_DIAG_COLORS.textMute}">
+      Chacune démarre puis rejoint la voie principale à un temps donné
+    </text>`;
+
+    derived.forEach((info, i) => {
+      const x = PADDING_LEFT + i * (BOX_W + 22);
+      const subtitle = info.startPoint ? `démarre à ${info.startPoint.time}` : 'démarre';
+      svg += svgBox(x, DERIVED_Y, BOX_W, BOX_H,
+        info.lane.label,
+        subtitle,
+        _DIAG_COLORS.derived
+      );
+
+      // Convergence vers la voie principale
+      if(info.convergePoint){
+        const targetX = stepXCenters[info.convergePoint.time];
+        if(targetX !== undefined){
+          const srcX = x + BOX_W / 2;
+          const srcY = DERIVED_Y;
+          const targetBottomY = MAIN_Y + BOX_H;
+          // Chemin : monte depuis le haut de la boîte, va horizontalement, redescend vers la principale
+          const midY = MAIN_Y + BOX_H + 22;
+          const path = `M ${srcX} ${srcY}
+                        L ${srcX} ${midY}
+                        L ${targetX} ${midY}
+                        L ${targetX} ${targetBottomY + 2}`;
+          svg += `<path d="${path}" fill="none"
+                    stroke="${_DIAG_COLORS.arrowAlt}" stroke-width="1"
+                    stroke-dasharray="4 3"
+                    marker-end="url(#diag-arrow)"/>`;
+          // Label "rejoint à X"
+          const labelX = (srcX + targetX) / 2;
+          svg += `<text x="${labelX}" y="${midY - 4}" text-anchor="middle"
+                    font-size="10" fill="${_DIAG_COLORS.arrowAlt}"
+                    font-style="italic">rejoint à ${escapeHtml(info.convergePoint.time)}</text>`;
+        }
+      }
+    });
+  }
+
+  // --- Flows autonomes ---
+  if(autonomous.length > 0){
+    svg += `<text x="${PADDING_LEFT}" y="${AUTONOMOUS_LABEL_Y}" font-size="12" font-weight="600" fill="${_DIAG_COLORS.text}">
+      Flows autonomes
+    </text>
+    <text x="${PADDING_LEFT}" y="${AUTONOMOUS_LABEL_Y + 16}" font-size="10.5" fill="${_DIAG_COLORS.textMute}">
+      Se déclenchent hors du parcours principal — ne rejoignent jamais la voie principale
+    </text>`;
+
+    autonomous.forEach((info, i) => {
+      const x = PADDING_LEFT + i * (BOX_W + 18);
+      const subtitle = info.startPoint ? `à ${info.startPoint.time}` : '—';
+      svg += svgBox(x, AUTONOMOUS_Y, BOX_W, BOX_H_TALL,
+        info.lane.label,
+        subtitle,
+        _DIAG_COLORS.autonomous
+      );
+    });
+  }
+
+  // --- Légende ---
+  const legendItems = [
+    { color: _DIAG_COLORS.main.fill, stroke: _DIAG_COLORS.main.stroke, label: 'Voie principale' },
+    { color: _DIAG_COLORS.derived.fill, stroke: _DIAG_COLORS.derived.stroke, label: 'Dérivée (rejoint la principale)' },
+    { color: _DIAG_COLORS.autonomous.fill, stroke: _DIAG_COLORS.autonomous.stroke, label: 'Flow autonome' },
+  ];
+  svg += `<text x="${PADDING_LEFT}" y="${LEGEND_Y}" font-size="11" font-weight="600" fill="${_DIAG_COLORS.text}">Légende</text>`;
+  let lx = PADDING_LEFT;
+  const legendY2 = LEGEND_Y + 18;
+  legendItems.forEach(item => {
+    svg += `<rect x="${lx}" y="${legendY2 - 8}" width="14" height="10" rx="2"
+              fill="${item.color}" stroke="${item.stroke}" stroke-width="0.5"/>`;
+    svg += `<text x="${lx + 20}" y="${legendY2}" font-size="10.5" fill="${_DIAG_COLORS.textMute}">${escapeHtml(item.label)}</text>`;
+    lx += 20 + item.label.length * 5.5 + 20;
+  });
+  // Ligne pointillée en légende
+  svg += `<line x1="${lx}" y1="${legendY2 - 3}" x2="${lx + 20}" y2="${legendY2 - 3}"
+            stroke="${_DIAG_COLORS.arrowAlt}" stroke-width="1" stroke-dasharray="4 3"/>`;
+  svg += `<text x="${lx + 26}" y="${legendY2}" font-size="10.5" fill="${_DIAG_COLORS.textMute}">Convergence à un temps donné</text>`;
+
+  svg += `</svg>`;
+  return svg;
 }
 
-/* Ouvre la modale schéma et rend le diagramme. */
 function openDiagramView(){
   const canvas = getCanvas();
   if(!canvas){ toast('Aucun canvas actif'); return; }
-  ensureMermaidInit();
-
-  const diagramSource = buildMermaidDiagram(canvas);
+  const svgSource = buildFlowSvg(canvas);
 
   openCustomModal({
     id: 'diagramModalBg',
@@ -5146,34 +5247,24 @@ function openDiagramView(){
             <button class="btn" id="diagramZoomOut" title="Dézoomer">−</button>
             <span id="diagramZoomLevel">100%</span>
             <button class="btn" id="diagramZoomIn" title="Zoomer">+</button>
-            <button class="btn" id="diagramZoomReset" title="Réinitialiser">⤢</button>
+            <button class="btn" id="diagramZoomReset" title="Ajuster">⤢</button>
             <button class="btn primary" id="diagramExportPng" title="Exporter en PNG">📷 Export PNG</button>
             <button class="btn" id="diagramExportSvg" title="Exporter en SVG">SVG</button>
             <button class="btn modal-close">Fermer</button>
           </div>
         </div>
         <div class="diagram-viewport" id="diagramViewport">
-          <div class="diagram-container" id="diagramContainer">
-            <div class="diagram-loading">Génération du schéma…</div>
-          </div>
+          <div class="diagram-container" id="diagramContainer">${svgSource}</div>
         </div>
       </div>`,
-    onMount: async (overlay, close) => {
+    onMount: (overlay) => {
       const container = overlay.querySelector('#diagramContainer');
-      try{
-        const svgId = 'mermaid_' + Date.now();
-        const { svg } = await mermaid.render(svgId, diagramSource);
-        container.innerHTML = svg;
-      } catch(err){
-        container.innerHTML = `<div class="diagram-error">Erreur de rendu : ${escapeHtml(String(err.message || err))}<br/><pre>${escapeHtml(diagramSource)}</pre></div>`;
-        console.error('Mermaid render error:', err);
-      }
 
       // Zoom
       let zoom = 100;
       const level = overlay.querySelector('#diagramZoomLevel');
       const applyZoom = () => {
-        const inner = overlay.querySelector('#diagramContainer svg');
+        const inner = container.querySelector('svg');
         if(inner){
           inner.style.transformOrigin = 'top left';
           inner.style.transform = `scale(${zoom / 100})`;
@@ -5184,26 +5275,20 @@ function openDiagramView(){
       overlay.querySelector('#diagramZoomOut').addEventListener('click', () => { zoom = Math.max(30, zoom - 20); applyZoom(); });
       overlay.querySelector('#diagramZoomReset').addEventListener('click', () => { zoom = 100; applyZoom(); });
 
-      // Export PNG (via html2canvas sur le SVG rendu)
+      // Export PNG (via canvas natif — pas besoin de html2canvas pour du SVG pur)
       overlay.querySelector('#diagramExportPng').addEventListener('click', async () => {
         const svg = container.querySelector('svg');
         if(!svg){ toast('Rien à exporter'); return; }
         try{
-          // Convertit le SVG en dataURL avec bonne résolution
-          const svgClone = svg.cloneNode(true);
-          const bbox = svg.getBBox();
-          svgClone.setAttribute('width', bbox.width + bbox.x * 2);
-          svgClone.setAttribute('height', bbox.height + bbox.y * 2);
-          const svgStr = new XMLSerializer().serializeToString(svgClone);
-          const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-          const url = URL.createObjectURL(blob);
-
+          const svgStr = new XMLSerializer().serializeToString(svg);
+          const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+          const url = URL.createObjectURL(svgBlob);
           const img = new Image();
           img.onload = () => {
             const scale = 2; // haute résolution
             const c = document.createElement('canvas');
-            c.width = img.width * scale;
-            c.height = img.height * scale;
+            c.width = svg.viewBox.baseVal.width * scale;
+            c.height = svg.viewBox.baseVal.height * scale;
             const ctx = c.getContext('2d');
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, c.width, c.height);
@@ -5218,6 +5303,10 @@ function openDiagramView(){
               URL.revokeObjectURL(url);
               toast('📷 Diagramme exporté en PNG');
             }, 'image/png');
+          };
+          img.onerror = (e) => {
+            console.error('Image load error:', e);
+            toast('Erreur export PNG');
           };
           img.src = url;
         } catch(err){
