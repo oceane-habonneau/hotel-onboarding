@@ -303,11 +303,15 @@
     font-weight:600;
     letter-spacing:.02em;
   }
-  /* Container qu'on va zoomer */
-  body.is-presenting .canvas-inner{
+  /* En mode présentation : le zoom scale l'élément .lanes-grid.
+     transform-origin en haut-gauche pour un fit-to-screen prévisible.
+     On désactive aussi l'overflow-x du parent .timeline car en mode
+     présentation on veut tout voir d'un coup (le zoom sert de fit-to-screen). */
+  body.is-presenting .lanes-grid{
     transform-origin:top left;
     transition:transform .15s ease-out;
   }
+  body.is-presenting .timeline{overflow-x:visible;overflow-y:visible}
 
   /* === Badge "Vérifier" === */
   .validate-badge{
@@ -1187,32 +1191,41 @@
     align-self:stretch;
   }
   .lane-label-content{
-    display:flex;align-items:flex-start;gap:8px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    width:100%;
+    min-width:0;
+  }
+  /* Ligne du haut : tous les boutons d'action */
+  .lane-label-actions{
+    display:flex;
+    align-items:center;
+    gap:4px;
     width:100%;
     min-height:22px;
   }
+  .lane-actions-spacer{flex:1}
   .lane-marker{
     width:8px;height:8px;border-radius:50%;
     background:var(--c-temps);
     flex-shrink:0;
-    margin-top:5px;
   }
   .is-default-lane .lane-marker{background:var(--c-lieu)}
+  /* Ligne du bas : le texte du label prend toute la largeur de la cellule */
   .lane-label-text{
-    flex:1;
+    display:block;
+    width:100%;
     font-family:'Inter Tight', 'Inter', sans-serif;
     font-size:12px;
     letter-spacing:.01em;
     font-weight:600;
     color:var(--text);
     cursor:pointer;
-    /* Retour à la ligne au niveau des espaces uniquement ;
-       hyphens auto casse proprement les très longs mots isolés. */
+    /* Retour à la ligne au niveau des espaces uniquement */
     white-space:normal;
     overflow-wrap:break-word;
-    hyphens:auto;
     line-height:1.3;
-    min-width:0;
   }
   .lane-label-text:hover{color:var(--c-lieu)}
   .lane-del{
@@ -2732,16 +2745,19 @@ function renderCanvas(){
     labelCell.draggable = true;
     labelCell.innerHTML = `
       <div class="lane-label-content">
-        <span class="lane-drag-handle" title="Glisser pour réordonner">⋮⋮</span>
-        <button class="lane-chevron" title="${lane.collapsed ? 'Déplier' : 'Replier'} cette voie">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <span class="lane-marker"></span>
-        <button class="lane-default-toggle${lane.isDefault ? ' is-default' : ''}" title="${lane.isDefault ? 'Voie par défaut' : 'Définir comme voie par défaut'}">${lane.isDefault ? '★' : '☆'}</button>
+        <div class="lane-label-actions">
+          <span class="lane-drag-handle" title="Glisser pour réordonner">⋮⋮</span>
+          <button class="lane-chevron" title="${lane.collapsed ? 'Déplier' : 'Replier'} cette voie">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <span class="lane-marker"></span>
+          <button class="lane-default-toggle${lane.isDefault ? ' is-default' : ''}" title="${lane.isDefault ? 'Voie par défaut' : 'Définir comme voie par défaut'}">${lane.isDefault ? '★' : '☆'}</button>
+          <div class="lane-actions-spacer"></div>
+          <button class="lane-copy" title="Copier cette voie (pour la coller dans un autre canvas)">📋</button>
+          <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
+          <button class="lane-del" title="Supprimer cette voie">×</button>
+        </div>
         <span class="lane-label-text" title="Cliquer pour renommer">${escapeHtml(lane.label || '')}</span>
-        <button class="lane-copy" title="Copier cette voie (pour la coller dans un autre canvas)">📋</button>
-        <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
-        <button class="lane-del" title="Supprimer cette voie">×</button>
       </div>
     `;
     laneRow.appendChild(labelCell);
@@ -3969,45 +3985,58 @@ document.getElementById('fileInput').addEventListener('change', e=>{
 });
 
 /* Export PDF paysage A4.
-   Deux modes d'usage :
-   - Depuis le mode présentation : capture le canvas AVEC le zoom courant
-     (fit-to-screen ou zoom manuel choisi par l'utilisateur).
-   - Depuis le canvas normal : capture le canvas à sa taille naturelle.
-   La cible est le div `#canvasInner`. En mode présentation, on retire
-   temporairement le `transform: scale()` et on applique un scale via html2canvas
-   pour préserver la qualité tout en respectant la proportion voulue. */
+   Deux modes :
+   - Mode présentation : capture le canvas avec le CADRAGE ACTUEL choisi par
+     l'utilisateur (fit-to-screen ou zoom manuel), pour reproduire fidèlement
+     ce que voit l'utilisateur.
+   - Mode normal : capture le canvas à sa taille naturelle 100%.
+   La cible réelle est `.lanes-grid` (le vrai conteneur des colonnes), pas
+   `#canvasInner` qui a `position: absolute; inset: 0` (donc scrollWidth
+   = viewport width, pas la taille du contenu). */
 async function exportPdf(){
   const c = getCanvas(); if(!c) return;
   const isPresenting = document.body.classList.contains('is-presenting');
   toast(isPresenting ? 'Génération du PDF (zoom actuel)…' : 'Génération du PDF…');
-  const node = document.getElementById('canvasInner');
-  node.classList.add('exporting');
-  const prevScroll = { x: node.scrollLeft, y: node.scrollTop };
-  const previousTransform = node.style.transform;
 
-  // Le facteur de zoom en présentation détermine le "cadrage" désiré :
-  // si l'utilisateur a fait fit-to-screen à 60%, on veut que le PDF montre
-  // ce cadrage 60% (donc capture à ce niveau). Sinon on capture en pleine
-  // résolution.
-  const zoomFactor = isPresenting ? (_presentZoom / 100) : 1;
+  const grid = document.querySelector('.lanes-grid');
+  if(!grid){ toast('Aucun contenu à exporter'); return; }
 
-  // On retire temporairement le transform pour laisser html2canvas mesurer
-  // la vraie taille du contenu ; on appliquera le scale via son option.
-  node.style.transform = 'scale(1)';
-  node.scrollTo(0, 0);
+  // On retire temporairement les styles inline pour capturer à 100% ;
+  // on garde l'état à restaurer.
+  const previousTransform = grid.style.transform;
+  const previousWidth = grid.style.width;
+  const previousHeight = grid.style.height;
+
+  // En présentation, on garde le zoom actuel pour reproduire fidèlement
+  // le cadrage vu à l'écran. En mode normal, on capture à 100%.
+  const captureScale = isPresenting ? (_presentZoom / 100) : 1;
+
+  if(!isPresenting){
+    // En mode normal, on force temporairement 100% pour capturer à taille max
+    grid.style.transform = 'scale(1)';
+    grid.style.width = '';
+    grid.style.height = '';
+  }
   await new Promise(r => setTimeout(r, 100));
 
   try{
-    const canvas = await html2canvas(node, {
+    // Calcule les dimensions naturelles du contenu (sans le transform)
+    const naturalW = grid.dataset.naturalWidth
+      ? parseFloat(grid.dataset.naturalWidth)
+      : grid.scrollWidth;
+    const naturalH = grid.dataset.naturalHeight
+      ? parseFloat(grid.dataset.naturalHeight)
+      : grid.scrollHeight;
+
+    const canvas = await html2canvas(grid, {
       backgroundColor: '#ffffff',
-      // scale = résolution finale de rendu (2 = haute résolution)
-      // ajusté par le zoom pour que le PDF respecte le cadrage voulu
-      scale: 2 * zoomFactor,
-      width: node.scrollWidth,
-      height: node.scrollHeight,
-      windowWidth: node.scrollWidth,
-      windowHeight: node.scrollHeight,
+      scale: 2 * captureScale,
+      width: naturalW,
+      height: naturalH,
+      windowWidth: naturalW + 100,
+      windowHeight: naturalH + 100,
     });
+
     const imgData = canvas.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -4019,18 +4048,18 @@ async function exportPdf(){
     const x = (pageW - w) / 2, y = (pageH - h) / 2;
     pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, pageW, pageH, 'F');
     pdf.addImage(imgData, 'PNG', x, y, w, h);
-    const suffix = isPresenting ? `_presentation_${_presentZoom}pct` : '';
+    const suffix = isPresenting ? `_${_presentZoom}pct` : '';
     pdf.save((c.name || 'workflow').replace(/[^\w\-]+/g, '_') + suffix + '.pdf');
     toast('📷 PDF généré');
   }catch(err){
     console.error(err);
-    toast('Erreur PDF');
+    toast('Erreur PDF : ' + (err.message || 'inconnu'));
   }
 
-  // Restaure l'état
-  node.style.transform = previousTransform;
-  node.classList.remove('exporting');
-  node.scrollTo(prevScroll.x, prevScroll.y);
+  // Restaure les styles
+  grid.style.transform = previousTransform;
+  grid.style.width = previousWidth;
+  grid.style.height = previousHeight;
 }
 
 function exportSpec(){
@@ -5332,9 +5361,46 @@ let _presentZoom = 100;
 const _PRESENT_ZOOM_STEPS = [25, 33, 40, 50, 60, 70, 80, 90, 100, 110, 125, 150, 175, 200, 250, 300];
 
 function applyPresentZoom(){
-  const inner = document.querySelector('.canvas-inner');
+  // On scale l'élément .lanes-grid (le vrai conteneur des colonnes voies × temps).
+  // Le parent .timeline garde son overflow-x pour rester fonctionnel en mode normal,
+  // mais avec un contenu scalé à 60%, il tient dans le viewport sans scroll.
+  const grid = document.querySelector('.lanes-grid');
   const lvl = document.getElementById('presentZoomLevel');
-  if(inner) inner.style.transform = `scale(${_presentZoom / 100})`;
+  if(grid){
+    grid.style.transformOrigin = 'top left';
+    // Mesure la taille NATURELLE (sans transform, sans width forcée)
+    // AVANT d'appliquer quoi que ce soit — sinon on mesure la taille scalée.
+    if(!grid.dataset.naturalWidth || !grid.dataset.naturalHeight){
+      const prevTransform = grid.style.transform;
+      const prevWidth = grid.style.width;
+      const prevHeight = grid.style.height;
+      grid.style.transform = '';
+      grid.style.width = '';
+      grid.style.height = '';
+      // Force un reflow avant la mesure
+      void grid.offsetWidth;
+      const natW = grid.scrollWidth;
+      const natH = grid.scrollHeight;
+      if(natW > 0 && natH > 0){
+        grid.dataset.naturalWidth = natW;
+        grid.dataset.naturalHeight = natH;
+      }
+      // Restaure (au cas où on est appelé alors qu'un state précédent existait)
+      grid.style.transform = prevTransform;
+      grid.style.width = prevWidth;
+      grid.style.height = prevHeight;
+    }
+    const naturalW = parseFloat(grid.dataset.naturalWidth) || grid.scrollWidth;
+    const naturalH = parseFloat(grid.dataset.naturalHeight) || grid.scrollHeight;
+
+    const scaleRatio = _presentZoom / 100;
+    grid.style.transform = `scale(${scaleRatio})`;
+    // Compense la place occupée par l'élément scalé pour que le parent
+    // .timeline calcule correctement son overflow (sinon même à scale(0.5),
+    // l'élément prend toujours sa taille logique dans le flux).
+    grid.style.width = `${naturalW * scaleRatio}px`;
+    grid.style.height = `${naturalH * scaleRatio}px`;
+  }
   if(lvl) lvl.textContent = `${_presentZoom}%`;
 }
 
@@ -5356,30 +5422,53 @@ function stepPresentZoom(dir){
 }
 
 /* Calcule le zoom qui permet d'afficher toute la timeline dans le viewport
-   sans nécessiter de scroll. Prend en compte la barre de présentation en haut
-   (~60px) et une petite marge pour respirer. */
+   sans nécessiter de scroll. On mesure la taille naturelle de .lanes-grid
+   (pas de .canvas-inner qui a inset:0 et donne toujours la taille du parent). */
 function computeFitToScreenZoom(){
-  const inner = document.querySelector('.canvas-inner');
-  if(!inner) return 100;
-  // On mesure la taille réelle du contenu SANS transform en cours
-  const previousTransform = inner.style.transform;
-  inner.style.transform = 'scale(1)';
-  const rect = inner.getBoundingClientRect();
-  const contentW = inner.scrollWidth || rect.width;
-  const contentH = inner.scrollHeight || rect.height;
-  inner.style.transform = previousTransform;
+  const grid = document.querySelector('.lanes-grid');
+  const timelineWrap = document.querySelector('.timeline-wrap');
+  const contextBand = document.getElementById('contextBand');
+  if(!grid || !timelineWrap) return 100;
 
-  // Viewport disponible : fenêtre - bandeau présentation (top) - marges
-  const barH = document.getElementById('presentBar')?.getBoundingClientRect().height || 60;
-  const viewportW = window.innerWidth - 40;                // marge horizontale
-  const viewportH = window.innerHeight - barH - 40;        // marge verticale + bandeau
+  // On mesure la taille NATURELLE en retirant temporairement les styles
+  // inline appliqués par applyPresentZoom. On refait toujours la mesure
+  // (pas de cache) pour éviter les valeurs obsolètes.
+  const prevTransform = grid.style.transform;
+  const prevWidth = grid.style.width;
+  const prevHeight = grid.style.height;
+  grid.style.transform = '';
+  grid.style.width = '';
+  grid.style.height = '';
+  // Force reflow avant mesure
+  void grid.offsetWidth;
+  const contentW = grid.scrollWidth;
+  const contentH = grid.scrollHeight;
+  grid.style.transform = prevTransform;
+  grid.style.width = prevWidth;
+  grid.style.height = prevHeight;
+
+  // Cache la mesure pour applyPresentZoom
+  if(contentW > 0 && contentH > 0){
+    grid.dataset.naturalWidth = contentW;
+    grid.dataset.naturalHeight = contentH;
+  }
+
   if(contentW === 0 || contentH === 0) return 100;
+
+  // Viewport disponible = fenêtre - barre présentation - context band - marges
+  const barH = document.getElementById('presentBar')?.getBoundingClientRect().height || 60;
+  const ctxH = contextBand?.getBoundingClientRect().height || 0;
+  const titleH = 40; // titre + sous-titre du canvas
+  const viewportW = window.innerWidth - 60;
+  const viewportH = window.innerHeight - barH - ctxH - titleH - 60;
+
+  if(viewportW <= 0 || viewportH <= 0) return 100;
 
   const scaleW = viewportW / contentW;
   const scaleH = viewportH / contentH;
   const scale = Math.min(scaleW, scaleH);
-  // On plafonne à 100% (pas d'agrandissement automatique au-delà)
-  return Math.max(15, Math.min(100, Math.round(scale * 100)));
+  // Plafonné à 100% (on n'agrandit pas au-delà de la taille naturelle)
+  return Math.max(15, Math.min(100, Math.floor(scale * 100)));
 }
 
 function fitToScreen(){
@@ -5405,16 +5494,33 @@ function enterPresentMode(){
   if(document.documentElement.requestFullscreen){
     document.documentElement.requestFullscreen().catch(()=>{});
   }
-  // Ajuste automatiquement à l'écran après un tick (laisse le temps au layout
-  // et au fullscreen éventuel de s'appliquer)
-  requestAnimationFrame(() => {
-    setTimeout(() => fitToScreen(), 100);
+  // Ajuste automatiquement à l'écran. On tente plusieurs fois car :
+  // - le rendu du canvas doit être terminé
+  // - le fullscreen natif peut mettre 200-500ms à s'appliquer
+  // - le context-band et les autres éléments doivent avoir leur taille finale
+  const attempts = [50, 200, 500];
+  attempts.forEach(delay => {
+    setTimeout(() => {
+      // On ne recalcule que si l'utilisateur n'a pas déjà zoomé manuellement
+      // (première itération : _presentZoom est 100 par défaut, on fait le fit ;
+      //  itérations suivantes : on refait le fit seulement si on est encore au fit précédent)
+      fitToScreen();
+    }, delay);
   });
 }
 
 function exitPresentMode(){
   document.body.classList.remove('is-presenting');
-  // Nettoie le style transform (évite qu'il reste en mode normal)
+  // Nettoie les styles inline appliqués sur le grid pour le zoom
+  const grid = document.querySelector('.lanes-grid');
+  if(grid){
+    grid.style.transform = '';
+    grid.style.width = '';
+    grid.style.height = '';
+    delete grid.dataset.naturalWidth;
+    delete grid.dataset.naturalHeight;
+  }
+  // Compat : nettoie aussi l'ancien style sur .canvas-inner si présent
   const inner = document.querySelector('.canvas-inner');
   if(inner) inner.style.transform = '';
   const c = getCanvas();
