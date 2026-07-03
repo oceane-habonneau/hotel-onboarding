@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
@@ -226,6 +227,86 @@
     color:#6a7080;
     font-style:italic;
     text-align:center;
+  }
+  /* Poignées et indicateurs de drag pour réordonner colonnes/voies */
+  .col-drag-handle,
+  .lane-drag-handle{
+    display:inline-flex;
+    align-items:center;justify-content:center;
+    width:14px;height:20px;
+    color:var(--text-mute);
+    cursor:grab;
+    font-family:monospace;
+    font-size:10px;
+    letter-spacing:-.2em;
+    user-select:none;
+    flex-shrink:0;
+    opacity:.5;
+    transition:opacity .1s;
+  }
+  .col-drag-handle{margin-right:6px;margin-top:1px}
+  .lane-drag-handle{margin-top:4px}
+  .time-col-head-cell:hover .col-drag-handle,
+  .lane-label-cell:hover .lane-drag-handle{opacity:1}
+  .col-drag-handle:active,
+  .lane-drag-handle:active{cursor:grabbing}
+  .is-being-dragged{opacity:.4}
+
+  /* Indicateurs d'insertion (barre bleue entre colonnes ou entre voies) */
+  .col-drop-indicator{
+    width:3px;
+    align-self:stretch;
+    background:var(--c-lieu);
+    border-radius:2px;
+    margin:0 -1px;
+    box-shadow:0 0 8px rgba(47,111,224,.5);
+    animation:pulse-indicator .8s ease-in-out infinite;
+  }
+  .lane-drop-indicator{
+    height:3px;
+    background:var(--c-lieu);
+    border-radius:2px;
+    margin:2px 0;
+    box-shadow:0 0 8px rgba(47,111,224,.5);
+    animation:pulse-indicator .8s ease-in-out infinite;
+  }
+  @keyframes pulse-indicator{
+    0%,100%{opacity:.85}
+    50%{opacity:.5}
+  }
+  .present-zoom{
+    display:flex;align-items:center;gap:4px;
+    padding:2px 4px;
+    background:rgba(0,0,0,.04);
+    border-radius:6px;
+    border:1px solid rgba(0,0,0,.08);
+  }
+  .present-zoom-btn{
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;border:none;
+    color:#1a1d27;
+    font-size:16px;font-weight:600;
+    cursor:pointer;
+    border-radius:4px;
+    line-height:1;
+    padding:0;
+  }
+  .present-zoom-btn:hover{background:rgba(0,0,0,.08)}
+  .present-zoom-btn.present-zoom-reset{font-size:13px}
+  .present-zoom-level{
+    min-width:44px;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:#1a1d27;
+    font-weight:600;
+    letter-spacing:.02em;
+  }
+  /* Container qu'on va zoomer */
+  body.is-presenting .canvas-inner{
+    transform-origin:top left;
+    transition:transform .15s ease-out;
   }
 
   /* === Badge "Vérifier" === */
@@ -724,7 +805,252 @@
     color:var(--text-mute);
     margin:0 0 4px;
   }
-  .canvas-title-spaced{margin-bottom:10px}
+  /* === Vue comparaison côte à côte === */
+  .compare-modal{
+    display:flex;flex-direction:column;
+    padding:20px 24px;
+  }
+  .compare-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:14px;
+  }
+  .compare-head h3{margin:0}
+  .compare-panes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    flex:1;
+    min-height:0;
+    overflow:auto;
+  }
+  .compare-pane{
+    display:flex;flex-direction:column;
+    gap:10px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px;
+  }
+  .compare-select{
+    width:100%;
+    padding:7px 9px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+  }
+  .compare-canvas-summary{
+    display:flex;flex-direction:column;
+    gap:6px;
+    font-size:12px;
+  }
+  .compare-section-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--text-mute);
+    margin-top:6px;
+    padding-top:8px;
+    border-top:1px dashed var(--line);
+  }
+  .compare-context{margin-bottom:4px}
+  .compare-ctx-line{
+    font-size:11.5px;
+    color:var(--text-dim);
+    padding:1px 0;
+  }
+  .compare-ctx-cat{color:var(--text-mute);font-weight:600}
+  .compare-lane, .compare-col{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:5px 8px;
+    border-radius:4px;
+    font-size:12px;
+    color:var(--text);
+  }
+  .compare-lane .lane-marker{margin-top:0;margin-right:0}
+  .compare-lane .lane-marker.is-default{background:var(--c-lieu)}
+  .compare-lane-count{
+    margin-left:auto;
+    font-size:10px;
+    color:var(--text-mute);
+    font-family:'JetBrains Mono', monospace;
+  }
+  .compare-only{
+    background:rgba(230,168,46,.12);
+    border-left:2px solid var(--c-jour);
+  }
+  .compare-same{
+    background:transparent;
+  }
+  .compare-diff{
+    background:rgba(217,69,85,.10);
+    border-left:2px solid var(--c-canal);
+  }
+  .compare-legend{
+    margin-top:14px;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+    font-size:11px;
+    color:var(--text-mute);
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .legend-dot{
+    display:inline-block;
+    width:10px;height:10px;
+    border-radius:2px;
+    vertical-align:middle;
+    margin-right:4px;
+  }
+  .legend-dot.legend-diff{background:rgba(217,69,85,.10);border:2px solid var(--c-canal);border-width:0 0 0 2px}
+  .legend-dot.legend-only{background:rgba(230,168,46,.12);border:2px solid var(--c-jour);border-width:0 0 0 2px}
+  .legend-dot.legend-same{background:transparent;border:1px dashed var(--line)}
+  .compare-empty{color:var(--text-mute);font-style:italic;padding:20px;text-align:center}
+  .modal.modal-xl{
+    max-width:min(1400px, 96vw);
+    width:96vw;
+    max-height:92vh;
+    display:flex;flex-direction:column;
+    padding:20px 24px;
+  }
+  .diagram-modal-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:14px;
+  }
+  .diagram-modal-head h3{margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .diagram-toolbar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .diagram-toolbar .btn{padding:6px 10px;font-size:12px}
+  .diagram-toolbar #diagramZoomLevel{
+    min-width:44px;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-dim);
+  }
+  .diagram-viewport{
+    flex:1;
+    overflow:auto;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,.05) 1px, transparent 0) 0 0 / 20px 20px,
+      #fafbfc;
+    border:1px solid var(--line);
+    border-radius:6px;
+    min-height:400px;
+    max-height:calc(92vh - 140px);
+    position:relative;
+  }
+  .diagram-container{
+    padding:24px;
+    min-width:100%;
+    min-height:100%;
+    display:inline-block;
+  }
+  .diagram-container svg{
+    max-width:none;
+    height:auto;
+    transition:transform .12s ease-out;
+  }
+  .diagram-loading{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:60px;
+    color:var(--text-mute);
+    font-style:italic;
+  }
+  .diagram-error{
+    padding:20px;
+    color:var(--c-canal);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+  }
+  .diagram-error pre{
+    margin-top:12px;
+    padding:12px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--text-dim);
+    overflow-x:auto;
+    white-space:pre-wrap;
+  }
+  .timeline-toolbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .timeline-toolbar .canvas-title{margin:0;flex:0 0 auto}
+  .timeline-toolbar .canvas-title-spaced{margin-bottom:0}
+  .timeline-search-wrap{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:1;
+    max-width:360px;
+    margin-left:auto;
+    padding:5px 9px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--text-mute);
+    transition:border-color .1s;
+  }
+  .timeline-search-wrap:focus-within{border-color:var(--c-lieu)}
+  .timeline-search-wrap svg{flex-shrink:0}
+  .timeline-search-wrap input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--text);
+    font-family:inherit;
+    font-size:12px;
+    min-width:0;
+  }
+  .timeline-search-wrap input::placeholder{color:var(--text-mute);font-style:italic}
+  .timeline-search-count{
+    font-size:10px;
+    font-family:'JetBrains Mono', monospace;
+    color:var(--text-mute);
+    padding:0 4px;
+  }
+  .timeline-search-wrap button{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    padding:0 4px;font-size:14px;line-height:1;
+    display:none;
+  }
+  .timeline-search-wrap.has-query button{display:inline-block}
+  .timeline-search-wrap button:hover{color:var(--c-canal)}
+
+  /* Highlights des cellules matchant la recherche */
+  .lane-cell.search-hit{
+    box-shadow:0 0 0 2px var(--c-jour), 0 0 12px rgba(230,168,46,.35);
+    position:relative;
+  }
+  .lane-cell.search-dim{opacity:.35}
+  .item.search-hit-item{
+    box-shadow:inset 0 0 0 2px var(--c-jour);
+  }
   .canvas-subtitle{
     font-size:13px;color:var(--text-dim);
     margin:0 0 22px;
@@ -847,27 +1173,29 @@
   }
   /* Cellule label de la voie (à gauche, sticky horizontalement) */
   .lane-label-cell{
-    flex:0 0 180px;
-    min-width:180px;
+    flex:0 0 200px;
+    min-width:200px;
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:var(--radius);
     display:flex;
-    align-items:center;
-    padding:10px 12px;
+    align-items:flex-start;
+    padding:12px 12px;
     position:sticky;
     left:0;
     z-index:5;
     align-self:stretch;
   }
   .lane-label-content{
-    display:flex;align-items:center;gap:8px;
+    display:flex;align-items:flex-start;gap:8px;
     width:100%;
+    min-height:22px;
   }
   .lane-marker{
     width:8px;height:8px;border-radius:50%;
     background:var(--c-temps);
     flex-shrink:0;
+    margin-top:5px;
   }
   .is-default-lane .lane-marker{background:var(--c-lieu)}
   .lane-label-text{
@@ -878,9 +1206,11 @@
     font-weight:600;
     color:var(--text);
     cursor:pointer;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    /* Retour à la ligne autorisé pour voir tout le libellé */
+    white-space:normal;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    line-height:1.3;
   }
   .lane-label-text:hover{color:var(--c-lieu)}
   .lane-del{
@@ -914,6 +1244,36 @@
     flex-shrink:0;
   }
   .lane-dup:hover{background:rgba(47,111,224,.12);color:var(--c-lieu)}
+  /* Bouton copier une voie (pour coller dans un autre canvas) */
+  .lane-copy{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:22px;height:22px;border-radius:4px;
+    font-size:11px;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    opacity:.7;
+  }
+  .lane-copy:hover{background:rgba(230,168,46,.14);color:var(--c-jour);opacity:1}
+
+  /* Toggle voie par défaut : étoile discrète, pleine si active */
+  .lane-default-toggle{
+    background:transparent;border:none;
+    color:var(--text-mute);cursor:pointer;
+    width:20px;height:20px;border-radius:4px;
+    font-size:14px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    padding:0;
+    opacity:.35;
+    transition:opacity .1s, color .1s;
+  }
+  .lane-default-toggle:hover{opacity:1;color:var(--c-jour)}
+  .lane-default-toggle.is-default{
+    opacity:1;
+    color:var(--c-jour);
+    cursor:default;
+  }
+  .lane-default-toggle.is-default:hover{color:var(--c-jour)}
 
   /* Mode replié : récap compact à droite du label */
   .lane-collapsed-summary{
@@ -1362,6 +1722,55 @@
     font-size:10px;letter-spacing:.08em;
     color:var(--text-mute);text-transform:uppercase;
   }
+  /* Templates custom (utilisateur) */
+  .template-card.is-custom{
+    position:relative;
+    border-style:dashed;
+  }
+  .template-card .tpl-del{
+    position:absolute;
+    top:6px;right:6px;
+    width:22px;height:22px;
+    background:transparent;border:none;
+    color:var(--text-mute);
+    cursor:pointer;
+    border-radius:4px;
+    font-size:14px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;
+    transition:opacity .1s;
+  }
+  .template-card.is-custom:hover .tpl-del{opacity:1}
+  .template-card .tpl-del:hover{background:rgba(217,69,85,.12);color:var(--c-canal)}
+  /* Séparateur "Mes templates" */
+  .template-section-title{
+    grid-column:1 / -1;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-mute);
+    padding:12px 0 4px;
+    border-top:1px solid var(--line);
+    margin-top:8px;
+  }
+  /* CTA "Enregistrer ce canvas" */
+  .template-card.template-save-cta{
+    border-style:dashed;
+    border-color:var(--c-lieu);
+    background:linear-gradient(135deg, rgba(47,111,224,.06), transparent);
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    min-height:150px;
+  }
+  .template-card.template-save-cta .tpl-icon{
+    font-size:28px;
+    color:var(--c-lieu);
+    line-height:1;
+  }
+  .template-card.template-save-cta .tpl-name{
+    color:var(--c-lieu);
+  }
   .modal input{
     width:100%;
     background:var(--bg-2);
@@ -1458,6 +1867,18 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Snapshots
       </button>
+      <button class="btn" id="btnCompare" title="Comparer 2 canvas côte à côte">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg>
+        Comparer
+      </button>
+      <button class="btn" id="btnPasteLane" title="Coller la voie copiée dans ce canvas" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+        Coller voie
+      </button>
+      <button class="btn" id="btnDiagram" title="Vue schéma (diagramme de flux)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3h12V9"/><path d="M12 12v3"/></svg>
+        Schéma
+      </button>
       <button class="btn" id="btnPresent" title="Mode présentation (plein écran)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Présenter
@@ -1498,7 +1919,13 @@
 <!-- Bandeau du mode présentation (visible uniquement en mode présentation) -->
 <div class="present-bar" id="presentBar">
   <span class="present-bar-title" id="presentBarTitle">Workflow</span>
-  <span class="present-bar-hint">Mode présentation · Esc pour quitter</span>
+  <div class="present-zoom">
+    <button class="present-zoom-btn" id="presentZoomOut" title="Dézoomer (Ctrl -)">−</button>
+    <span class="present-zoom-level" id="presentZoomLevel">100%</span>
+    <button class="present-zoom-btn" id="presentZoomIn" title="Zoomer (Ctrl +)">+</button>
+    <button class="present-zoom-btn present-zoom-reset" id="presentZoomReset" title="Réinitialiser (Ctrl 0)">⤢</button>
+  </div>
+  <span class="present-bar-hint">Esc pour quitter · Ctrl+molette pour zoomer</span>
   <button class="btn" id="btnPresentExit">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     Quitter
@@ -1545,7 +1972,15 @@
 
       <!-- Timeline -->
       <div class="timeline-wrap">
-        <div class="canvas-title canvas-title-spaced">Séquence dans le temps</div>
+        <div class="timeline-toolbar">
+          <div class="canvas-title canvas-title-spaced">Séquence dans le temps</div>
+          <div class="timeline-search-wrap" id="timelineSearchWrap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="timelineSearch" placeholder="Rechercher dans le canvas (Ctrl+F)…" />
+            <span id="timelineSearchCount" class="timeline-search-count"></span>
+            <button id="timelineSearchClose" title="Fermer (Esc)">×</button>
+          </div>
+        </div>
         <div class="timeline" id="timeline"></div>
       </div>
     </div>
@@ -1607,6 +2042,7 @@ const STORAGE = {
   contextCollapsed: 'wf_context_collapsed_v1',  // pliage de la bande contexte (bool global)
   snapshots:        'wf_snapshots_v1',          // historique par canvas
   panels:           'wf_panels_v1',             // état des volets sidebar / palette
+  customTemplates:  'wf_custom_templates_v1',   // templates créés par l'utilisateur
 };
 
 const GROUPS = [
@@ -1636,26 +2072,26 @@ const DEFAULT_CATEGORIES = [
 
   // ===== DÉCLENCHEUR =====
   { id:'event', group:'declencheur', name:'Événement', color:'var(--c-event)',
-    items:['Réservation confirmée','Paiement reçu (facture)','Pré-autorisation CB','Modification résa','Annulation','Check-in effectué','Check-out effectué','No-show','Anniversaire séjour','Avis (questionnaire de satisfaction)','Anniversaire client'] },
+    items:['Réservation confirmée','Paiement reçu (facture)','Pré-autorisation CB','Modification résa','Annulation','Annulation client (standard)','Annulation client (NANR)','Date limite annulation dépassée','Aucun check-in à H+2','Check-in effectué','Check-out effectué','No-show','Anniversaire séjour','Avis (questionnaire de satisfaction)','Anniversaire client'] },
   { id:'temps', group:'declencheur', name:'Temps', color:'var(--c-temps)',
-    items:['À la réservation','J-15','J-7','J-7 08:00','J-2','J-2 18:00','H-24h','H-4 (11h)','J - arrivée','H+1h (post check-in)','H-12 (avant départ)','H-12 20:00','J-départ','J+0 12:00','J+1','J+1 10:00','J+1 (si + de 2nuits)','J+2','J+30','J+90','Saisonnier (N-1)'] },
+    items:['À la réservation','J-45','J-45 09:00','J-15','J-15 09:00','J-7','J-7 08:00','J-2','J-2 18:00','H-24h','H-4 (11h)','J - arrivée','H+1h (post check-in)','H+2h','H-12 (avant départ)','H-12 20:00','J-départ','J+0 12:00','J+1','J+1 10:00','J+1 (si + de 2nuits)','J+2','J+30','J+90','Saisonnier (N-1)'] },
   { id:'condition', group:'declencheur', name:'Condition', color:'var(--c-condition)',
-    items:['Si OTA','Si direct','Si VIP','Si return guest','Si 1ère visite','Si séjour > 2 nuits','Si plainte précédente','Si pas de réponse','Si paiement non reçu','Si upsell éligible','NON DP','Une Nuit','NANR Tel','Resa TEL','GROUPE (+2chb)','Contact Hôtel'] },
+    items:['Si OTA','Si direct','Si VIP','Si return guest','Si 1ère visite','Si séjour > 2 nuits','Si plainte précédente','Si pas de réponse','Si paiement non reçu','Si upsell éligible','Si annulée avant 20/08/2026','Si annulée après 20/08/2026','NON DP','Une Nuit','NANR Tel','Resa TEL','GROUPE (+2chb)','Contact Hôtel'] },
 
   // ===== ACTION =====
   { id:'contenu', group:'action', name:'Type de contenu', color:'var(--c-contenu)',
-    items:['Hébergement','Payé / ou à payer sur place','Envoi lien de paiement/garantie','Demande de paiement sous 72h','Demande de paiement (lien 3D secure)','Serrure (code/clé)','Pré check-in (fiche police)','Plan d\'accès / infos pratiques','Accueil virtuel','Bienvenue','Activités','Recommandation Restaurants','F&B - réservation via Zenchef','Prise de nouvelles','Facturation','Avis Clients','Fidélisation (Contact Hôtel)','Formulaire Groupe (si + de 2 chb)','Upsell (surclassement, late check-out)','Cross-sell (resto, spa, activités)','Bon de réduction / fidélité','Météo + suggestions locales','Relance avis Google / Tripadvisor','Newsletter','Réclamation / SAV'] },
+    items:['Hébergement','Payé / ou à payer sur place','Envoi lien de paiement/garantie','Demande de paiement sous 72h','Demande de paiement (lien 3D secure)','Demande d\'arrhes (30%)','Solde à J-15 (40%)','Confirmation annulation','Suggestion date alternative','Facturation NANR','Facturation no-show','Serrure (code/clé)','Pré check-in (fiche police)','Plan d\'accès / infos pratiques','Accueil virtuel','Bienvenue','Activités','Recommandation Restaurants','F&B - réservation via Zenchef','Prise de nouvelles','Facturation','Avis Clients','Fidélisation (Contact Hôtel)','Formulaire Groupe (si + de 2 chb)','Upsell roomtype (surclassement)','Upsell (surclassement, late check-out)','Cross-sell (resto, spa, activités)','Bon de réduction / fidélité','Météo + suggestions locales','Relance avis Google / Tripadvisor','Newsletter','Réclamation / SAV'] },
   { id:'canal', group:'action', name:'Canal', color:'var(--c-canal)',
     items:['E-mail','SMS','WhatsApp','Push app','Appel téléphonique','Courrier physique','QR code in-room','Affichage borne'] },
   { id:'actionauto', group:'action', name:'Action automatisée', color:'var(--c-action)',
-    items:['Créer facture','Envoyer code serrure','Générer pré check-in','Push satisfaction (4h post-départ)','Modération avis (< 4★ non publié)','TDS + ThaisPay','Push satisfaction','Tag CRM','Notification staff','Créer tâche Key Suite','Déclencher upsell','Bloquer chambre','Synchro Zenchef','ThaisPay'] },
+    items:['Créer facture','Envoyer code serrure','Générer pré check-in','Push satisfaction (4h post-départ)','Modération avis (< 4★ non publié)','TDS + ThaisPay','Bloquer chambre libérée','Facturer nuit no-show','Push satisfaction','Tag CRM','Notification staff','Créer tâche Key Suite','Déclencher upsell','Bloquer chambre','Synchro Zenchef','ThaisPay'] },
   { id:'destinataire', group:'action', name:'Destinataire', color:'var(--c-destinataire)',
     items:['Client principal','Tous les occupants','Société (si corpo)','Agence','Staff réception','Staff F&B'] },
   { id:'priorite', group:'action', name:'Priorité / Ton', color:'var(--c-priorite)',
     items:['Standard','Urgent','Commercial','Service','Excuse / Recovery'] },
 ];
 
-const TIME_PRESETS = ['À la réservation','J-15','J-7','J-7 08:00','J-2','J-2 18:00','H-24h','H-4 (11h)','J - arrivée','H+1h','H-12 (avant départ)','H-12 20:00','J-départ','J+0 12:00','J+1','J+1 10:00','J+1 (si + de 2nuits)','J+2','J+30','J+90'];
+const TIME_PRESETS = ['À la réservation','J-45','J-15','J-7','J-7 08:00','J-2','J-2 18:00','H-24h','H-4 (11h)','J - arrivée','H+1h','H+2h','H-12 (avant départ)','H-12 20:00','J-départ','J+0 12:00','J+1','J+1 10:00','J+1 (si + de 2nuits)','J+2','J+30','J+90'];
 
 const uid = () => Math.random().toString(36).slice(2,9);
 
@@ -1761,7 +2197,70 @@ function loadState(){
     canvases: [ emptyCanvas('Workflow 1') ],
   };
 }
+/* Historique undo/redo en mémoire (pas persisté, se réinitialise au rechargement).
+   Chaque entrée = snapshot deep-clone du state avant l'action.
+   Limité à 30 entrées pour éviter l'inflation mémoire. */
+const _undoStack = [];  // états passés
+const _redoStack = [];  // états futurs (peuplés uniquement par undo)
+const _UNDO_MAX = 30;
+let _undoSuspended = false;  // désactive le snapshot durant undo/redo eux-mêmes
+
+function snapshotStateForUndo(){
+  if(_undoSuspended) return;
+  try{
+    _undoStack.push({
+      snap: JSON.stringify(state),
+      currentId: currentCanvasId,
+    });
+    if(_undoStack.length > _UNDO_MAX) _undoStack.shift();
+    // Toute nouvelle action invalide le redo
+    _redoStack.length = 0;
+  }catch(e){}
+}
+
+function undoLast(){
+  if(_undoStack.length === 0){ toast('Rien à annuler'); return; }
+  const prev = _undoStack.pop();
+  _redoStack.push({ snap: JSON.stringify(state), currentId: currentCanvasId });
+  _undoSuspended = true;
+  try{
+    const restored = JSON.parse(prev.snap);
+    state.canvases = restored.canvases;
+    state.categories = restored.categories;
+    categories = state.categories;
+    currentCanvasId = prev.currentId;
+    // Migration défensive au cas où
+    state.canvases = state.canvases.map(migrateCanvas);
+    localStorage.setItem(STORAGE.state, JSON.stringify(state));
+    renderAll();
+  } finally { _undoSuspended = false; }
+  toast('↶ Annulé');
+}
+
+function redoLast(){
+  if(_redoStack.length === 0){ toast('Rien à rétablir'); return; }
+  const next = _redoStack.pop();
+  _undoStack.push({ snap: JSON.stringify(state), currentId: currentCanvasId });
+  _undoSuspended = true;
+  try{
+    const restored = JSON.parse(next.snap);
+    state.canvases = restored.canvases;
+    state.categories = restored.categories;
+    categories = state.categories;
+    currentCanvasId = next.currentId;
+    state.canvases = state.canvases.map(migrateCanvas);
+    localStorage.setItem(STORAGE.state, JSON.stringify(state));
+    renderAll();
+  } finally { _undoSuspended = false; }
+  toast('↷ Rétabli');
+}
+
 function saveState(){
+  // Push l'état actuel dans l'historique undo AVANT la modification
+  // (au premier appel, on est déjà dans l'état "après" ; ce léger décalage
+  // signifie qu'un Ctrl+Z restaure l'avant-dernier état, ce qui est le comportement attendu
+  // dans la majorité des éditeurs).
+  snapshotStateForUndo();
   state.categories = categories;
   try{ localStorage.setItem(STORAGE.state, JSON.stringify(state)); }catch(e){}
   // Met à jour le badge de validation si le bouton existe (init terminée)
@@ -2157,8 +2656,11 @@ function renderCanvas(){
   c.timeColumns.forEach((tc, colIdx) => {
     const headCell = document.createElement('div');
     headCell.className = 'time-col-head-cell';
+    headCell.dataset.colId = tc.id;
+    headCell.draggable = true;
     headCell.innerHTML = `
       <div class="time-col-head">
+        <span class="col-drag-handle" title="Glisser pour réordonner">⋮⋮</span>
         <div class="time-col-title">${escapeHtml(tc.time)}</div>
         <div class="col-actions">
           <button class="dup-col" data-col-id="${tc.id}" title="Dupliquer la colonne">⧉</button>
@@ -2219,19 +2721,22 @@ function renderCanvas(){
     // Cellule label de la voie (à gauche, sticky)
     const labelCell = document.createElement('div');
     labelCell.className = 'lane-label-cell';
+    // Toutes les voies (y compris la voie par défaut) sont draggables :
+    // si la voie par défaut est déplacée à une autre position, elle reste
+    // marquée comme "par défaut" (le rôle suit la voie, pas la position).
+    labelCell.draggable = true;
     labelCell.innerHTML = `
       <div class="lane-label-content">
+        <span class="lane-drag-handle" title="Glisser pour réordonner">⋮⋮</span>
         <button class="lane-chevron" title="${lane.collapsed ? 'Déplier' : 'Replier'} cette voie">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <span class="lane-marker"></span>
+        <button class="lane-default-toggle${lane.isDefault ? ' is-default' : ''}" title="${lane.isDefault ? 'Voie par défaut' : 'Définir comme voie par défaut'}">${lane.isDefault ? '★' : '☆'}</button>
         <span class="lane-label-text" title="Cliquer pour renommer">${escapeHtml(lane.label || '')}</span>
-        ${!lane.isDefault ? `
-          <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
-          <button class="lane-del" title="Supprimer cette voie">×</button>
-        ` : `
-          <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
-        `}
+        <button class="lane-copy" title="Copier cette voie (pour la coller dans un autre canvas)">📋</button>
+        <button class="lane-dup" title="Dupliquer cette voie">⧉</button>
+        <button class="lane-del" title="Supprimer cette voie">×</button>
       </div>
     `;
     laneRow.appendChild(labelCell);
@@ -2364,6 +2869,9 @@ function renderCanvas(){
 
   bindLaneActions();
   bindLaneDropZones();
+  // Si une recherche est active, on la ré-applique après le nouveau render
+  const searchInput = document.getElementById('timelineSearch');
+  if(searchInput && searchInput.value) applyTimelineSearch(searchInput.value);
 }
 
 /* Wire des actions de l'éditeur de timeline (boutons dup, del, merge, lane label, etc.) */
@@ -2420,8 +2928,17 @@ function bindLaneActions(){
       if(!laneEl) return;
       const laneId = laneEl.dataset.laneId;
       const lane = c.lanes.find(l => l.id === laneId);
-      if(!lane || lane.isDefault) return;
-      if(!confirm(`Supprimer la voie « ${lane.label} » et tout son contenu ?`)) return;
+      if(!lane) return;
+      // Refuse la suppression de la dernière voie du canvas
+      if(c.lanes.length <= 1){
+        toast('Impossible de supprimer la dernière voie');
+        return;
+      }
+      const msg = lane.isDefault
+        ? `Supprimer la voie par défaut « ${lane.label} » et tout son contenu ?\n\nLa voie suivante deviendra automatiquement la nouvelle voie par défaut.`
+        : `Supprimer la voie « ${lane.label} » et tout son contenu ?`;
+      if(!confirm(msg)) return;
+      const wasDefault = lane.isDefault;
       c.lanes = c.lanes.filter(l => l.id !== laneId);
       // Nettoie les mergedTo qui pointaient vers cette voie
       c.lanes.forEach(l => {
@@ -2429,6 +2946,13 @@ function bindLaneActions(){
           if(cell.mergedTo === laneId) cell.mergedTo = null;
         });
       });
+      // Si on a supprimé la voie par défaut, promeut la première voie restante
+      if(wasDefault && !c.lanes.some(l => l.isDefault)){
+        c.lanes[0].isDefault = true;
+        toast(`Voie supprimée · « ${c.lanes[0].label} » est maintenant la voie par défaut`);
+      } else {
+        toast('Voie supprimée');
+      }
       saveState(); renderCanvas();
     });
   });
@@ -2466,6 +2990,35 @@ function bindLaneActions(){
       if(!laneEl) return;
       const laneId = laneEl.dataset.laneId;
       duplicateLane(laneId);
+    });
+  });
+
+  // Copie d'une voie dans le presse-papier interne (pour coller dans un autre canvas)
+  document.querySelectorAll('.lane-copy').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const laneEl = btn.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const laneId = laneEl.dataset.laneId;
+      copyLaneToClipboard(laneId);
+    });
+  });
+
+  // Toggle voie par défaut : clic sur l'étoile promeut la voie en "par défaut".
+  // Il y a toujours une seule voie par défaut ; cliquer sur l'étoile déjà pleine
+  // ne fait rien (on ne peut pas "désactiver" le statut sans en désigner un autre).
+  document.querySelectorAll('.lane-default-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const laneEl = btn.closest('[data-lane-id]');
+      if(!laneEl) return;
+      const laneId = laneEl.dataset.laneId;
+      const lane = c.lanes.find(l => l.id === laneId);
+      if(!lane || lane.isDefault) return; // déjà par défaut, rien à faire
+      // Retire le statut à toutes les autres et l'attribue à la voie choisie
+      c.lanes.forEach(l => { l.isDefault = (l.id === laneId); });
+      saveState(); renderCanvas();
+      toast(`★ « ${lane.label} » est maintenant la voie par défaut`);
     });
   });
 
@@ -2518,6 +3071,120 @@ function bindLaneActions(){
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       openNoteEdit(el.dataset.laneId, el.dataset.colId);
+    });
+  });
+
+  bindColumnReorderDrag();
+  bindLaneReorderDrag();
+}
+
+/* Drag & drop pour réordonner les colonnes temps.
+   La cellule d'en-tête (.time-col-head-cell) est draggable. On calcule la
+   position d'insertion selon la position horizontale de la souris relative
+   à la cellule survolée. */
+function bindColumnReorderDrag(){
+  const c = getCanvas();
+  if(!c) return;
+  const heads = document.querySelectorAll('.time-col-head-cell[data-col-id]');
+  heads.forEach(head => {
+    head.addEventListener('dragstart', e => {
+      // Différencie ce drag des drops d'items : marqueur explicite
+      e.dataTransfer.setData('application/x-reorder-col', head.dataset.colId);
+      e.dataTransfer.effectAllowed = 'move';
+      head.classList.add('is-being-dragged');
+    });
+    head.addEventListener('dragend', () => {
+      head.classList.remove('is-being-dragged');
+      document.querySelectorAll('.col-drop-indicator').forEach(el => el.remove());
+    });
+    head.addEventListener('dragover', e => {
+      if(!e.dataTransfer.types.includes('application/x-reorder-col')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      // Retire les indicateurs existants et pose un nouveau selon la position souris
+      document.querySelectorAll('.col-drop-indicator').forEach(el => el.remove());
+      const rect = head.getBoundingClientRect();
+      const before = e.clientX < rect.left + rect.width / 2;
+      const indicator = document.createElement('div');
+      indicator.className = 'col-drop-indicator';
+      head.parentNode.insertBefore(indicator, before ? head : head.nextSibling);
+    });
+    head.addEventListener('drop', e => {
+      const srcId = e.dataTransfer.getData('application/x-reorder-col');
+      if(!srcId) return;
+      e.preventDefault();
+      document.querySelectorAll('.col-drop-indicator').forEach(el => el.remove());
+      const dstId = head.dataset.colId;
+      if(srcId === dstId) return;
+      const cur = getCanvas();
+      const srcIdx = cur.timeColumns.findIndex(x => x.id === srcId);
+      const dstIdx = cur.timeColumns.findIndex(x => x.id === dstId);
+      if(srcIdx < 0 || dstIdx < 0) return;
+      const rect = head.getBoundingClientRect();
+      const before = e.clientX < rect.left + rect.width / 2;
+      const [moved] = cur.timeColumns.splice(srcIdx, 1);
+      // Recalcule l'index après suppression
+      let insertAt = cur.timeColumns.findIndex(x => x.id === dstId);
+      if(!before) insertAt += 1;
+      cur.timeColumns.splice(insertAt, 0, moved);
+      saveState(); renderCanvas();
+      toast('Colonne déplacée');
+    });
+  });
+}
+
+/* Drag & drop pour réordonner les voies. Toutes les voies (y compris la voie
+   par défaut) peuvent être déplacées : le rôle "par défaut" suit la voie et
+   ne dépend pas de sa position dans la liste. */
+function bindLaneReorderDrag(){
+  const c = getCanvas();
+  if(!c) return;
+  const rows = document.querySelectorAll('.lanes-row[data-lane-id]');
+  rows.forEach(row => {
+    const laneId = row.dataset.laneId;
+    const lane = c.lanes.find(l => l.id === laneId);
+    if(!lane) return;
+    const label = row.querySelector('.lane-label-cell');
+    if(!label) return;
+
+    label.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('application/x-reorder-lane', laneId);
+      e.dataTransfer.effectAllowed = 'move';
+      row.classList.add('is-being-dragged');
+    });
+    label.addEventListener('dragend', () => {
+      row.classList.remove('is-being-dragged');
+      document.querySelectorAll('.lane-drop-indicator').forEach(el => el.remove());
+    });
+    row.addEventListener('dragover', e => {
+      if(!e.dataTransfer.types.includes('application/x-reorder-lane')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.lane-drop-indicator').forEach(el => el.remove());
+      const rect = row.getBoundingClientRect();
+      const before = e.clientY < rect.top + rect.height / 2;
+      const indicator = document.createElement('div');
+      indicator.className = 'lane-drop-indicator';
+      row.parentNode.insertBefore(indicator, before ? row : row.nextSibling);
+    });
+    row.addEventListener('drop', e => {
+      const srcId = e.dataTransfer.getData('application/x-reorder-lane');
+      if(!srcId) return;
+      e.preventDefault();
+      document.querySelectorAll('.lane-drop-indicator').forEach(el => el.remove());
+      if(srcId === laneId) return;
+      const cur = getCanvas();
+      const srcIdx = cur.lanes.findIndex(x => x.id === srcId);
+      const dstIdx = cur.lanes.findIndex(x => x.id === laneId);
+      if(srcIdx < 0 || dstIdx < 0) return;
+      const rect = row.getBoundingClientRect();
+      const before = e.clientY < rect.top + rect.height / 2;
+      const [moved] = cur.lanes.splice(srcIdx, 1);
+      let insertAt = cur.lanes.findIndex(x => x.id === laneId);
+      if(!before) insertAt += 1;
+      cur.lanes.splice(insertAt, 0, moved);
+      saveState(); renderCanvas();
+      toast('Voie déplacée');
     });
   });
 }
@@ -2612,6 +3279,89 @@ function duplicateLane(laneId){
   saveState(); renderCanvas();
   toast('Voie dupliquée');
 }
+
+/* Presse-papier interne pour copier une voie entre canvas.
+   On stocke la voie sérialisée + le mapping des colonnes temps du canvas source
+   (pour pouvoir remapper les cellules vers les colonnes du canvas de destination
+   par leur label "time"). */
+let _laneClipboard = null; // { lane: {…}, timeMap: { [colId]: 'label temps', ... }, srcCanvasName: '...' }
+
+function copyLaneToClipboard(laneId){
+  const c = getCanvas();
+  const lane = c.lanes.find(l => l.id === laneId);
+  if(!lane) return;
+  const timeMap = {};
+  c.timeColumns.forEach(tc => { timeMap[tc.id] = tc.time; });
+  _laneClipboard = {
+    lane: JSON.parse(JSON.stringify(lane)),
+    timeMap,
+    srcCanvasName: c.name || 'canvas',
+  };
+  toast(`📋 Voie « ${lane.label} » copiée`);
+  refreshPasteLaneBtn();
+}
+
+function refreshPasteLaneBtn(){
+  const btn = document.getElementById('btnPasteLane');
+  if(!btn) return;
+  if(_laneClipboard){
+    btn.style.display = 'inline-flex';
+    btn.title = `Coller la voie « ${_laneClipboard.lane.label} » (copiée depuis « ${_laneClipboard.srcCanvasName} »)`;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function pasteLaneFromClipboard(){
+  if(!_laneClipboard){ toast('Rien à coller'); return; }
+  const c = getCanvas();
+  if(!c){ return; }
+  const src = _laneClipboard.lane;
+
+  // Construit la voie de destination : nouvelle voie non-défaut, avec IDs régénérés
+  const newLane = {
+    id: uid(),
+    label: src.label + ' (collé)',
+    isDefault: false,
+    collapsed: false,
+    cells: {},
+  };
+  // Initialise une cellule vide pour chaque colonne du canvas de destination
+  c.timeColumns.forEach(tc => { newLane.cells[tc.id] = emptyCell(); });
+
+  // Remappe les cellules par label temps (chaque colonne source dont le label
+  // correspond à une colonne dest reçoit son contenu).
+  Object.keys(src.cells).forEach(srcColId => {
+    const srcLabel = _laneClipboard.timeMap[srcColId];
+    if(!srcLabel) return;
+    // Trouve la colonne dest avec le même label
+    const dstCol = c.timeColumns.find(tc => tc.time === srcLabel);
+    if(!dstCol) return;
+    const srcCell = src.cells[srcColId];
+    if(!srcCell) return;
+    newLane.cells[dstCol.id] = {
+      items: (srcCell.items || []).map(it => ({ ...it, id: uid() })),
+      mergedTo: null, // les merges pointaient vers des IDs du canvas source, invalides ici
+      note: srcCell.note || '',
+    };
+  });
+
+  c.lanes.push(newLane);
+  saveState(); renderCanvas();
+
+  // Compte des cellules effectivement collées (utile pour signaler à l'utilisateur)
+  const pastedCells = Object.values(newLane.cells).filter(cell =>
+    (cell.items && cell.items.length > 0) || cell.note
+  ).length;
+  const skippedCols = Object.keys(src.cells).length - pastedCells;
+  toast(
+    skippedCols > 0
+      ? `Voie collée (${pastedCells} cellules, ${skippedCols} ignorées car colonnes temps différentes)`
+      : `Voie collée (${pastedCells} cellules)`
+  );
+}
+
+document.getElementById('btnPasteLane').addEventListener('click', pasteLaneFromClipboard);
 
 /* Duplique une colonne temps (toutes voies confondues) */
 function duplicateColumn(colId){
@@ -3078,6 +3828,100 @@ canvasNameInput.addEventListener('input', ()=>{
   const active = canvasList.querySelector('.canvas-item.active .ci-name');
   if(active) active.textContent = c.name || 'Sans titre';
 });
+
+/* === Recherche globale dans le canvas =====================================
+   Highlight les cellules dont un item (ou une note) contient la requête.
+   Activée via Ctrl+F, désactivée via Esc ou clic sur ×. */
+const timelineSearchInput = document.getElementById('timelineSearch');
+const timelineSearchWrap  = document.getElementById('timelineSearchWrap');
+const timelineSearchCount = document.getElementById('timelineSearchCount');
+const timelineSearchClose = document.getElementById('timelineSearchClose');
+
+function applyTimelineSearch(query){
+  const q = (query || '').trim().toLowerCase();
+  const cells = document.querySelectorAll('.lane-cell');
+  // Reset
+  cells.forEach(c => c.classList.remove('search-hit', 'search-dim'));
+  document.querySelectorAll('.item.search-hit-item').forEach(i => i.classList.remove('search-hit-item'));
+
+  if(!q){
+    timelineSearchWrap.classList.remove('has-query');
+    timelineSearchCount.textContent = '';
+    return;
+  }
+  timelineSearchWrap.classList.add('has-query');
+
+  const canvas = getCanvas();
+  if(!canvas) return;
+
+  let hitCount = 0;
+  // Parcourt le modèle pour trouver les cellules qui matchent
+  canvas.lanes.forEach(lane => {
+    canvas.timeColumns.forEach(tc => {
+      const cell = lane.cells[tc.id];
+      if(!cell) return;
+      const items = cell.items || [];
+      const note = (cell.note || '').toLowerCase();
+      const matchInNote = note.includes(q);
+      const matchingItems = items.filter(it =>
+        (it.value || '').toLowerCase().includes(q) ||
+        (it.catName || '').toLowerCase().includes(q)
+      );
+      if(matchInNote || matchingItems.length > 0){
+        hitCount++;
+        const cellEl = document.querySelector(`.lane-cell[data-col-id="${tc.id}"][data-lane-id="${lane.id}"]`);
+        if(cellEl){
+          cellEl.classList.add('search-hit');
+          // Highlight aussi les items spécifiques
+          matchingItems.forEach(mi => {
+            const itemEl = cellEl.querySelector(`.item[data-item-id="${mi.id}"]`);
+            if(itemEl) itemEl.classList.add('search-hit-item');
+          });
+        }
+      }
+    });
+  });
+
+  // Grise les cellules non-matchantes pour mieux voir les résultats
+  cells.forEach(c => { if(!c.classList.contains('search-hit')) c.classList.add('search-dim'); });
+
+  timelineSearchCount.textContent = hitCount === 0
+    ? 'aucun'
+    : `${hitCount} résultat${hitCount > 1 ? 's' : ''}`;
+}
+
+if(timelineSearchInput){
+  timelineSearchInput.addEventListener('input', () => applyTimelineSearch(timelineSearchInput.value));
+  timelineSearchInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      timelineSearchInput.value = '';
+      applyTimelineSearch('');
+      timelineSearchInput.blur();
+    }
+  });
+}
+if(timelineSearchClose){
+  timelineSearchClose.addEventListener('click', () => {
+    if(timelineSearchInput){
+      timelineSearchInput.value = '';
+      applyTimelineSearch('');
+      timelineSearchInput.focus();
+    }
+  });
+}
+
+// Raccourci Ctrl+F pour focus la recherche timeline (uniquement quand le canvas est visible)
+document.addEventListener('keydown', (e) => {
+  if(!(e.ctrlKey || e.metaKey)) return;
+  if(e.key !== 'f') return;
+  if(document.body.classList.contains('is-presenting')) return;
+  e.preventDefault();
+  if(timelineSearchInput){
+    timelineSearchInput.focus();
+    timelineSearchInput.select();
+  }
+});
+
 
 document.getElementById('btnExportJson').addEventListener('click', ()=>{
   const c = getCanvas(); if(!c) return;
@@ -3580,8 +4424,51 @@ const TEMPLATES = [
 const templatesModalBg = document.getElementById('templatesModalBg');
 const templateGrid = document.getElementById('templateGrid');
 
+/* ---- Custom templates (créés par l'utilisateur depuis un canvas existant) ---- */
+function loadCustomTemplates(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE.customTemplates) || '[]'); }
+  catch{ return []; }
+}
+function saveCustomTemplates(list){
+  try{ localStorage.setItem(STORAGE.customTemplates, JSON.stringify(list)); }catch{}
+}
+
+/* Prompt utilisateur pour enregistrer le canvas courant comme template.
+   Utilise la modale standard openModal pour saisir le nom et une description. */
+function saveCurrentAsTemplate(){
+  const c = getCanvas();
+  if(!c){ toast('Aucun canvas actif'); return; }
+  openModal({
+    title: 'Enregistrer comme template',
+    value: c.name || '',
+    placeholder: 'Nom du template',
+    onOk: (name) => {
+      const trimmed = (name || '').trim();
+      if(!trimmed){ toast('Nom vide'); return; }
+      const list = loadCustomTemplates();
+      // Deep-clone du canvas courant, on retire l'id pour qu'il soit régénéré à l'usage
+      const snapshot = JSON.parse(JSON.stringify(c));
+      delete snapshot.id;
+      list.push({
+        id: uid(),
+        name: trimmed,
+        desc: `Copié depuis « ${c.name || 'canvas'} »`,
+        icon: '⭐',
+        color: 'var(--c-lieu)',
+        meta: `${(c.lanes || []).length} voies · ${(c.timeColumns || []).length} colonnes`,
+        canvas: snapshot,          // structure v2 complète
+        createdAt: new Date().toISOString(),
+      });
+      saveCustomTemplates(list);
+      toast('⭐ Template enregistré');
+    }
+  });
+}
+
 function openTemplatesModal(){
   templateGrid.innerHTML = '';
+
+  // 1) Templates intégrés
   TEMPLATES.forEach(tpl => {
     const card = document.createElement('div');
     card.className = 'template-card';
@@ -3610,6 +4497,62 @@ function openTemplatesModal(){
     });
     templateGrid.appendChild(card);
   });
+
+  // 2) Templates custom (utilisateur)
+  const customs = loadCustomTemplates();
+  if(customs.length > 0){
+    const sep = document.createElement('div');
+    sep.className = 'template-section-title';
+    sep.textContent = 'Mes templates';
+    templateGrid.appendChild(sep);
+    customs.forEach(tpl => {
+      const card = document.createElement('div');
+      card.className = 'template-card is-custom';
+      card.style.setProperty('--tpl-color', tpl.color || 'var(--c-lieu)');
+      card.innerHTML = `
+        <div class="tpl-icon">${escapeHtml(tpl.icon || '⭐')}</div>
+        <div class="tpl-name">${escapeHtml(tpl.name)}</div>
+        <div class="tpl-desc">${escapeHtml(tpl.desc || '')}</div>
+        <div class="tpl-meta">${escapeHtml(tpl.meta || '')}</div>
+        <button class="tpl-del" data-tpl-id="${tpl.id}" title="Supprimer ce template">×</button>
+      `;
+      card.addEventListener('click', (e)=>{
+        // Ignore le clic sur le bouton delete
+        if(e.target.classList.contains('tpl-del')) return;
+        const snap = JSON.parse(JSON.stringify(tpl.canvas));
+        snap.id = uid();
+        // Regénère les IDs pour éviter les collisions
+        const migrated = migrateCanvas(snap);
+        state.canvases.push(migrated);
+        currentCanvasId = migrated.id;
+        saveState(); renderAll();
+        templatesModalBg.classList.remove('show');
+        toast(`Template « ${tpl.name} » chargé`);
+      });
+      card.querySelector('.tpl-del').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!confirm(`Supprimer le template « ${tpl.name} » ?`)) return;
+        saveCustomTemplates(loadCustomTemplates().filter(x => x.id !== tpl.id));
+        openTemplatesModal(); // refresh
+      });
+      templateGrid.appendChild(card);
+    });
+  }
+
+  // 3) Bouton "Enregistrer le canvas courant comme template"
+  const saveBtn = document.createElement('div');
+  saveBtn.className = 'template-card template-save-cta';
+  saveBtn.innerHTML = `
+    <div class="tpl-icon">＋</div>
+    <div class="tpl-name">Enregistrer le canvas courant</div>
+    <div class="tpl-desc">Créer un nouveau template basé sur ce que vous avez construit.</div>
+  `;
+  saveBtn.addEventListener('click', () => {
+    templatesModalBg.classList.remove('show');
+    saveCurrentAsTemplate();
+  });
+  templateGrid.appendChild(saveBtn);
+
   templatesModalBg.classList.add('show');
 }
 
@@ -3941,6 +4884,408 @@ function openSnapshotsModal(){
 document.getElementById('btnSnapshots').addEventListener('click', openSnapshotsModal);
 
 /* =========================================================
+   VUE SCHÉMA (diagramme de flux Mermaid)
+   =========================================================
+   Génère un rendu graphique du canvas courant en utilisant Mermaid.
+   Chaque voie = subgraph vertical, chaque cellule non-vide = nœud,
+   chaînés par des flèches temps. Les cellules mergées deviennent
+   des flèches horizontales vers la voie cible. */
+
+let _mermaidInitialized = false;
+function ensureMermaidInit(){
+  if(_mermaidInitialized || typeof mermaid === 'undefined') return;
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#f5f7fb',
+      primaryTextColor: '#1a1d27',
+      primaryBorderColor: '#4a6ba8',
+      lineColor: '#6a7080',
+      fontSize: '13px',
+      fontFamily: 'Inter, sans-serif',
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 40,
+      rankSpacing: 50,
+      padding: 12,
+    },
+    securityLevel: 'loose',
+  });
+  _mermaidInitialized = true;
+}
+
+/* Construit un ID unique et safe pour Mermaid depuis un id de lane/col.
+   Mermaid n'accepte pas tous les caractères dans les IDs. */
+function mermaidId(prefix, id){
+  return `${prefix}_${String(id).replace(/[^a-zA-Z0-9]/g, '')}`;
+}
+
+/* Échappe le texte pour Mermaid (les guillemets, les crochets, etc.
+   posent problème dans les labels de nœuds). */
+function mermaidEscape(s){
+  return String(s || '')
+    .replace(/"/g, '#quot;')
+    .replace(/[\[\]]/g, '')
+    .replace(/[|]/g, '/')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, ' ');
+}
+
+/* Produit un résumé compact des items d'une cellule pour l'affichage.
+   Priorise Contenu, Canal, Action auto — le déclencheur est déjà dans le label. */
+function summarizeCell(cell){
+  if(!cell || !cell.items) return '';
+  const grouped = { contenu: [], canal: [], actionauto: [], condition: [] };
+  cell.items.forEach(it => {
+    if(grouped[it.catId] !== undefined) grouped[it.catId].push(it.value);
+  });
+  const parts = [];
+  if(grouped.condition.length) parts.push('🔀 ' + grouped.condition.join(' / '));
+  if(grouped.contenu.length) parts.push('📄 ' + grouped.contenu.slice(0, 2).join(' + ')
+    + (grouped.contenu.length > 2 ? ` (+${grouped.contenu.length - 2})` : ''));
+  if(grouped.canal.length) parts.push('📮 ' + grouped.canal.join('/'));
+  if(grouped.actionauto.length) parts.push('⚙ ' + grouped.actionauto.slice(0, 2).join(' + ')
+    + (grouped.actionauto.length > 2 ? ` (+${grouped.actionauto.length - 2})` : ''));
+  return parts.join('<br/>');
+}
+
+/* Construit la source Mermaid depuis le canvas courant. */
+function buildMermaidDiagram(canvas){
+  if(!canvas) return 'flowchart TB\n  empty[Aucun canvas]';
+
+  const lines = ['flowchart TB'];
+  // Classes CSS pour distinguer voie par défaut vs alternatives
+  lines.push('classDef defaultLane fill:#e8effc,stroke:#2f6fe0,stroke-width:2px,color:#1a1d27');
+  lines.push('classDef altLane fill:#f7f2e6,stroke:#c99a3a,stroke-width:1.5px,color:#1a1d27');
+  lines.push('classDef merged fill:#eeeaf5,stroke:#7b5ea7,stroke-dasharray:4 3,color:#1a1d27');
+  lines.push('classDef startNode fill:#1a1d27,stroke:#1a1d27,color:#fff,stroke-width:2px');
+
+  // Nœud de démarrage
+  const startId = 'start';
+  lines.push(`${startId}(("${mermaidEscape(canvas.name || 'Workflow')}"))`);
+  lines.push(`class ${startId} startNode`);
+
+  // Pour chaque voie, on crée une subgraph avec ses cellules non-vides chaînées
+  const cellNodeIds = {}; // {laneId_colId: nodeId}
+
+  canvas.lanes.forEach(lane => {
+    const laneNodeId = mermaidId('lane', lane.id);
+    lines.push(`subgraph ${laneNodeId} ["${mermaidEscape(lane.label)}"]`);
+    lines.push(`  direction TB`);
+
+    let prevNodeId = null;
+    let hasContent = false;
+
+    canvas.timeColumns.forEach(tc => {
+      const cell = lane.cells[tc.id];
+      if(!cell) return;
+      const items = cell.items || [];
+      const note = cell.note || '';
+      const merged = cell.mergedTo;
+
+      // Cellule mergée : nœud spécial avec info de convergence
+      if(merged){
+        const targetLane = canvas.lanes.find(l => l.id === merged);
+        const nodeId = mermaidId('cell', lane.id + '_' + tc.id);
+        cellNodeIds[`${lane.id}_${tc.id}`] = nodeId;
+        const label = `<b>${mermaidEscape(tc.time)}</b><br/>↗ rejoint « ${mermaidEscape(targetLane?.label || '?')} »`;
+        lines.push(`  ${nodeId}["${label}"]:::merged`);
+        if(prevNodeId) lines.push(`  ${prevNodeId} --> ${nodeId}`);
+        prevNodeId = nodeId;
+        hasContent = true;
+        return;
+      }
+
+      // Cellule normale non vide
+      if(items.length === 0 && !note) return;
+
+      const nodeId = mermaidId('cell', lane.id + '_' + tc.id);
+      cellNodeIds[`${lane.id}_${tc.id}`] = nodeId;
+      const summary = summarizeCell(cell);
+      let label = `<b>${mermaidEscape(tc.time)}</b>`;
+      if(summary) label += `<br/>${summary}`;
+      if(note) label += `<br/><i>📝 ${mermaidEscape(note.slice(0, 60))}${note.length > 60 ? '…' : ''}</i>`;
+
+      const nodeClass = lane.isDefault ? 'defaultLane' : 'altLane';
+      lines.push(`  ${nodeId}["${label}"]:::${nodeClass}`);
+
+      if(prevNodeId) lines.push(`  ${prevNodeId} --> ${nodeId}`);
+      prevNodeId = nodeId;
+      hasContent = true;
+    });
+
+    // Si la voie est vide, on ajoute un placeholder discret
+    if(!hasContent){
+      const emptyId = mermaidId('empty', lane.id);
+      lines.push(`  ${emptyId}[["<i>voie vide</i>"]]`);
+    }
+    lines.push('end');
+  });
+
+  // Le nœud Start pointe vers la première cellule de la voie par défaut
+  const defaultLane = canvas.lanes.find(l => l.isDefault);
+  if(defaultLane){
+    const firstColWithContent = canvas.timeColumns.find(tc => {
+      const cell = defaultLane.cells[tc.id];
+      return cell && ((cell.items || []).length > 0 || cell.mergedTo || cell.note);
+    });
+    if(firstColWithContent){
+      const firstNodeId = cellNodeIds[`${defaultLane.id}_${firstColWithContent.id}`];
+      if(firstNodeId) lines.push(`${startId} --> ${firstNodeId}`);
+    }
+  }
+
+  // Flèches horizontales pour matérialiser les convergences (merges)
+  canvas.lanes.forEach(lane => {
+    canvas.timeColumns.forEach(tc => {
+      const cell = lane.cells[tc.id];
+      if(!cell || !cell.mergedTo) return;
+      const srcId = cellNodeIds[`${lane.id}_${tc.id}`];
+      // Trouve la cellule cible : première cellule non-mergée de la voie cible
+      // à partir de la même colonne temps
+      const targetLane = canvas.lanes.find(l => l.id === cell.mergedTo);
+      if(!targetLane) return;
+      const startIdx = canvas.timeColumns.findIndex(x => x.id === tc.id);
+      let tgtCol = null;
+      for(let i = startIdx; i < canvas.timeColumns.length; i++){
+        const tCell = targetLane.cells[canvas.timeColumns[i].id];
+        if(tCell && !tCell.mergedTo && ((tCell.items || []).length > 0 || tCell.note)){
+          tgtCol = canvas.timeColumns[i]; break;
+        }
+      }
+      if(tgtCol && srcId){
+        const dstId = cellNodeIds[`${targetLane.id}_${tgtCol.id}`];
+        if(dstId) lines.push(`${srcId} -.->|converge| ${dstId}`);
+      }
+    });
+  });
+
+  return lines.join('\n');
+}
+
+/* Ouvre la modale schéma et rend le diagramme. */
+function openDiagramView(){
+  const canvas = getCanvas();
+  if(!canvas){ toast('Aucun canvas actif'); return; }
+  ensureMermaidInit();
+
+  const diagramSource = buildMermaidDiagram(canvas);
+
+  openCustomModal({
+    id: 'diagramModalBg',
+    content: `
+      <div class="modal modal-xl diagram-modal">
+        <div class="diagram-modal-head">
+          <h3>Vue schéma — ${escapeHtml(canvas.name || 'Workflow')}</h3>
+          <div class="diagram-toolbar">
+            <button class="btn" id="diagramZoomOut" title="Dézoomer">−</button>
+            <span id="diagramZoomLevel">100%</span>
+            <button class="btn" id="diagramZoomIn" title="Zoomer">+</button>
+            <button class="btn" id="diagramZoomReset" title="Réinitialiser">⤢</button>
+            <button class="btn primary" id="diagramExportPng" title="Exporter en PNG">📷 Export PNG</button>
+            <button class="btn" id="diagramExportSvg" title="Exporter en SVG">SVG</button>
+            <button class="btn modal-close">Fermer</button>
+          </div>
+        </div>
+        <div class="diagram-viewport" id="diagramViewport">
+          <div class="diagram-container" id="diagramContainer">
+            <div class="diagram-loading">Génération du schéma…</div>
+          </div>
+        </div>
+      </div>`,
+    onMount: async (overlay, close) => {
+      const container = overlay.querySelector('#diagramContainer');
+      try{
+        const svgId = 'mermaid_' + Date.now();
+        const { svg } = await mermaid.render(svgId, diagramSource);
+        container.innerHTML = svg;
+      } catch(err){
+        container.innerHTML = `<div class="diagram-error">Erreur de rendu : ${escapeHtml(String(err.message || err))}<br/><pre>${escapeHtml(diagramSource)}</pre></div>`;
+        console.error('Mermaid render error:', err);
+      }
+
+      // Zoom
+      let zoom = 100;
+      const level = overlay.querySelector('#diagramZoomLevel');
+      const applyZoom = () => {
+        const inner = overlay.querySelector('#diagramContainer svg');
+        if(inner){
+          inner.style.transformOrigin = 'top left';
+          inner.style.transform = `scale(${zoom / 100})`;
+        }
+        level.textContent = zoom + '%';
+      };
+      overlay.querySelector('#diagramZoomIn').addEventListener('click', () => { zoom = Math.min(300, zoom + 20); applyZoom(); });
+      overlay.querySelector('#diagramZoomOut').addEventListener('click', () => { zoom = Math.max(30, zoom - 20); applyZoom(); });
+      overlay.querySelector('#diagramZoomReset').addEventListener('click', () => { zoom = 100; applyZoom(); });
+
+      // Export PNG (via html2canvas sur le SVG rendu)
+      overlay.querySelector('#diagramExportPng').addEventListener('click', async () => {
+        const svg = container.querySelector('svg');
+        if(!svg){ toast('Rien à exporter'); return; }
+        try{
+          // Convertit le SVG en dataURL avec bonne résolution
+          const svgClone = svg.cloneNode(true);
+          const bbox = svg.getBBox();
+          svgClone.setAttribute('width', bbox.width + bbox.x * 2);
+          svgClone.setAttribute('height', bbox.height + bbox.y * 2);
+          const svgStr = new XMLSerializer().serializeToString(svgClone);
+          const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+
+          const img = new Image();
+          img.onload = () => {
+            const scale = 2; // haute résolution
+            const c = document.createElement('canvas');
+            c.width = img.width * scale;
+            c.height = img.height * scale;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            c.toBlob((b) => {
+              const pngUrl = URL.createObjectURL(b);
+              const a = document.createElement('a');
+              a.href = pngUrl;
+              a.download = (canvas.name || 'workflow').replace(/[^\w\-]+/g, '_') + '_diagram.png';
+              a.click();
+              URL.revokeObjectURL(pngUrl);
+              URL.revokeObjectURL(url);
+              toast('📷 Diagramme exporté en PNG');
+            }, 'image/png');
+          };
+          img.src = url;
+        } catch(err){
+          toast('Erreur export PNG');
+          console.error(err);
+        }
+      });
+
+      // Export SVG brut
+      overlay.querySelector('#diagramExportSvg').addEventListener('click', () => {
+        const svg = container.querySelector('svg');
+        if(!svg){ toast('Rien à exporter'); return; }
+        const svgStr = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (canvas.name || 'workflow').replace(/[^\w\-]+/g, '_') + '_diagram.svg';
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('SVG exporté');
+      });
+    }
+  });
+}
+
+document.getElementById('btnDiagram').addEventListener('click', openDiagramView);
+
+/* =========================================================
+   COMPARAISON CÔTE À CÔTE
+   =========================================================
+   Affiche 2 canvas en parallèle avec surlignage des différences
+   (voies présentes ici mais pas là-bas, cellules avec contenu différent).
+   Utile pour vérifier la cohérence entre 2 hôtels d'un même groupe. */
+
+function openCompareView(){
+  if(state.canvases.length < 2){ toast('Il faut au moins 2 canvas pour comparer'); return; }
+
+  // Par défaut : canvas courant à gauche, premier autre canvas à droite
+  const current = getCanvas();
+  const other = state.canvases.find(c => c.id !== current.id) || state.canvases[1];
+
+  const buildOptions = (selectedId) => state.canvases.map(c =>
+    `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${escapeHtml(c.name || 'Sans titre')}</option>`
+  ).join('');
+
+  openCustomModal({
+    id: 'compareModalBg',
+    content: `
+      <div class="modal modal-xl compare-modal">
+        <div class="compare-head">
+          <h3>Comparaison côte à côte</h3>
+          <button class="btn modal-close">Fermer</button>
+        </div>
+        <div class="compare-panes">
+          <div class="compare-pane">
+            <select class="compare-select" id="cmpSelectA">${buildOptions(current.id)}</select>
+            <div class="compare-canvas-summary" id="cmpPaneA"></div>
+          </div>
+          <div class="compare-pane">
+            <select class="compare-select" id="cmpSelectB">${buildOptions(other.id)}</select>
+            <div class="compare-canvas-summary" id="cmpPaneB"></div>
+          </div>
+        </div>
+        <div class="compare-legend">
+          <span class="legend-dot legend-diff"></span> Différent entre les 2 · 
+          <span class="legend-dot legend-only"></span> Uniquement d'un côté · 
+          <span class="legend-dot legend-same"></span> Identique
+        </div>
+      </div>`,
+    onMount: (overlay) => {
+      const selA = overlay.querySelector('#cmpSelectA');
+      const selB = overlay.querySelector('#cmpSelectB');
+      const render = () => {
+        const cA = state.canvases.find(c => c.id === selA.value);
+        const cB = state.canvases.find(c => c.id === selB.value);
+        overlay.querySelector('#cmpPaneA').innerHTML = renderCanvasSummary(cA, cB, 'A');
+        overlay.querySelector('#cmpPaneB').innerHTML = renderCanvasSummary(cB, cA, 'B');
+      };
+      selA.addEventListener('change', render);
+      selB.addEventListener('change', render);
+      render();
+    }
+  });
+}
+
+/* Rendu HTML compact d'un canvas pour la vue comparaison.
+   `other` est le canvas d'à côté (pour surligner les différences). */
+function renderCanvasSummary(c, other, side){
+  if(!c) return '<div class="compare-empty">Aucun canvas sélectionné.</div>';
+  const otherLaneLabels = other ? new Set(other.lanes.map(l => l.label)) : new Set();
+  const otherTimeLabels = other ? new Set(other.timeColumns.map(t => t.time)) : new Set();
+
+  let html = `<div class="compare-context">`;
+  html += `<div class="compare-section-title">Contexte</div>`;
+  const ctxByCat = {};
+  (c.context || []).forEach(it => {
+    (ctxByCat[it.catName] = ctxByCat[it.catName] || []).push(it.value);
+  });
+  Object.keys(ctxByCat).forEach(cat => {
+    html += `<div class="compare-ctx-line"><span class="compare-ctx-cat">${escapeHtml(cat)}</span> : ${escapeHtml(ctxByCat[cat].join(', '))}</div>`;
+  });
+  html += `</div>`;
+
+  // Voies avec surlignage des différences
+  html += `<div class="compare-section-title">Voies (${c.lanes.length})</div>`;
+  c.lanes.forEach(lane => {
+    const onlyHere = other && !otherLaneLabels.has(lane.label);
+    const cls = onlyHere ? 'compare-lane compare-only' : 'compare-lane compare-same';
+    // Compte cellules actives
+    const activeCells = Object.values(lane.cells || {}).filter(cell =>
+      (cell.items && cell.items.length > 0) || cell.mergedTo || cell.note
+    ).length;
+    html += `<div class="${cls}"><span class="lane-marker ${lane.isDefault ? 'is-default' : ''}"></span>${escapeHtml(lane.label)} <span class="compare-lane-count">${activeCells} cell.</span></div>`;
+  });
+
+  html += `<div class="compare-section-title">Colonnes temps (${c.timeColumns.length})</div>`;
+  c.timeColumns.forEach(tc => {
+    const onlyHere = other && !otherTimeLabels.has(tc.time);
+    const cls = onlyHere ? 'compare-col compare-only' : 'compare-col compare-same';
+    html += `<div class="${cls}">${escapeHtml(tc.time)}</div>`;
+  });
+
+  return html;
+}
+
+document.getElementById('btnCompare').addEventListener('click', openCompareView);
+
+/* =========================================================
    MODE PRÉSENTATION
    ========================================================= */
 
@@ -3949,6 +5294,34 @@ document.getElementById('btnSnapshots').addEventListener('click', openSnapshotsM
    On évite ainsi de polluer le canvas (et son JSON exporté) avec un champ
    technique `_wasCollapsed`. */
 const _presentBackup = { laneCollapsed: null /* Map<laneId, boolean> */ };
+
+/* Niveau de zoom en mode présentation (100 = 1.0). */
+let _presentZoom = 100;
+const _PRESENT_ZOOM_STEPS = [50, 60, 70, 80, 90, 100, 110, 125, 150, 175, 200, 250, 300];
+
+function applyPresentZoom(){
+  const inner = document.querySelector('.canvas-inner');
+  const lvl = document.getElementById('presentZoomLevel');
+  if(inner) inner.style.transform = `scale(${_presentZoom / 100})`;
+  if(lvl) lvl.textContent = `${_presentZoom}%`;
+}
+
+function setPresentZoom(pct){
+  _presentZoom = Math.max(30, Math.min(400, Math.round(pct)));
+  applyPresentZoom();
+}
+
+function stepPresentZoom(dir){
+  // dir = +1 (zoom in) ou -1 (zoom out) → passe au palier suivant
+  const idx = _PRESENT_ZOOM_STEPS.findIndex(s => s >= _presentZoom);
+  let next;
+  if(dir > 0){
+    next = _PRESENT_ZOOM_STEPS[Math.min(_PRESENT_ZOOM_STEPS.length - 1, (idx < 0 ? _PRESENT_ZOOM_STEPS.length - 1 : idx + 1))];
+  } else {
+    next = _PRESENT_ZOOM_STEPS[Math.max(0, (idx <= 0 ? 0 : idx - 1))];
+  }
+  setPresentZoom(next);
+}
 
 function enterPresentMode(){
   const c = getCanvas();
@@ -3964,6 +5337,8 @@ function enterPresentMode(){
     });
     renderCanvas();
   }
+  // Reset zoom à l'entrée
+  setPresentZoom(100);
   // Tente le fullscreen natif (l'utilisateur peut refuser, ça n'empêche pas le mode)
   if(document.documentElement.requestFullscreen){
     document.documentElement.requestFullscreen().catch(()=>{});
@@ -3972,6 +5347,9 @@ function enterPresentMode(){
 
 function exitPresentMode(){
   document.body.classList.remove('is-presenting');
+  // Nettoie le style transform (évite qu'il reste en mode normal)
+  const inner = document.querySelector('.canvas-inner');
+  if(inner) inner.style.transform = '';
   const c = getCanvas();
   if(c && _presentBackup.laneCollapsed){
     c.lanes.forEach(l => {
@@ -3988,6 +5366,39 @@ function exitPresentMode(){
 
 document.getElementById('btnPresent').addEventListener('click', enterPresentMode);
 document.getElementById('btnPresentExit').addEventListener('click', exitPresentMode);
+// Boutons zoom
+document.getElementById('presentZoomIn').addEventListener('click', () => stepPresentZoom(+1));
+document.getElementById('presentZoomOut').addEventListener('click', () => stepPresentZoom(-1));
+document.getElementById('presentZoomReset').addEventListener('click', () => setPresentZoom(100));
+
+// Ctrl + molette pour zoomer
+document.addEventListener('wheel', (e) => {
+  if(!document.body.classList.contains('is-presenting')) return;
+  if(!(e.ctrlKey || e.metaKey)) return;
+  e.preventDefault();
+  stepPresentZoom(e.deltaY < 0 ? +1 : -1);
+}, { passive: false });
+
+// Raccourcis clavier Ctrl+/-/0
+document.addEventListener('keydown', (e) => {
+  if(!document.body.classList.contains('is-presenting')) return;
+  if(!(e.ctrlKey || e.metaKey)) return;
+  if(e.key === '+' || e.key === '='){ e.preventDefault(); stepPresentZoom(+1); }
+  else if(e.key === '-'){ e.preventDefault(); stepPresentZoom(-1); }
+  else if(e.key === '0'){ e.preventDefault(); setPresentZoom(100); }
+});
+
+// Undo / Redo globaux
+document.addEventListener('keydown', (e) => {
+  if(!(e.ctrlKey || e.metaKey)) return;
+  // Ne pas intercepter quand l'utilisateur est en train de taper dans un input/textarea/contenteditable
+  const t = e.target;
+  const tag = (t?.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'textarea' || t?.isContentEditable) return;
+  if(e.key === 'z' && !e.shiftKey){ e.preventDefault(); undoLast(); }
+  else if((e.key === 'z' && e.shiftKey) || e.key === 'y'){ e.preventDefault(); redoLast(); }
+});
+
 // Esc pour sortir
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape' && document.body.classList.contains('is-presenting')){
