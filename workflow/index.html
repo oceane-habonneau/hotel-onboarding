@@ -995,6 +995,239 @@
     overflow-x:auto;
     white-space:pre-wrap;
   }
+  /* === Vue Contenus (briefs de rédaction) === */
+  .contents-modal{
+    max-width:min(1200px, 96vw);
+    width:96vw;
+    max-height:92vh;
+    display:flex;
+    flex-direction:column;
+    padding:20px 24px;
+  }
+  .contents-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .contents-head-title{flex:1;min-width:0}
+  .contents-head-title h3{
+    margin:0 0 6px;
+    font-size:16px;
+    color:var(--text);
+  }
+  .contents-progress{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-mute);
+  }
+  .contents-progress-bar{
+    flex:1;
+    max-width:200px;
+    height:4px;
+    background:var(--bg-2);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  #contentsProgressFill{
+    height:100%;
+    background:var(--c-lieu);
+    transition:width .25s;
+  }
+  .contents-toolbar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .contents-toolbar .btn{padding:6px 10px;font-size:12px}
+  .contents-filters{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:10px 0 14px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:12px;
+    flex-wrap:wrap;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .contents-filters label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .contents-filters select{
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:4px 8px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .contents-count{
+    margin-left:auto;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-mute);
+  }
+  .contents-viewport{
+    flex:1;
+    overflow-y:auto;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    min-height:400px;
+    max-height:calc(92vh - 200px);
+  }
+  .contents-body{
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  .contents-empty{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--text-mute);
+    font-style:italic;
+  }
+  .contents-lane{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px 18px;
+  }
+  .contents-lane--default{
+    border-color:var(--c-lieu);
+    border-width:1px;
+    background:linear-gradient(180deg, rgba(47,111,224,.03), transparent 40%);
+  }
+  .contents-lane-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding-bottom:10px;
+    border-bottom:1px dashed var(--line);
+    margin-bottom:14px;
+  }
+  .contents-lane-head h4{
+    margin:0;
+    font-size:15px;
+    color:var(--text);
+    flex:1;
+  }
+  .contents-lane-star{color:var(--c-jour);font-size:15px}
+  .contents-lane-count{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--text-mute);
+    background:var(--bg-2);
+    padding:2px 8px;
+    border-radius:100px;
+  }
+  .contents-groups{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .contents-group{}
+  .contents-group-time{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:var(--text-mute);
+    margin-bottom:8px;
+    padding-left:2px;
+  }
+  .contents-cards{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  @media(min-width:900px){
+    .contents-cards{grid-template-columns:1fr 1fr}
+  }
+  .contents-card{
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-left:3px solid var(--c-contenu);
+    border-radius:4px;
+    padding:10px 12px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .contents-card--filled{
+    background:rgba(30,166,114,.05);
+  }
+  .contents-card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .contents-card-title{
+    font-weight:600;
+    font-size:13px;
+    color:var(--text);
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .contents-card-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    padding:2px 6px;
+    border-radius:100px;
+    background:var(--bg-1);
+    color:var(--text-mute);
+    border:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .contents-card--filled .contents-card-badge{
+    background:rgba(30,166,114,.12);
+    color:var(--c-contenu);
+    border-color:transparent;
+  }
+  .contents-card-textarea{
+    width:100%;
+    min-height:60px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:8px 10px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:12.5px;
+    line-height:1.5;
+    resize:vertical;
+    outline:none;
+    transition:border-color .1s;
+  }
+  .contents-card-textarea:focus{
+    border-color:var(--c-contenu);
+  }
+  .contents-card-meta{
+    display:flex;
+    justify-content:flex-end;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--text-mute);
+  }
   .timeline-toolbar{
     display:flex;
     align-items:center;
@@ -1892,6 +2125,10 @@
       <button class="btn" id="btnDiagram" title="Vue schéma (diagramme de flux)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="M6 9v3h12V9"/><path d="M12 12v3"/></svg>
         Schéma
+      </button>
+      <button class="btn" id="btnContents" title="Rédiger les briefs de contenu par voie et point temps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+        Contenus
       </button>
       <button class="btn" id="btnPresent" title="Mode présentation (plein écran)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -5412,6 +5649,416 @@ function openDiagramView(){
 }
 
 document.getElementById('btnDiagram').addEventListener('click', openDiagramView);
+
+/* =========================================================
+   VUE CONTENUS (briefs de rédaction par voie et point temps)
+   =========================================================
+   Éditeur plein écran permettant de rédiger, pour chaque item de type
+   « contenu » présent dans le canvas, un brief de rédaction structuré ou
+   des notes libres. Ces briefs sont stockés sur l'item lui-même
+   (propriété `brief`, séparée du champ `note` opérationnel).
+
+   Rendu hiérarchique : voie → point temps → items contenu.
+   Filtres : par voie, par point temps, par état (vide/rempli).
+   Sauvegarde automatique dans le canvas courant (localStorage).
+   Export PDF A4 vertical, une page par voie. */
+
+/* Compte les items contenu dans le canvas et l'état de leur brief. */
+function contentsStats(canvas){
+  let total = 0, filled = 0;
+  (canvas.lanes || []).forEach(lane => {
+    (canvas.timeColumns || []).forEach(tc => {
+      const cell = (lane.cells || {})[tc.id];
+      if(!cell || cell.mergedTo) return;
+      (cell.items || []).forEach(it => {
+        if(it.catId === 'contenu'){
+          total++;
+          if((it.brief || '').trim().length > 0) filled++;
+        }
+      });
+    });
+  });
+  return { total, filled };
+}
+
+/* Structure de données pour l'éditeur : { laneId, laneLabel, isDefault,
+   groups: [{ tcId, tcTime, items: [{ item, cell }] }] } */
+function buildContentsIndex(canvas){
+  const index = [];
+  (canvas.lanes || []).forEach(lane => {
+    const groups = [];
+    (canvas.timeColumns || []).forEach(tc => {
+      const cell = (lane.cells || {})[tc.id];
+      if(!cell || cell.mergedTo) return;
+      const contentItems = (cell.items || []).filter(it => it.catId === 'contenu');
+      if(contentItems.length === 0) return;
+      groups.push({
+        tcId: tc.id,
+        tcTime: tc.time,
+        items: contentItems.map(item => ({ item, cell })),
+      });
+    });
+    if(groups.length > 0){
+      index.push({
+        laneId: lane.id,
+        laneLabel: lane.label,
+        isDefault: !!lane.isDefault,
+        groups,
+      });
+    }
+  });
+  return index;
+}
+
+let _contentsFilters = {
+  laneId: 'all',        // ID de voie ou 'all'
+  tcId: 'all',          // ID de colonne temps ou 'all'
+  state: 'all',         // 'all', 'empty', 'filled'
+};
+
+function openContentsView(){
+  const canvas = getCanvas();
+  if(!canvas){ toast('Aucun canvas actif'); return; }
+
+  const stats = contentsStats(canvas);
+  if(stats.total === 0){
+    toast('Aucun item de type contenu dans ce canvas');
+    return;
+  }
+
+  openCustomModal({
+    id: 'contentsModalBg',
+    content: `
+      <div class="modal modal-xl contents-modal">
+        <div class="contents-head">
+          <div class="contents-head-title">
+            <h3>Rédaction des contenus, ${escapeHtml(canvas.name || 'Workflow')}</h3>
+            <div class="contents-progress"><span id="contentsProgressText">${stats.filled} / ${stats.total} briefs rédigés</span><div class="contents-progress-bar"><div id="contentsProgressFill" style="width:${(stats.filled/stats.total*100).toFixed(0)}%"></div></div></div>
+          </div>
+          <div class="contents-toolbar">
+            <button class="btn primary" id="contentsExportPdf" title="Exporter tous les briefs en PDF A4">📄 Export PDF</button>
+            <button class="btn modal-close">Fermer</button>
+          </div>
+        </div>
+        <div class="contents-filters">
+          <label>Voie&nbsp;<select id="contentsFilterLane"><option value="all">Toutes</option></select></label>
+          <label>Point temps&nbsp;<select id="contentsFilterTc"><option value="all">Tous</option></select></label>
+          <label>État&nbsp;<select id="contentsFilterState"><option value="all">Tous</option><option value="empty">À rédiger</option><option value="filled">Rédigés</option></select></label>
+          <span class="contents-count" id="contentsCount"></span>
+        </div>
+        <div class="contents-viewport">
+          <div class="contents-body" id="contentsBody"></div>
+        </div>
+      </div>`,
+    onMount: (overlay, close) => {
+      const body = overlay.querySelector('#contentsBody');
+      const laneFilter = overlay.querySelector('#contentsFilterLane');
+      const tcFilter = overlay.querySelector('#contentsFilterTc');
+      const stateFilter = overlay.querySelector('#contentsFilterState');
+      const countEl = overlay.querySelector('#contentsCount');
+      const progressText = overlay.querySelector('#contentsProgressText');
+      const progressFill = overlay.querySelector('#contentsProgressFill');
+
+      // Peupler les selects
+      (canvas.lanes || []).forEach(lane => {
+        const opt = document.createElement('option');
+        opt.value = lane.id;
+        opt.textContent = lane.label + (lane.isDefault ? ' ★' : '');
+        laneFilter.appendChild(opt);
+      });
+      (canvas.timeColumns || []).forEach(tc => {
+        const opt = document.createElement('option');
+        opt.value = tc.id;
+        opt.textContent = tc.time;
+        tcFilter.appendChild(opt);
+      });
+
+      // Restaurer filtres
+      laneFilter.value = _contentsFilters.laneId;
+      tcFilter.value = _contentsFilters.tcId;
+      stateFilter.value = _contentsFilters.state;
+
+      function updateProgress(){
+        const s = contentsStats(canvas);
+        progressText.textContent = `${s.filled} / ${s.total} briefs rédigés`;
+        progressFill.style.width = (s.total > 0 ? (s.filled/s.total*100) : 0) + '%';
+      }
+
+      function renderBody(){
+        const index = buildContentsIndex(canvas);
+        body.innerHTML = '';
+        let shown = 0;
+        let totalVisible = 0;
+
+        index.forEach(laneBlock => {
+          if(_contentsFilters.laneId !== 'all' && laneBlock.laneId !== _contentsFilters.laneId) return;
+
+          // Filtrer les groupes selon les autres filtres
+          const filteredGroups = laneBlock.groups.map(g => {
+            if(_contentsFilters.tcId !== 'all' && g.tcId !== _contentsFilters.tcId) return null;
+            const filteredItems = g.items.filter(({item}) => {
+              if(_contentsFilters.state === 'empty') return !(item.brief || '').trim();
+              if(_contentsFilters.state === 'filled') return (item.brief || '').trim().length > 0;
+              return true;
+            });
+            if(filteredItems.length === 0) return null;
+            return { ...g, items: filteredItems };
+          }).filter(Boolean);
+
+          if(filteredGroups.length === 0) return;
+
+          const laneEl = document.createElement('div');
+          laneEl.className = 'contents-lane' + (laneBlock.isDefault ? ' contents-lane--default' : '');
+          laneEl.innerHTML = `
+            <div class="contents-lane-head">
+              ${laneBlock.isDefault ? '<span class="contents-lane-star">★</span>' : ''}
+              <h4>${escapeHtml(laneBlock.laneLabel)}</h4>
+              <span class="contents-lane-count">${filteredGroups.reduce((s,g) => s + g.items.length, 0)} briefs</span>
+            </div>
+            <div class="contents-groups"></div>
+          `;
+          const groupsEl = laneEl.querySelector('.contents-groups');
+          filteredGroups.forEach(g => {
+            const groupEl = document.createElement('div');
+            groupEl.className = 'contents-group';
+            groupEl.innerHTML = `<div class="contents-group-time">${escapeHtml(g.tcTime)}</div><div class="contents-cards"></div>`;
+            const cardsEl = groupEl.querySelector('.contents-cards');
+            g.items.forEach(({item, cell}) => {
+              const filled = (item.brief || '').trim().length > 0;
+              const card = document.createElement('div');
+              card.className = 'contents-card' + (filled ? ' contents-card--filled' : '');
+              card.innerHTML = `
+                <div class="contents-card-head">
+                  <span class="contents-card-title">${escapeHtml(item.value)}</span>
+                  <span class="contents-card-badge">${filled ? '✓ Rédigé' : 'À rédiger'}</span>
+                </div>
+                <textarea class="contents-card-textarea" placeholder="Ton, structure, points clés à couvrir, exemple de formulation..." rows="3">${escapeHtml(item.brief || '')}</textarea>
+                <div class="contents-card-meta">
+                  <span class="contents-card-count">0 caractères</span>
+                </div>
+              `;
+              const ta = card.querySelector('textarea');
+              const counter = card.querySelector('.contents-card-count');
+              const badge = card.querySelector('.contents-card-badge');
+
+              // Fonction auto-grow
+              const autoGrow = () => {
+                ta.style.height = 'auto';
+                ta.style.height = (ta.scrollHeight + 2) + 'px';
+              };
+              const updateCount = () => {
+                const n = ta.value.length;
+                counter.textContent = `${n} caractère${n > 1 ? 's' : ''}`;
+              };
+              updateCount();
+              requestAnimationFrame(autoGrow);
+
+              let saveTimer = null;
+              ta.addEventListener('input', () => {
+                autoGrow();
+                updateCount();
+                // Debounced save (300ms après la dernière frappe)
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                  item.brief = ta.value;
+                  saveState();
+                  const hasContent = ta.value.trim().length > 0;
+                  card.classList.toggle('contents-card--filled', hasContent);
+                  badge.textContent = hasContent ? '✓ Rédigé' : 'À rédiger';
+                  updateProgress();
+                }, 300);
+              });
+
+              cardsEl.appendChild(card);
+              shown++;
+            });
+            groupsEl.appendChild(groupEl);
+          });
+          body.appendChild(laneEl);
+          totalVisible += filteredGroups.reduce((s,g) => s + g.items.length, 0);
+        });
+
+        if(totalVisible === 0){
+          body.innerHTML = '<div class="contents-empty">Aucun brief ne correspond aux filtres actifs.</div>';
+        }
+        countEl.textContent = totalVisible + ' brief' + (totalVisible > 1 ? 's' : '');
+      }
+
+      // Handlers filtres
+      laneFilter.addEventListener('change', () => {
+        _contentsFilters.laneId = laneFilter.value;
+        renderBody();
+      });
+      tcFilter.addEventListener('change', () => {
+        _contentsFilters.tcId = tcFilter.value;
+        renderBody();
+      });
+      stateFilter.addEventListener('change', () => {
+        _contentsFilters.state = stateFilter.value;
+        renderBody();
+      });
+
+      // Export PDF
+      overlay.querySelector('#contentsExportPdf').addEventListener('click', () => {
+        exportContentsPdf(canvas);
+      });
+
+      renderBody();
+    }
+  });
+}
+
+/* Export PDF A4 vertical, une page par voie.
+   Chaque page contient : nom de la voie, puis pour chaque point temps
+   les items contenu avec leur brief rédigé. */
+async function exportContentsPdf(canvas){
+  try{
+    toast('Génération du PDF…');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();     // 210
+    const pageH = pdf.internal.pageSize.getHeight();    // 297
+    const marginX = 18;
+    const marginTop = 20;
+    const marginBottom = 20;
+    const contentW = pageW - 2 * marginX;
+
+    const index = buildContentsIndex(canvas);
+    if(index.length === 0){
+      toast('Aucun contenu à exporter');
+      return;
+    }
+
+    const canvasName = canvas.name || 'Workflow';
+    const dateStr = new Date().toLocaleDateString('fr-FR', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    let firstPage = true;
+
+    index.forEach(laneBlock => {
+      if(!firstPage) pdf.addPage();
+      firstPage = false;
+
+      let y = marginTop;
+
+      // En-tête de page
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(120, 120, 120);
+      pdf.text(canvasName + ' — ' + dateStr, marginX, y);
+      y += 8;
+
+      // Titre voie
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(16);
+      pdf.setTextColor(20, 20, 20);
+      const laneTitle = (laneBlock.isDefault ? '★ ' : '') + laneBlock.laneLabel;
+      const titleLines = pdf.splitTextToSize(laneTitle, contentW);
+      pdf.text(titleLines, marginX, y);
+      y += titleLines.length * 7 + 2;
+
+      // Ligne de séparation
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.3);
+      pdf.line(marginX, y, marginX + contentW, y);
+      y += 8;
+
+      laneBlock.groups.forEach(g => {
+        // Vérif page break
+        if(y > pageH - marginBottom - 30){
+          pdf.addPage();
+          y = marginTop;
+        }
+
+        // Point temps
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(g.tcTime, marginX, y);
+        y += 6;
+
+        g.items.forEach(({item}) => {
+          // Vérif page break
+          if(y > pageH - marginBottom - 20){
+            pdf.addPage();
+            y = marginTop;
+          }
+
+          // Titre item contenu
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(10.5);
+          pdf.setTextColor(30, 30, 30);
+          const itemLines = pdf.splitTextToSize('• ' + item.value, contentW - 4);
+          pdf.text(itemLines, marginX + 2, y);
+          y += itemLines.length * 5;
+
+          // Brief
+          const brief = (item.brief || '').trim();
+          if(brief){
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor(60, 60, 60);
+            const briefLines = pdf.splitTextToSize(brief, contentW - 8);
+            // Page break intelligent si le brief est long
+            const linesPerPage = Math.floor((pageH - marginBottom - y) / 4.5);
+            if(briefLines.length > linesPerPage){
+              // Rendu par morceaux
+              let remaining = [...briefLines];
+              while(remaining.length > 0){
+                const capacity = Math.floor((pageH - marginBottom - y) / 4.5);
+                if(capacity <= 0){
+                  pdf.addPage();
+                  y = marginTop;
+                  continue;
+                }
+                const chunk = remaining.slice(0, capacity);
+                remaining = remaining.slice(capacity);
+                pdf.text(chunk, marginX + 6, y);
+                y += chunk.length * 4.5;
+                if(remaining.length > 0){
+                  pdf.addPage();
+                  y = marginTop;
+                }
+              }
+            } else {
+              pdf.text(briefLines, marginX + 6, y);
+              y += briefLines.length * 4.5;
+            }
+            y += 4;
+          } else {
+            pdf.setFont('helvetica', 'italic');
+            pdf.setFontSize(9.5);
+            pdf.setTextColor(160, 160, 160);
+            pdf.text('(brief à rédiger)', marginX + 6, y);
+            y += 6;
+          }
+        });
+
+        y += 4; // espace entre groupes
+      });
+    });
+
+    // Numéros de page
+    const totalPages = pdf.getNumberOfPages();
+    for(let i = 1; i <= totalPages; i++){
+      pdf.setPage(i);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text(`${i} / ${totalPages}`, pageW - marginX, pageH - 10, { align: 'right' });
+    }
+
+    const filename = (canvasName).replace(/[^\w\-]+/g, '_') + '_contenus.pdf';
+    pdf.save(filename);
+    toast('📄 PDF généré');
+  } catch(err){
+    console.error(err);
+    toast('Erreur PDF, ' + (err.message || 'inconnu'));
+  }
+}
+
+document.getElementById('btnContents').addEventListener('click', openContentsView);
 
 /* =========================================================
    COMPARAISON CÔTE À CÔTE
